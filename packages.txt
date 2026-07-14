@@ -1,0 +1,18 @@
+# --- GUI Framework ---
+Kivy==2.3.1
+kivymd==1.2.0
+
+# --- AI & Vision ---
+ultralytics==8.4.69
+opencv-python==4.13.0.92
+torch
+torchvision
+
+# --- Database & Backend ---
+supabase==2.31.0
+
+# --- Data & Utilities ---
+numpy
+polars
+pillow
+psutil
