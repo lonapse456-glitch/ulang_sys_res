@@ -1,0 +1,13 @@
+hostname: OGAdmin24
+username: og_admin_24
+password: cleverprawndetectionJEEZ
+
+SSH: Enabled password authentication
+Raspi Connect: Enabled
+
+Supabase Account Setup
+email: lonapse456@gmail.com
+password: cleverprawndetectionJEEZ@24
+organization: ROLES (educational)
+project name: Ulang PL Counter System
+database password: UlangismCounterarum

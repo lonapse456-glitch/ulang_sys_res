@@ -1,0 +1,15 @@
+{
+    "timestamp": "Jul 11, 2026 09:42 PM",
+    "batch_id": "local_save_test",
+    "op_name": "oum",
+    "total_pl_count": 857,
+    "num_of_sbatch": 4,
+    "counts_of_sbatch": {
+        "SUB-BATCH 1": 131,
+        "SUB-BATCH 2": 176,
+        "SUB-BATCH 3": 296,
+        "SUB-BATCH 4": 254
+    },
+    "model_version": "ulang-obb-v2",
+    "accuracy": 0.0
+}

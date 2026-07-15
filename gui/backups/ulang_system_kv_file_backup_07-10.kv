@@ -1,0 +1,838 @@
+ScreenManager:
+    DashboardScreen:
+        id: dashboard_screen
+    SettingsScreen:
+        id: settings_screen
+    LogsScreen:
+        id: logs_screen
+# ---------------------------------------------------DASHBOARD PAGE-------------------------------------------------------
+<DashboardScreen>:
+    name: "dashboard"
+    md_bg_color: 0, 0, 0, 1 
+
+    MDBoxLayout:
+        orientation: 'vertical'
+        padding: 12
+        spacing: 12
+
+        MDBoxLayout:
+            size_hint_y: None
+            height: 36
+            spacing: 12
+
+            MDLabel:
+                text: "DASHBOARD"
+                font_name: "assets/sf_txt_bold.ttf"
+                font_size: 24
+                theme_text_color: "Custom"
+                text_color: 1, 1, 1, 1
+                size_hint_x: None
+                adaptive_width: True
+
+            MDLabel:
+                id: clock_label
+                text: "--"
+                font_name: "assets/sf_txt_reg.ttf"
+                font_size: 24
+                theme_text_color: "Custom"
+                halign: "left"
+                text_color: 1, 1, 1, 1
+
+            Image:
+                size_hint: None, None
+                source: "res/ic_wifi.png"
+                width: 26
+                height: 26
+                allow_stretch: True
+                keep_ratio: True
+                pos_hint: {"center_y": .5}
+            
+            Button:
+                text: "Settings"
+                font_name: "assets/sf_txt_reg.ttf"
+                background_normal: "res/btn_pill_gray_s.png"
+                background_down: "res/btn_pill_gray_s_down.png"
+                size_hint_x: None
+                on_release: app.go_to_settings()
+
+            Button:
+                text: "View Logs"
+                font_name: "assets/sf_txt_reg.ttf"
+                background_normal: "res/btn_pill_gray_s.png"
+                background_down: "res/btn_pill_gray_s_down.png"
+                size_hint_x: None
+                width: self.texture_size[0] + 24
+                on_release: app.go_to_logs()
+
+        MDBoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: 1
+            spacing: 12
+
+            # LEFT PANE: Camera Feed
+            MDCard:
+                size_hint_x: 0.6
+                md_bg_color: 0, 0, 0, 1
+                radius: [12, 12, 12, 12]
+
+                MDLabel:
+                    text: "LIVE YOLOv8 CAMERA FEED\\n\\n[size=14][color=#666666](Awaiting OpenCV Video Stream)[/color][/size]"
+                    halign: "center"
+                    theme_text_color: "Custom"
+                    text_color: 0.8, 0.8, 0.8, 1
+                    markup: True
+                    bold: True
+
+            # RIGHT PANE: Data & Controls
+            MDBoxLayout:
+                orientation: 'vertical'
+                size_hint: None, 1
+                width: 210
+
+                ScreenManager:
+                    id: data_pane_sm
+                    transition: app.get_fade_transition()
+
+                    Screen:
+                        name: 'panel_count_inactive'
+
+                        MDCard:
+                            orientation: 'vertical'
+                            size_hint_y: 1
+                            radius: [16]
+                            padding: 12
+                            spacing: 12
+                            md_bg_color: 0.3, 0.3, 0.3, 1
+
+                            MDBoxLayout:
+                                orientation: 'vertical'
+                                size_hint: 1, 0.2
+                                #adaptive_height: True
+                                valign: 'top'
+
+                                MDLabel:
+                                    text: "28.5 °C"
+                                    theme_text_color: "Custom"
+                                    text_color: 0.2, 0.8, 0.2, 1  # Green
+                                    font_name: "assets/sf_mono_bold.otf"
+                                    font_size: 32
+                                    size_hint_y: None
+                                    height: self.texture_size[1]
+
+                                MDLabel:
+                                    text: "WATER TEMP."
+                                    theme_text_color: "Custom"
+                                    text_color: 0.8, 0.8, 0.8, 1
+                                    font_name: "assets/sf_txt_reg.ttf"
+                                    font_size: 20
+                                    size_hint_y: None
+                                    height: self.texture_size[1]
+
+                            MDBoxLayout:
+                                orientation: 'vertical'
+                                size_hint: 1, 0.2
+                                #adaptive_height: True
+
+                                MDLabel:
+                                    text: "8.0 cm"
+                                    theme_text_color: "Custom"
+                                    text_color: 0.2, 0.8, 0.2, 1  # Green
+                                    font_name: "assets/sf_mono_bold.otf"
+                                    font_size: 32
+                                    size_hint_y: None
+                                    height: self.texture_size[1]
+
+                                MDLabel:
+                                    text: "WATER LEVEL"
+                                    theme_text_color: "Custom"
+                                    text_color: 0.8, 0.8, 0.8, 1
+                                    font_name: "assets/sf_txt_reg.ttf"
+                                    font_size: 20
+                                    size_hint_y: None
+                                    height: self.texture_size[1]
+
+                            MDBoxLayout:
+                                orientation: 'vertical'
+                                size_hint: 1, 0.2
+                                #adaptive_height: True
+
+                                MDLabel:
+                                    text: "2.0 L"
+                                    theme_text_color: "Custom"
+                                    text_color: 0.2, 0.8, 0.2, 1  # Green
+                                    font_name: "assets/sf_mono_bold.otf"
+                                    font_size: 32
+                                    size_hint_y: None
+                                    height: self.texture_size[1]
+
+                                MDLabel:
+                                    text: "WATER VOLUME"
+                                    theme_text_color: "Custom"
+                                    text_color: 0.8, 0.8, 0.8, 1
+                                    font_name: "assets/sf_txt_reg.ttf"
+                                    font_size: 20
+                                    size_hint_y: None
+                                    height: self.texture_size[1]
+
+                            MDSeparator:
+
+                            MDBoxLayout:
+                                orientation: 'vertical'
+                                size_hint: 1, 0.5
+                                spacing: 12
+
+                                Widget:
+                                    size_hint: 1, 1
+
+                                PillToggleButton:
+                                    id: toggle_aerator
+                                    size_hint: 1, None
+                                    height: 64
+                                    markup: True
+                                    text: "[font=assets/sf_txt_bold.ttf][size=24]OPERATING[/font][/size]\\n[size=20][font=assets/sf_txt_reg.ttf]AERATOR[/font][/size]" if self.is_active else "[font=assets/sf_txt_bold.ttf][size=24]IDLE[/font][/size]\\n[size=20][font=assets/sf_txt_reg.ttf]AERATOR[/font][/size]"
+                                    halign: 'center'
+                                    color_on: '#0078ff'
+                                    color_off: 0, 0.47, 1, 0.2
+                                    line_height: 0.9
+
+                                Widget:
+                                    size_hint: 1, 1
+
+                                PillToggleButton:
+                                    id: toggle_led_panels
+                                    size_hint: 1, None
+                                    height: 64
+                                    markup: True
+                                    text: "[font=assets/sf_txt_bold.ttf][size=24]ON[/font][/size]\\n[size=20][font=assets/sf_txt_reg.ttf]LED PANELS[/font][/size]" if self.is_active else "[font=assets/sf_txt_bold.ttf][size=24]OFF[/font][/size]\\n[size=20][font=assets/sf_txt_reg.ttf]LED PANELS[/font][/size]"
+                                    halign: 'center'
+                                    color_on: 'ccba00'
+                                    color_off: 0.8, 0.73, 0, 0.2
+                                    line_height: 0.9
+
+                                Widget:
+                                    size_hint: 1, 1
+
+                    Screen:
+                        name: "panel_count_active"
+
+                        MDCard:
+                            orientation: 'vertical'
+                            size_hint_y: 1
+                            radius: [16]
+                            padding: 12
+                            spacing: 12
+                            md_bg_color: 0.3, 0.3, 0.3, 1
+
+                            ScrollView:
+                                do_scroll_x: False # Force vertical scrolling only
+                                size_hint: 1, 0.6
+
+                                MDBoxLayout:
+                                    id: sub_batch_scrollview
+                                    orientation: 'vertical'
+                                    size_hint_y: None
+                                    height: self.minimum_height # CRITICAL: Allows scrolling
+
+                            MDSeparator:
+
+                            MDBoxLayout:
+                                id: sub_batch_list
+                                orientation: 'vertical'
+                                size_hint: 1, 0.4
+
+                                Widget:
+                                    size_hint: 1,1
+
+                                MDLabel:
+                                    id: total_count
+                                    text: str(app.total_count) if app.total_count else "--"
+                                    theme_text_color: "Custom"
+                                    text_color: '#0078ff'
+                                    font_name: "assets/sf_mono_bold.otf"
+                                    font_size: 32
+                                    size_hint_y: None
+                                    height: self.texture_size[1]
+                                    halign: 'center'
+
+                                MDLabel:
+                                    text: "TOTAL PL COUNT"
+                                    theme_text_color: "Custom"
+                                    text_color: 1, 1, 1, 1
+                                    font_name: "assets/sf_txt_reg.ttf"
+                                    font_size: 20
+                                    size_hint_y: None
+                                    height: self.texture_size[1]
+                                    halign: 'center'
+
+                                Widget:
+                                    size_hint: 1,1
+
+                                Button:
+                                    text: "COUNT" if app.is_counting else "+SUB-BATCH"
+                                    size_hint: 1, None
+                                    height: 56
+                                    font_size: 24
+                                    font_name: "assets/sf_txt_bold.ttf"
+                                    background_normal: "res/btn_pill_blue_l.png"
+                                    background_down: "res/btn_pill_blue_l_down.png"
+                                    on_release:
+                                        app.count_on_click()
+                                
+        MDBoxLayout:
+            orientation: 'vertical'
+            size_hint: 1, None
+            height: 56
+        
+            ScreenManager:
+                id: btm_btn_container
+                transition: app.get_fade_transition()
+
+                Screen:
+                    name: 'btn_count_inactive'
+        
+                    Button:
+                        id: start_btn
+                        text: "START BATCH COUNT"
+                        size_hint: 1, None
+                        height: 56
+                        font_size: 24
+                        font_name: "assets/sf_txt_bold.ttf"
+                        background_normal: "res/btn_pill_blue_l_expanded.png"
+                        background_down: "res/btn_pill_blue_l_down_expanded.png"
+                        on_release: 
+                            app.show_entry_details()
+
+                Screen:
+                    name: 'btn_count_active'
+
+                    MDBoxLayout:
+                        orientation: 'horizontal'
+                        size_hint: 1, None
+                        adaptive_height: True
+                        spacing: 12
+        
+                        Button:
+                            text: "ABORT"
+                            size_hint: 1, None
+                            height: 56
+                            font_size: 24
+                            font_name: "assets/sf_txt_bold.ttf"
+                            border: 28, 28, 28, 28
+                            background_normal: "res/btn_pill_red_l.png"
+                            background_down: "res/btn_pill_red_l_down.png"
+                            on_release:
+                                app.deactivate_count()
+
+                        Button:
+                            text: "FINISH"
+                            size_hint: 1, None
+                            height: 56
+                            font_size: 24
+                            font_name: "assets/sf_txt_bold.ttf"
+                            border: 28, 28, 28, 28
+                            background_normal: "res/btn_pill_green_l.png"
+                            background_down: "res/btn_pill_green_l_down.png"
+# --------------------------------------------------SETTINGS PAGE-------------------------------------------------------
+<SettingsScreen>:
+    name: "settings"
+    md_bg_color: 0.08, 0.08, 0.08, 1
+
+    MDBoxLayout:
+        orientation: 'vertical'
+        size_hint_y: 1
+        padding: 12
+        spacing: 12
+
+        MDBoxLayout:
+            size_hint: 1, None
+            height: 36
+            spacing: 12
+
+            Button:
+                id: btn_bck_dashboard
+                text: "Dashboard"
+                font_name: "assets/sf_txt_reg.ttf"
+                background_normal: "res/btn_pill_gray_s.png"
+                background_down: "res/btn_pill_gray_s_down.png"
+                size_hint_x: None
+                width: self.texture_size[0] + 24
+                height: self.texture_size[1]
+                on_release: 
+                    app.go_to_dashboard()
+
+            MDLabel:
+                text: "Settings"
+                halign: 'center'
+                font_name: "assets/sf_txt_bold.ttf"
+                font_size: 24
+                theme_text_color: "Custom"
+                text_color: 1, 1, 1, 1
+                size_hint_x: 1
+
+            Widget:
+                size_hint_x: None
+                width: root.ids.btn_bck_dashboard.width - 26
+
+            Image:
+                size_hint: None, None
+                source: "res/ic_wifi.png"
+                width: 26
+                height: 26
+                allow_stretch: True
+                keep_ratio: 
+                pos_hint: {"center_y": .5}
+
+        ScrollView:
+            do_scroll_x: False # Force vertical scrolling only
+            size_hint: 1, 1
+
+            MDBoxLayout:
+                id: sub_batch_scrollview
+                orientation: 'vertical'
+                size_hint_y: None
+                height: self.minimum_height # CRITICAL: Allows scrolling
+                spacing: 12
+
+                MDCard:
+                    orientation: 'horizontal'
+                    size_hint: 1, None
+                    height: 64
+                    padding: 12
+                    spacing: 12
+
+                    MDLabel:
+                        text: "Wi-Fi"
+                        halign: 'left'
+                        font_name: "assets/sf_txt_reg.ttf"
+                        font_size: 24
+                        theme_text_color: "Custom"
+                        text_color: 1, 1, 1, 1
+                        size_hint_x: 1
+
+                    MDLabel:
+                        text: "Connected to SSID"
+                        halign: 'right'
+                        font_name: "assets/sf_txt_reg.ttf"
+                        font_size: 24
+                        theme_text_color: "Custom"
+                        text_color: 1, 1, 1, 0.5
+                        size_hint_x: 1
+
+                MDCard:
+                    orientation: 'horizontal'
+                    size_hint: 1, None
+                    height: 64
+                    padding: [19, 0, 19, 0]
+                    spacing: 12
+
+                    MDLabel:
+                        text: "Screen Brightness"
+                        halign: 'left'
+                        font_name: "assets/sf_txt_reg.ttf"
+                        font_size: 24
+                        theme_text_color: "Custom"
+                        text_color: 1, 1, 1, 1
+                        size_hint_x: 0.3
+
+                    Slider:
+                        min: 0
+                        max: 100
+                        value: 60
+                        step: 20
+                        size_hint_x: 0.7
+                        value_track: True
+                        value_track_color: '#ffff00'
+                        cursor_size: 64, 34
+                        cursor_image: 'res/slider_cursor.png'
+                        background_width: 0
+
+                        canvas.before:
+                            Color:
+                                rgba: 0.25, 0.25, 0.25, 1  # Your custom empty color (Dark Gray)
+                            Line:
+                                # THE MATH TRAP: Kivy Line width is a radius (half the thickness).
+                                # To match the 18dp value_track_width, this must be 9dp!
+                                width: 4 
+                                cap: 'round'
+                                
+                                # Draw the line exactly from the left padding to the right padding
+                                points: [self.x + self.padding, self.center_y, self.right - self.padding, self.center_y]
+
+                MDCard:
+                    orientation: 'vertical'
+                    size_hint: 1, None
+                    height: self.minimum_height
+                    padding: [19, 0, 19, 0]
+
+                    MDLabel:
+                        text: "Sync Logs to Cloud"
+                        halign: 'left'
+                        font_name: "assets/sf_txt_reg.ttf"
+                        font_size: 24
+                        theme_text_color: "Custom"
+                        text_color: '#008ade'
+                        size_hint: 1, None
+                        height: 64
+
+                    MDSeparator:
+
+                    MDLabel:
+                        text: "Export Logs"
+                        halign: 'left'
+                        font_name: "assets/sf_txt_reg.ttf"
+                        font_size: 24
+                        theme_text_color: "Custom"
+                        text_color: '#008ade'
+                        size_hint: 1, None
+                        height: 64
+
+                    MDSeparator:
+
+                    MDLabel:
+                        text: "Clear Locally Stored Logs"
+                        halign: 'left'
+                        font_name: "assets/sf_txt_reg.ttf"
+                        font_size: 24
+                        theme_text_color: "Custom"
+                        text_color: 'db3838'
+                        size_hint: 1, None
+                        height: 64
+
+# --------------------------------------------------LOGS PAGE-------------------------------------------------------
+<LogsScreen>:
+    name: "logs"
+    md_bg_color: 0.08, 0.08, 0.08, 1
+
+    MDBoxLayout:
+        orientation: 'vertical'
+        size_hint_y: 1
+        padding: 12
+        spacing: 12
+
+        MDBoxLayout:
+            size_hint: 1, None
+            height: 36
+            spacing: 12
+
+            Button:
+                id: logs_btn_bck_dashboard
+                text: "Dashboard"
+                font_name: "assets/sf_txt_reg.ttf"
+                background_normal: "res/btn_pill_gray_s.png"
+                background_down: "res/btn_pill_gray_s_down.png"
+                size_hint_x: None
+                width: self.texture_size[0] + 24
+                height: self.texture_size[1]
+                on_release: 
+                    app.go_to_dashboard()
+
+            MDLabel:
+                text: "Logs"
+                halign: 'center'
+                font_name: "assets/sf_txt_bold.ttf"
+                font_size: 24
+                theme_text_color: "Custom"
+                text_color: 1, 1, 1, 1
+                size_hint_x: 1
+
+            Widget:
+                size_hint_x: None
+                width: root.ids.logs_btn_bck_dashboard.width - 26
+
+            Image:
+                size_hint: None, None
+                source: "res/ic_wifi.png"
+                width: 26
+                height: 26
+                allow_stretch: True
+                keep_ratio: 
+                pos_hint: {"center_y": .5}
+
+            Button:
+                id: logs_btn_bck_dashboard
+                text: "Sync Logs"
+                font_name: "assets/sf_txt_reg.ttf"
+                background_normal: "res/btn_pill_gray_s.png"
+                background_down: "res/btn_pill_gray_s_down.png"
+                size_hint_x: None
+                width: self.texture_size[0] + 24
+                height: self.texture_size[1]
+# --------------------------------------------------CUSTOM CLASSES-------------------------------------------------------
+<Snackbar>:
+    id: snackbar
+    size_hint: None, None
+    size: dp(350), 48
+    opacity: 0
+    pos_hint: {"center_x": 0.5, "center_y": 0.05} 
+    padding: 14
+    elevation: 3
+    shadow_color: 0, 0, 0, 0.1
+    canvas.before:
+        Color:
+            rgba: 1, 1, 1, 1 
+            
+        BorderImage:
+            pos: self.pos
+            size: self.size
+            source: 'res/bg_snackbar_red.png' if root.warning_mode else 'res/bg_snackbar_white.png'
+            border: [24, 24, 24, 24]
+    
+    MDLabel:
+        id: toast_text
+        text: ""
+        font_name: 'assets/sf_txt_reg.ttf'
+        font_size: 20
+        theme_text_color: "Custom"
+        text_color: (1, 1, 1, 1) if root.warning_mode else (0, 0, 0, 1)
+        halign: 'center'
+
+<BatchCountDialog@Popup>
+    width: 500
+    height: 350
+    size_hint: None, None
+    background: ''
+    background_color: 0, 0, 0, 0
+    separator_height: 0
+    title: ""
+    auto_dismiss: False
+
+    MDBoxLayout:
+        orientation: 'vertical'
+        size_hint: 1, None
+        height: 350
+        spacing: 28
+        padding: 12
+
+        canvas.before:
+            Color:
+                rgba: 1, 1, 1, 1 # Ensure the image renders at full brightness
+            BorderImage:
+                source: 'res/bg_dialog.png'
+                pos: self.pos
+                size: self.size
+                border: [35, 35, 35, 35]
+
+        MDBoxLayout:
+            orientation: 'vertical'
+            size_hint: 1, None
+            spacing: 8
+            padding: 15
+
+            MDLabel:
+                text: "Batch Count Details"
+                font_name: "assets/sf_txt_bold.ttf"
+                font_size: 24
+                text_color: 1, 1, 1, 1
+                size_hint_x: 1
+                halign: 'left'
+
+            MDLabel:
+                text: "Please provide the following details before you start counting."
+                font_name: "assets/sf_txt_reg.ttf"
+                font_size: 20
+                text_color: 1, 1, 1, 1
+                size_hint_x: 1
+                halign: 'left'
+
+        MDBoxLayout:
+            orientation: 'vertical'
+            size_hint: 1, None
+            height: 108
+            spacing: 12
+
+            TextInput:
+                id: input_name_batch
+                hint_text: "Enter Batch Name or ID"
+                multiline: False
+                size_hint_y: None
+                height: 48
+                padding: ["16dp", 10, "16dp", 8]
+                background_normal: 'res/bg_txt_field_inactive.png'
+                background_active: 'res/bg_txt_field_active.png'
+                border: [1, 1, 1,1]  
+                font_name: "assets/sf_txt_reg.ttf"
+                font_size: 24
+                foreground_color: 1, 1, 1, 1
+
+            TextInput:
+                id: input_name_op
+                hint_text: "Enter Operator's Name"
+                multiline: False
+                size_hint_y: None
+                height: 48
+                padding: ["16dp", 10, "16dp", 8]
+                background_normal: 'res/bg_txt_field_inactive.png'
+                background_active: 'res/bg_txt_field_active.png'
+                border: [1, 1, 1,1]  
+                font_name: "assets/sf_txt_reg.ttf"
+                font_size: 24
+                foreground_color: 1, 1, 1, 1
+
+        MDBoxLayout:
+            orientation: 'horizontal'
+            size_hint: 1, None
+            spacing: 12
+            height: 64
+
+            Button:
+                text: "CANCEL"
+                size_hint: 1, None
+                height: 56
+                font_size: 24
+                font_name: "assets/sf_txt_bold.ttf"
+                background_normal: "res/btn_pill_gray_l.png"
+                background_down: "res/btn_pill_gray_l_down.png"
+                on_release:
+                    root.dismiss()
+
+            Button:
+                text: "PROCEED"
+                size_hint: 1, None
+                height: 56
+                font_size: 24
+                font_name: "assets/sf_txt_bold.ttf"
+                background_normal: "res/btn_pill_blue_l.png"
+                background_down: "res/btn_pill_blue_l_down.png"
+                on_release: 
+                    app.activate_count(input_name_batch = root.ids.input_name_batch.text, input_name_op = root.ids.input_name_op.text)
+
+<SystemDialog@Popup>
+    width: 500
+    height: dialog_container.height
+    size_hint: None, None
+    background: ''
+    background_color: 0, 0, 0, 0
+    separator_height: 0
+    title: ""
+
+    MDBoxLayout:
+        id: dialog_container
+        orientation: "vertical"
+        size_hint: 1, None
+        height: 215
+        padding: 12
+
+        canvas.before:
+            Color:
+                rgba: 1, 1, 1, 1 # Ensure the image renders at full brightness
+            BorderImage:
+                source: 'res/bg_dialog.png'
+                pos: self.pos
+                size: self.size
+                border: [35, 35, 35, 35]
+
+        MDBoxLayout:
+            orientation: 'vertical'
+            size_hint: 1, 1
+            spacing: 19
+
+            MDBoxLayout:
+                orientation: 'vertical'
+                size_hint: 1, 1
+                spacing: 8
+                padding: 15
+
+                MDLabel:
+                    text: root.dialog_title
+                    font_name: "assets/sf_txt_bold.ttf"
+                    font_size: 24
+                    text_color: 1, 1, 1, 1
+                    size_hint_x: 1
+                    height: self.texture_size[1]
+                    halign: 'left'
+
+                MDLabel:
+                    text: root.dialog_msg
+                    font_name: "assets/sf_txt_reg.ttf"
+                    font_size: 20
+                    text_color: 1, 1, 1, 1
+                    size_hint_x: 1
+                    height: self.texture_size[1]
+                    halign: 'left'
+
+            MDBoxLayout:
+                orientation: 'horizontal'
+                size_hint: 1, None
+                spacing: 12
+                height: 56
+
+                Button:
+                    text: "CANCEL"
+                    size_hint: 1, None
+                    height: 56
+                    font_size: 24
+                    font_name: "assets/sf_txt_bold.ttf"
+                    background_normal: "res/btn_pill_gray_l.png"
+                    background_down: "res/btn_pill_gray_l_down.png"
+                    on_release:
+                        root.dismiss()
+
+                Button:
+                    text: "PROCEED"
+                    size_hint: 1, None
+                    height: 56
+                    font_size: 24
+                    font_name: "assets/sf_txt_bold.ttf"
+                    background_normal: "res/btn_pill_green_l.png" if root.mode == "normal" else "res/btn_pill_red_l.png"
+                    background_down: "res/btn_pill_green_l_down.png" if root.mode == "normal" else  "res/btn_pill_red_l_down.png"
+                    on_release: 
+                        root.execute_proceed()
+
+<PillToggleButton>:
+    background_color: 0, 0, 0, 0
+    background_normal: ''
+    background_down: ''
+    color: 1, 1, 1, 1
+    canvas.before:
+        Color:
+            rgba: self.color_pressed if self.state == 'down' else self.current_color
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [self.height / 2]
+
+<SubBatchItem>
+    orientation: "vertical"
+    size_hint: 1, None
+    height: 64
+    radius: [4, 4, 4, 4]
+    md_bg_color: (1, 1, 1, 1) if root.is_active else (0, 0, 0, 0)
+                    
+    MDBoxLayout:
+        size_hint: 1, None
+        orientation: "horizontal"
+
+        MDBoxLayout:
+            size_hint: 1, None
+            orientation: "vertical"
+            spacing: 3
+            padding: 8
+
+            MDLabel:
+                text: root.batch_name
+                theme_text_color: "Custom"
+                text_color: (0,0,0,1) if root.is_active else (1, 1, 1, 1)
+                font_name: "assets/sf_txt_reg.ttf"
+                font_size: 14
+                size_hint: 1, None
+                height: self.texture_size[1]
+                halign: 'left'
+
+            MDLabel:
+                text: str(root.count) if not root.count == -1 else "--"
+                theme_text_color: "Custom"
+                text_color: "#0078ff"
+                font_name: "assets/sf_mono_bold.otf"
+                font_size: 20
+                size_hint: 1, None
+                height: self.texture_size[1]
+                halign: 'left'
+                    
+        MDIconButton:
+            icon: "res/ic_erase_itm_s.png"
+            theme_text_color: "Custom"
+            on_release: app.remove_sub_batch(root)
+            height: 16
+            width: 16
+
+    MDSeparator:
