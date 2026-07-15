@@ -237,9 +237,6 @@ ScreenManager:
                                     color_off: 0, 0.47, 1, 0.2
                                     line_height: 0.9
 
-                                Widget:
-                                    size_hint: 1, 1
-
                                 PillToggleButton:
                                     id: toggle_led_panels
                                     size_hint: 1, None
