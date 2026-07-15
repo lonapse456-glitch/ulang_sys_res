@@ -1,5 +1,0 @@
-train: D:/ULANG SYSTEM RES/training/dataset_v1-0/images/train
-val: D:/ULANG SYSTEM RES/training/dataset_v1-0/images/val
-
-nc: 1
-names: ['larvae']
