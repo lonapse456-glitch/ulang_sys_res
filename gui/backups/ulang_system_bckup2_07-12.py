@@ -426,14 +426,14 @@ ScreenManager:
                 pos_hint: {"center_y": .5}
 
         ScrollView:
-            do_scroll_x: False # Force vertical scrolling only
+            do_scroll_x: False
             size_hint: 1, 1
 
             MDBoxLayout:
                 id: sub_batch_scrollview
                 orientation: 'vertical'
                 size_hint_y: None
-                height: self.minimum_height # CRITICAL: Allows scrolling
+                height: self.minimum_height
                 spacing: 12
 
                 MDCard:
@@ -491,14 +491,10 @@ ScreenManager:
 
                         canvas.before:
                             Color:
-                                rgba: 0.25, 0.25, 0.25, 1  # Your custom empty color (Dark Gray)
+                                rgba: 0.25, 0.25, 0.25, 1
                             Line:
-                                # THE MATH TRAP: Kivy Line width is a radius (half the thickness).
-                                # To match the 18dp value_track_width, this must be 9dp!
                                 width: 4 
                                 cap: 'round'
-                                
-                                # Draw the line exactly from the left padding to the right padding
                                 points: [self.x + self.padding, self.center_y, self.right - self.padding, self.center_y]
 
                 MDCard:
@@ -603,11 +599,10 @@ ScreenManager:
 
         RecycleView:
             id: logs_recycle_view
-            viewclass: 'BatchLogItem' # <--- Points directly to your custom MDCard!
-            
-            # This layout manager handles the scrolling math
+            viewclass: 'BatchLogItem'
+
             RecycleBoxLayout:
-                default_size: None, 215 # Approximate starting height of your card
+                default_size: None, 215
                 default_size_hint: 1, None
                 size_hint_y: None
                 height: self.minimum_height
@@ -868,7 +863,7 @@ ScreenManager:
             height: self.texture_size[1]
             font_size: 24
             halign: 'left'
-            text: f"[font=assets/sf_mono_bold.otf][color=#ffffff]BATCH ID: [/font][/color][font=assets/sf_mono_bold.otf][color=#ffffff]{root.log_id_batch}[/font][/color]"
+            text: f"[font=assets/sf_mono_reg.otf][color=#ffffff]BATCH ID: [/font][/color][font=assets/sf_mono_bold.otf][color=#ffff00]{root.log_id_batch}[/font][/color]"
 
         MDLabel:
             size_hint_x: 1
