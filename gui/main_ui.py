@@ -1,11 +1,10 @@
 from supabase import create_client, Client
 import threading
 import copy
-import json # NEW: Needed to write the .json file
-import os   # NEW: Needed to create folders safely
+import json
+import os
 
 from kivy.config import Config
-# Force Kivy to use the onscreen virtual keyboard for the 7-inch touchscreen
 Config.set('kivy', 'keyboard_mode', 'systemandmulti')
 
 from kivymd.app import MDApp
@@ -57,6 +56,7 @@ ScreenManager:
         spacing: 12
 
         MDBoxLayout:
+            size_hiny_x: 1
             size_hint_y: None
             height: 36
             spacing: 12
@@ -91,6 +91,7 @@ ScreenManager:
             Button:
                 text: "Settings"
                 font_name: "assets/sf_txt_reg.ttf"
+                font_size: 18
                 background_normal: "res/btn_pill_gray_s.png"
                 background_down: "res/btn_pill_gray_s_down.png"
                 size_hint_x: None
@@ -99,6 +100,7 @@ ScreenManager:
             Button:
                 text: "View Logs"
                 font_name: "assets/sf_txt_reg.ttf"
+                font_size: 18
                 background_normal: "res/btn_pill_gray_s.png"
                 background_down: "res/btn_pill_gray_s_down.png"
                 size_hint_x: None
@@ -147,16 +149,15 @@ ScreenManager:
 
                             MDBoxLayout:
                                 orientation: 'vertical'
-                                size_hint: 1, 0.2
-                                #adaptive_height: True
-                                valign: 'top'
+                                size_hint: 1, 0.18
+                                valign: 'bottom'
 
                                 MDLabel:
                                     text: "28.5 °C"
                                     theme_text_color: "Custom"
-                                    text_color: 0.2, 0.8, 0.2, 1  # Green
+                                    text_color: 0.2, 0.8, 0.2, 1 
                                     font_name: "assets/sf_mono_bold.otf"
-                                    font_size: 32
+                                    font_size: 30
                                     size_hint_y: None
                                     height: self.texture_size[1]
 
@@ -165,13 +166,14 @@ ScreenManager:
                                     theme_text_color: "Custom"
                                     text_color: 0.8, 0.8, 0.8, 1
                                     font_name: "assets/sf_txt_reg.ttf"
-                                    font_size: 20
+                                    font_size: 18
                                     size_hint_y: None
+                                    valign: 'top'
                                     height: self.texture_size[1]
 
                             MDBoxLayout:
                                 orientation: 'vertical'
-                                size_hint: 1, 0.2
+                                size_hint: 1, 0.18
                                 #adaptive_height: True
 
                                 MDLabel:
@@ -179,7 +181,7 @@ ScreenManager:
                                     theme_text_color: "Custom"
                                     text_color: 0.2, 0.8, 0.2, 1  # Green
                                     font_name: "assets/sf_mono_bold.otf"
-                                    font_size: 32
+                                    font_size: 30
                                     size_hint_y: None
                                     height: self.texture_size[1]
 
@@ -188,21 +190,21 @@ ScreenManager:
                                     theme_text_color: "Custom"
                                     text_color: 0.8, 0.8, 0.8, 1
                                     font_name: "assets/sf_txt_reg.ttf"
-                                    font_size: 20
+                                    font_size: 18
                                     size_hint_y: None
                                     height: self.texture_size[1]
 
                             MDBoxLayout:
                                 orientation: 'vertical'
-                                size_hint: 1, 0.2
-                                #adaptive_height: True
+                                size_hint: 1, 0.18
+                                valign: 'bottom'
 
                                 MDLabel:
                                     text: "2.0 L"
                                     theme_text_color: "Custom"
                                     text_color: 0.2, 0.8, 0.2, 1  # Green
                                     font_name: "assets/sf_mono_bold.otf"
-                                    font_size: 32
+                                    font_size: 30
                                     size_hint_y: None
                                     height: self.texture_size[1]
 
@@ -211,7 +213,7 @@ ScreenManager:
                                     theme_text_color: "Custom"
                                     text_color: 0.8, 0.8, 0.8, 1
                                     font_name: "assets/sf_txt_reg.ttf"
-                                    font_size: 20
+                                    font_size: 18
                                     size_hint_y: None
                                     height: self.texture_size[1]
 
@@ -219,16 +221,13 @@ ScreenManager:
 
                             MDBoxLayout:
                                 orientation: 'vertical'
-                                size_hint: 1, 0.5
+                                size_hint: 1, 0.42
                                 spacing: 12
-
-                                Widget:
-                                    size_hint: 1, 1
 
                                 PillToggleButton:
                                     id: toggle_aerator
                                     size_hint: 1, None
-                                    height: 64
+                                    height: 56
                                     markup: True
                                     text: "[font=assets/sf_txt_bold.ttf][size=24]OPERATING[/font][/size]\\n[size=20][font=assets/sf_txt_reg.ttf]AERATOR[/font][/size]" if self.is_active else "[font=assets/sf_txt_bold.ttf][size=24]IDLE[/font][/size]\\n[size=20][font=assets/sf_txt_reg.ttf]AERATOR[/font][/size]"
                                     halign: 'center'
@@ -242,16 +241,13 @@ ScreenManager:
                                 PillToggleButton:
                                     id: toggle_led_panels
                                     size_hint: 1, None
-                                    height: 64
+                                    height: 56
                                     markup: True
                                     text: "[font=assets/sf_txt_bold.ttf][size=24]ON[/font][/size]\\n[size=20][font=assets/sf_txt_reg.ttf]LED PANELS[/font][/size]" if self.is_active else "[font=assets/sf_txt_bold.ttf][size=24]OFF[/font][/size]\\n[size=20][font=assets/sf_txt_reg.ttf]LED PANELS[/font][/size]"
                                     halign: 'center'
                                     color_on: 'ccba00'
                                     color_off: 0.8, 0.73, 0, 0.2
                                     line_height: 0.9
-
-                                Widget:
-                                    size_hint: 1, 1
 
                     Screen:
                         name: "panel_count_active"
@@ -395,6 +391,7 @@ ScreenManager:
                 id: btn_bck_dashboard
                 text: "Dashboard"
                 font_name: "assets/sf_txt_reg.ttf"
+                font_size: 18
                 background_normal: "res/btn_pill_gray_s.png"
                 background_down: "res/btn_pill_gray_s_down.png"
                 size_hint_x: None
@@ -570,6 +567,7 @@ ScreenManager:
                 id: logs_btn_bck_dashboard
                 text: "Dashboard"
                 font_name: "assets/sf_txt_reg.ttf"
+                font_size: 18
                 background_normal: "res/btn_pill_gray_s.png"
                 background_down: "res/btn_pill_gray_s_down.png"
                 size_hint_x: None
@@ -604,6 +602,7 @@ ScreenManager:
                 id: logs_btn_bck_dashboard
                 text: "Sync Logs"
                 font_name: "assets/sf_txt_reg.ttf"
+                font_size: 18
                 background_normal: "res/btn_pill_gray_s.png"
                 background_down: "res/btn_pill_gray_s_down.png"
                 size_hint_x: None
