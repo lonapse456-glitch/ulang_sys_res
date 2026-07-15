@@ -1,6 +1,4 @@
 raspberry_pi_setup.txt
-import json.py
-gemini-code-1782878392477.py
 data_v2-0.yaml
 data_v1-0.yaml
 ulang_sys_env/
@@ -11,7 +9,6 @@ pending_sync/
 kivy_study/
 annotation_predictions/
 yolov8n-obb.pt
-yolo26n.pt
 train_v2-0.py
 train_v1-0.py
-run_model.py
+opencv_yolo_inference_study/
