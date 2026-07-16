@@ -762,7 +762,7 @@ ScreenManager:
 
 <WifiConnectDialog@Popup>
     width: 500
-    height: 350
+    height: 364
     size_hint: None, None
     background: ''
     background_color: 0, 0, 0, 0
@@ -773,7 +773,7 @@ ScreenManager:
     MDBoxLayout:
         orientation: 'vertical'
         size_hint: 1, None
-        height: 350
+        height: 364
         spacing: 28
         padding: 12
 
@@ -788,12 +788,12 @@ ScreenManager:
 
         MDBoxLayout:
             orientation: 'vertical'
-            size_hint: 1, None
-            spacing: 8
-            padding: 15
+            size_hint: 1, 1
+            spacing: 12
+            padding: [15, 12, 15, 8]
 
             MDLabel:
-                text: "Connect to a Wi-Fi Network" if app.is_online else "Change Wi-Fi Network"
+                text: "Connect to a Wi-Fi Network" if not app.is_online else "Change Wi-Fi Network"
                 font_name: "assets/sf_txt_bold.ttf"
                 font_size: 24
                 text_color: 1, 1, 1, 1
@@ -869,7 +869,7 @@ ScreenManager:
                 background_normal: "res/btn_pill_blue_l.png"
                 background_down: "res/btn_pill_blue_l_down.png"
                 on_release:
-                    print(f"User Input:\nSSID:{root.ids.input_ssid.text}\npassword:{root.ids.input_password.text"}) 
+                    print(f"[INFO: User Input] SSID:{root.ids.input_ssid.text} password:{root.ids.input_password.text}") 
 
 <SystemDialog>
     width: 500
