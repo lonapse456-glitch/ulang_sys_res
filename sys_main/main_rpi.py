@@ -790,12 +790,12 @@ ScreenManager:
 
         MDBoxLayout:
             orientation: 'vertical'
-            size_hint: 1, None
+            size_hint: 1, 1
             spacing: 12
-            padding: [15, 12, 15, 8]
+            padding: [15, 10, 15, 8]
 
             MDLabel:
-                text: "Connect to a Wi-Fi Network" if app.is_online else "Change Wi-Fi Network"
+                text: "Connect to a Wi-Fi Network" if not app.is_online else "Change Wi-Fi Network"
                 font_name: "assets/sf_txt_bold.ttf"
                 font_size: 24
                 text_color: 1, 1, 1, 1
