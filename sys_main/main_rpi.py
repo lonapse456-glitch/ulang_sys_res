@@ -873,7 +873,7 @@ ScreenManager:
                 background_normal: "res/btn_pill_blue_l.png"
                 background_down: "res/btn_pill_blue_l_down.png"
                 on_release:
-                    print(f"[INFO: User Input] SSID:{root.ids.input_ssid.text} password:{root.ids.input_password.text}") 
+                    app.connect_to_new_wifi(input_ssid.text, input_password.text)
 
 <SystemDialog>
     width: 500
@@ -1085,6 +1085,17 @@ ScreenManager:
     MDSeparator:
 '''
 
+def config_conn_wifi(ssid, password):
+    try:
+        # Pushes the connect command to the OS
+        subprocess.check_call([
+            'sudo', 'nmcli', 'device', 'wifi', 'connect', ssid, 'password', password
+        ])
+        return True
+    except subprocess.CalledProcessError:
+        # Wrong password or network out of range
+        return False
+
 class DashboardScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -1209,20 +1220,19 @@ class UlangSystemApp(MDApp):
     def build(self):
         self.theme_cls.theme_style = "Dark"
         self.theme_cls.primary_palette = "Green"
+        self.is_online = self.get_wifi_stat()['connected']
         Clock.schedule_interval(self.update_wifi_stat, 2.0)
 
         try:
             self.db_client: Client = create_client(self.SUPABASE_API_URL, self.SUPABASE_API_KEY)
-            print("Successfully connected to Supabase Cloud!")
+            print("[INFO] Successfully connected to Supabase Cloud.")
+
         except Exception as e:
             err = e
             print(f"[WARNING] Cloud connection failed. Running offline. Error: {err}")
 
         Window.bind(on_key_down=self.on_keyboard_down)
         return Builder.load_string(INTERFACE)
-
-    def get_fade_transition(self):
-        return FadeTransition(duration=0.1)
 
     def on_start(self):
         """Called automatically after the app builds. We set up GPIO here."""
@@ -1236,7 +1246,7 @@ class UlangSystemApp(MDApp):
 
         if not self.is_online:
             self.show_snackbar(message = "System is Running Offline", warning_mode=True)
-            
+
         # METHOD 2: Physical GPIO Push Buttons
         if GPIO_AVAILABLE:
             # Map GPIO Pin 17 to go to Settings (E.g. "NEXT" button)
@@ -1262,6 +1272,9 @@ class UlangSystemApp(MDApp):
         # Keycode 13 = Standard Enter, Keycode 271 = Numpad Enter
         elif keycode in [13, 271]:
             self.start_batch_count()
+
+    def get_fade_transition(self):
+        return FadeTransition(duration=0.1)
 
     def update_wifi_stat(self, dt):
         status = self.get_wifi_stat()
@@ -1314,7 +1327,17 @@ class UlangSystemApp(MDApp):
             # Occurs if nmcli is busy or hardware is missing
             return {"connected": False, "ssid": "Error", "strength": 0}
         except Exception as e:
-            return {"connected": False, "ssid": "Error", "strength": 0}     
+            return {"connected": False, "ssid": "Error", "strength": 0}
+        
+    def connect_to_new_wifi(self, ssid, password):
+        connected = config_conn_wifi(ssid, password) 
+
+        if connected:
+            self.show_snackbar(message = f"Connected to {ssid}")
+
+        else:
+            self.show_snackbar(message="Failed to connect to the Network", warning_mode=True)
+
 #==================================================SCREEN NAVIGATION FUNCTIONS===============================================
     def go_to_settings(self, *args):
         if self.root.current != "settings":
@@ -1500,17 +1523,6 @@ class UlangSystemApp(MDApp):
             command_on_proceed = execute_deletion)
         dialog.open()
 
-    def show_sys_dialog(self, title = "", msg = "", mode = "normal", cmd = None, **kwargs):
-        dialog = SystemDialog(
-            dialog_title = title,
-            dialog_msg = msg,
-            mode = mode,
-            command_on_proceed = cmd
-        )
-        dialog.open()
-
-    def function_test(self):
-        print("Congrats it works")
 #=======================================================Database Functions=============================================================
     def save_batch_log(self):
         self.payload.update({
@@ -1544,7 +1556,6 @@ class UlangSystemApp(MDApp):
                 folder_name = "pending_sync"
                 os.makedirs(folder_name, exist_ok=True) 
 
-                safe_batch_name = str(cached_payload["batch_id"]).replace(" ", "_")
                 filename = f"BCH{datetime.now().strftime("%Y%d%m%H%M-%f")}.json"
                 filepath = os.path.join(folder_name, filename)
 
