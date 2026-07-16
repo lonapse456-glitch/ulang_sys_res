@@ -3,6 +3,7 @@ import threading
 import copy
 import json
 import os
+import subprocess
 
 from kivy.config import Config
 Config.set('kivy', 'keyboard_mode', 'systemandmulti')
@@ -83,9 +84,9 @@ ScreenManager:
 
             Image:
                 size_hint: None, None
-                source: "res/ic_wifi.png"
                 width: 26
                 height: 26
+                source: f"res/ic_wifi_{app.wifi_stat[app.wifi_strength]}.png"
                 allow_stretch: True
                 keep_ratio: True
                 pos_hint: {"center_y": .5}
@@ -414,7 +415,7 @@ ScreenManager:
 
             Image:
                 size_hint: None, None
-                source: "res/ic_wifi.png"
+                source: f"res/ic_wifi_{app.wifi_stat[app.wifi_strength]}.png"
                 width: 26
                 height: 26
                 allow_stretch: True
@@ -460,6 +461,7 @@ ScreenManager:
                         size_hint_x: 1
 
                     MDLabel:
+                        id: txt_conn_stat_ssid
                         text: "Connected to SSID"
                         halign: 'right'
                         font_name: "assets/sf_txt_reg.ttf"
@@ -592,7 +594,7 @@ ScreenManager:
 
             Image:
                 size_hint: None, None
-                source: "res/ic_wifi.png"
+                source: f"res/ic_wifi_{app.wifi_stat[app.wifi_strength]}.png"
                 width: 26
                 height: 26
                 allow_stretch: True
@@ -1176,6 +1178,9 @@ class UlangSystemApp(MDApp):
     count_active = BooleanProperty(False)
     is_counting = BooleanProperty(False)
     is_online = BooleanProperty(False)
+    wifi_stat = ['disconnected', '1', '2', '3', '4']
+    wifi_strength = NumericProperty(0)
+
 #===PLACEHOLDERS
     dialog = None
     sub_batch_history = {}
@@ -1196,6 +1201,7 @@ class UlangSystemApp(MDApp):
     current_active_widget = ObjectProperty(None, allownone=True)
     snackbar = None
     empty_chamber = True
+
 #===CLIENT CREATION
     SUPABASE_API_URL = 'https://nltmvrjxasslpqbdyamg.supabase.co'
     SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sdG12cmp4YXNzbHBxYmR5YW1nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2MjcwNzUsImV4cCI6MjA5OTIwMzA3NX0.LCwGdbW5DVKSjl8Qql65LjQQgjOYMkhre7y3q94Eo68'
@@ -1203,15 +1209,15 @@ class UlangSystemApp(MDApp):
     def build(self):
         self.theme_cls.theme_style = "Dark"
         self.theme_cls.primary_palette = "Green"
+        Clock.schedule_interval(self.update_wifi_stat, 2.0)
+
         try:
             self.db_client: Client = create_client(self.SUPABASE_API_URL, self.SUPABASE_API_KEY)
-            self.is_online = True
             print("Successfully connected to Supabase Cloud!")
         except Exception as e:
-            self.is_online = False
-            print(f"WARNING: Cloud connection failed. Running offline. Error: {e}")
-        # METHOD 1: USB Numpad/Keyboard Bindings
-        # Listen for any physical keyboard/numpad presses across the entire window
+            err = e
+            print(f"[WARNING] Cloud connection failed. Running offline. Error: {err}")
+
         Window.bind(on_key_down=self.on_keyboard_down)
         return Builder.load_string(INTERFACE)
 
@@ -1227,6 +1233,10 @@ class UlangSystemApp(MDApp):
         self.aerator = self.root.ids.dashboard_screen.ids.toggle_aerator
         self.led_panels = self.root.ids.dashboard_screen.ids.toggle_led_panels
         self.sub_batch_scrollview = self.root.ids.dashboard_screen.ids.sub_batch_scrollview
+
+        if not self.is_online:
+            self.show_snackbar(message = "System is Running Offline", warning_mode=True)
+            
         # METHOD 2: Physical GPIO Push Buttons
         if GPIO_AVAILABLE:
             # Map GPIO Pin 17 to go to Settings (E.g. "NEXT" button)
@@ -1252,6 +1262,59 @@ class UlangSystemApp(MDApp):
         # Keycode 13 = Standard Enter, Keycode 271 = Numpad Enter
         elif keycode in [13, 271]:
             self.start_batch_count()
+
+    def update_wifi_stat(self, dt):
+        status = self.get_wifi_stat()
+        self.is_online = status["connected"]
+        wifi_text_widget = self.root.ids.settings_screen.ids.txt_conn_stat_ssid
+        
+        if not status["connected"]:
+            self.wifi_strength = 0
+            wifi_text_widget.text = "Disconnected"
+            return
+            
+        # Update the network name
+        wifi_text_widget.text = f"Connected to {status["ssid"]}"
+        # Map signal strength (0-100)
+        strength = status["strength"]
+        if strength >= 75:
+            self.wifi_strength = 4
+        elif strength >= 50:
+            self.wifi_strength = 3
+        elif strength >= 25:
+            self.wifi_strength = 2
+        elif strength > 0:
+            self.wifi_strength = 1
+
+    def get_wifi_stat(self):
+        """
+        Queries the OS for active Wi-Fi connections and signal strength.
+        Returns a dictionary with status, SSID, and strength (0-100).
+        """
+        try:
+            # Ask nmcli for terse (-t) output of active status, SSID, and signal strength
+            result = subprocess.check_output(
+                ['nmcli', '-t', '-f', 'active,ssid,signal', 'dev', 'wifi'],
+                text=True
+            )
+            # Parse the output line by line
+            for line in result.split('\n'):
+                # Line format yes:My_Network_Name:85
+                if line.startswith('yes'):
+                    parts = line.split(':')
+                    return {
+                        "connected": True, 
+                        "ssid": parts[1], 
+                        "strength": int(parts[2]) # 0 to 100
+                    }
+
+            return {"connected": False, "ssid": "Disconnected", "strength": 0}
+            
+        except subprocess.CalledProcessError:
+            # Occurs if nmcli is busy or hardware is missing
+            return {"connected": False, "ssid": "Error", "strength": 0}
+        except Exception as e:
+            return {"connected": False, "ssid": "Error", "strength": 0}     
 #==================================================SCREEN NAVIGATION FUNCTIONS===============================================
     def go_to_settings(self, *args):
         if self.root.current != "settings":
