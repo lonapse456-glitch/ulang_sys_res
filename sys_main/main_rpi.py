@@ -1089,7 +1089,7 @@ def config_conn_wifi(ssid, password):
     try:
         # Pushes the connect command to the OS
         subprocess.check_call([
-            'sudo', 'nmcli', 'device', 'wifi', 'connect', ssid, 'password', password
+            'nmcli', 'device', 'wifi', 'connect', ssid, 'password', password
         ])
         return True
     except subprocess.CalledProcessError:
