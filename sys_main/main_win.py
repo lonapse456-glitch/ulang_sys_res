@@ -6,8 +6,6 @@ import os
 
 from kivy.config import Config
 Config.set('kivy', 'keyboard_mode', 'systemandmulti')
-Config.set('graphics', 'fullscreen', 'auto')
-Config.set('graphics', 'resizable', False)
 
 from kivymd.app import MDApp
 from kivy.lang import Builder
@@ -875,7 +873,7 @@ ScreenManager:
             height: self.texture_size[1]
             font_size: 24
             halign: 'left'
-            text: f"[font=assets/sf_mono_bold.otf][color=#ffffff]BATCH ID: [/font][/color][font=assets/sf_mono_bold.otf][color=#ffffff]{root.log_id_batch}[/font][/color]"
+            text: f"[font=assets/sf_mono_bold.otf][color=#ffffff]BATCH ID: [/font][/color][font=assets/sf_mono_reg.otf][color=#ffff00]{root.log_id_batch}[/font][/color]"
 
         MDLabel:
             size_hint_x: 1
