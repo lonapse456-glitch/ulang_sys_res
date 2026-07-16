@@ -871,7 +871,7 @@ ScreenManager:
                 background_normal: "res/btn_pill_blue_l.png"
                 background_down: "res/btn_pill_blue_l_down.png"
                 on_release:
-                    print(f"User Input:\nSSID:{root.ids.input_ssid.text}\npassword:{root.ids.input_password.text}) 
+                    print(f"User Input:\nSSID:{root.ids.input_ssid.text}\npassword:{root.ids.input_password.text}") 
 
 <SystemDialog>
     width: 500
