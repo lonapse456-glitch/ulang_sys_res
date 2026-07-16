@@ -436,6 +436,8 @@ ScreenManager:
                     height: 64
                     padding: 12
                     spacing: 12
+                    on_release: 
+                        app.show_wifi_dialog()
 
                     Image:
                         size_hint: None, None
@@ -757,6 +759,117 @@ ScreenManager:
                 background_down: "res/btn_pill_blue_l_down.png"
                 on_release: 
                     app.activate_count(input_name_batch = root.ids.input_name_batch.text, input_name_op = root.ids.input_name_op.text)
+
+<WifiConnectDialog@Popup>
+    width: 500
+    height: 350
+    size_hint: None, None
+    background: ''
+    background_color: 0, 0, 0, 0
+    separator_height: 0
+    title: ""
+    auto_dismiss: False
+
+    MDBoxLayout:
+        orientation: 'vertical'
+        size_hint: 1, None
+        height: 350
+        spacing: 28
+        padding: 12
+
+        canvas.before:
+            Color:
+                rgba: 1, 1, 1, 1 # Ensure the image renders at full brightness
+            BorderImage:
+                source: 'res/bg_dialog.png'
+                pos: self.pos
+                size: self.size
+                border: [35, 35, 35, 35]
+
+        MDBoxLayout:
+            orientation: 'vertical'
+            size_hint: 1, None
+            spacing: 8
+            padding: 15
+
+            MDLabel:
+                text: "Connect to a Wi-Fi Network" if app.is_online else "Change Wi-Fi Network"
+                font_name: "assets/sf_txt_bold.ttf"
+                font_size: 24
+                text_color: 1, 1, 1, 1
+                size_hint_x: 1
+                halign: 'left'
+
+            MDLabel:
+                text: "To change or connect to a Wi-Fi, enter SSID and password. Leave password empty if not required."
+                font_name: "assets/sf_txt_reg.ttf"
+                font_size: 20
+                text_color: 1, 1, 1, 1
+                size_hint_x: 1
+                halign: 'left'
+
+        MDBoxLayout:
+            orientation: 'vertical'
+            size_hint: 1, None
+            height: 108
+            spacing: 12
+
+            TextInput:
+                id: input_ssid
+                hint_text: "Enter Network Name/SSID"
+                multiline: False
+                size_hint_y: None
+                height: 48
+                padding: ["16dp", 10, "16dp", 8]
+                background_normal: 'res/bg_txt_field_inactive.png'
+                background_active: 'res/bg_txt_field_active.png'
+                border: [1, 1, 1,1]  
+                font_name: "assets/sf_txt_reg.ttf"
+                font_size: 24
+                foreground_color: 1, 1, 1, 1
+
+            TextInput:
+                id: input_password
+                hint_text: "Enter password"
+                multiline: False
+                password: True
+                size_hint_y: None
+                height: 48
+                padding: ["16dp", 10, "16dp", 8]
+                background_normal: 'res/bg_txt_field_inactive.png'
+                background_active: 'res/bg_txt_field_active.png'
+                border: [1, 1, 1,1]  
+                font_name: "assets/sf_txt_reg.ttf"
+                font_size: 24
+                foreground_color: 1, 1, 1, 1
+
+        MDBoxLayout:
+            orientation: 'horizontal'
+            size_hint: 1, None
+            spacing: 12
+            height: 64
+
+            Button:
+                text: "CANCEL"
+                size_hint: 1, None
+                height: 56
+                font_size: 24
+                font_name: "assets/sf_txt_bold.ttf"
+                background_normal: "res/btn_pill_gray_l.png"
+                background_down: "res/btn_pill_gray_l_down.png"
+                on_release:
+                    root.dismiss()
+
+            Button:
+                text: "CONNECT"
+                size_hint: 1, None
+                height: 56
+                font_size: 24
+                font_name: "assets/sf_txt_bold.ttf"
+                background_normal: "res/btn_pill_blue_l.png"
+                background_down: "res/btn_pill_blue_l_down.png"
+                on_release:
+                    print(f"User Input:\nSSID:{root.ids.input_ssid.text}\npassword:{root.ids.input_password.text}) 
 
 <SystemDialog>
     width: 500
@@ -1161,6 +1274,10 @@ class UlangSystemApp(MDApp):
 
     def show_entry_details(self, *args):
         self.popup = Factory.BatchCountDialog()
+        self.popup.open()
+
+    def show_wifi_dialog(self, *args):
+        self.popup = Factory.WifiConnectDialog()
         self.popup.open()
 
     def process_wifi_connection(self, *args):
