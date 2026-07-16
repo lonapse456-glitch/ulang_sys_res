@@ -16,3 +16,6 @@ v2.0 - June 22, 2026
 - trained using rtx 3050 4gb VRAM gpu for 0.245 hrs
 - image size = 640
 - see "runs\obb\ulang_obb_v2-0\args.yaml" for more info
+
+=> Deployment Models
+-> used for deployment
