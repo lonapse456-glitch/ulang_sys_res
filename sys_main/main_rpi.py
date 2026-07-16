@@ -1089,7 +1089,18 @@ def config_conn_wifi(ssid, password):
     try:
         # Pushes the connect command to the OS
         subprocess.check_call([
-            'nmcli', 'device', 'wifi', 'connect', ssid, 'password', password
+            'nmcli', 'connection', 'add', 
+            'type', 'wifi', 
+            'con-name', ssid, 
+            'ifname', 'wlan0', 
+            'ssid', ssid, 
+            'wifi-sec.key-mgmt', 'wpa-psk', 
+            'wifi-sec.psk', password
+        ])
+        
+        # Step 2: Now that the profile exists, tell the Pi to switch to it
+        subprocess.check_call([
+            'nmcli', 'connection', 'up', ssid
         ])
         return True
     except subprocess.CalledProcessError:
@@ -1334,7 +1345,7 @@ class UlangSystemApp(MDApp):
 
         if connected:
             self.show_snackbar(message = f"Connected to {ssid}")
-
+            self.popup.dismiss()
         else:
             self.show_snackbar(message="Failed to connect to the Network", warning_mode=True)
 
