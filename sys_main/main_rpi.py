@@ -7,8 +7,8 @@ import subprocess
 
 from kivy.config import Config
 Config.set('kivy', 'keyboard_mode', 'systemandmulti')
-Config.set('graphics', 'fullscreen', 'auto')
-Config.set('graphics', 'resizable', False)
+#Config.set('graphics', 'fullscreen', 'auto')
+#Config.set('graphics', 'resizable', False)
 
 from kivymd.app import MDApp
 from kivy.lang import Builder
@@ -1151,7 +1151,7 @@ class LogsScreen(Screen):
                     except Exception as e:
                         print(f"Error reading local log {filename}: {e}")
 
-        #LOAD CLOUD (OR LOCAL HISTORY) LOGS
+        # LOAD CLOUD (OR LOCAL HISTORY) LOGS
         try:
             response = self.db_client.table("batch_count_history_logs").select("*").order("timestamp", desc=True).limit(50).execute()
             
@@ -1162,8 +1162,6 @@ class LogsScreen(Screen):
         except Exception as e:
             err = e
             print(f"Offline Mode Active. Could not reach Supabase: {err}")
-            # FALLBACK: If you implement a 'synced_history' local folder, 
-            # you would run a loop similar to Step 1 right here!
 
         # SORT THE MERGED LIST BY TIMESTAMP
         try:
@@ -1177,7 +1175,6 @@ class LogsScreen(Screen):
         #FORMAT FOR RECYCLEVIEW & UPDATE UI
         rv_data = []
         for log in master_log_list:
-            # Map the database keys to the variables expected by your KV viewclass
             rv_data.append({
                 "log_id_batch": str(log.get("batch_id", "UNKNOWN")),
                 "log_timestamp": str(log.get("timestamp", "No Date")),
@@ -1187,12 +1184,9 @@ class LogsScreen(Screen):
                 "log_margin_of_err": float(log.get("accuracy", 0.0))
             })
 
-        # Safely teleport the data back to the Kivy Main Thread
         Clock.schedule_once(lambda dt: self.update_rv(rv_data))
 
     def update_rv(self, formatted_data):
-        # Stop loading spinner here
-        # Inject data into the RecycleView
         self.ids.logs_recycle_view.data = formatted_data
 
 class UlangSystemApp(MDApp):
@@ -1415,6 +1409,7 @@ class UlangSystemApp(MDApp):
 #-----------Clear Placeholders and Payload
             self.sub_batch_history.clear()
             self.total_count = 0
+            self.total_batches_created = 0
             self.name_count_batch = ""
             self.name_operator = ""
             self.payload.update({
@@ -1478,7 +1473,6 @@ class UlangSystemApp(MDApp):
             duration=0.3, 
             t="in_quad"
         )
-
 #-------Completely remove it from the Window memory when done
         anim_out.bind(on_complete=lambda *args: Window.remove_widget(self.snackbar))
         anim_out.bind(on_complete=lambda *args: Window.remove_widget(self.snackbar))
@@ -1491,12 +1485,10 @@ class UlangSystemApp(MDApp):
 #-----------Increment the absolute counter
             self.total_batches_created += 1
             new_name = f"SUB-BATCH {self.total_batches_created}"
-            
             new_widget = SubBatchItem(
                 batch_name=new_name,
                 is_active=True
             )
-            
 #-----------Add to UI and Backend Data
             self.sub_batch_scrollview.add_widget(new_widget)
             self.sub_batch_history[new_name] = -1 

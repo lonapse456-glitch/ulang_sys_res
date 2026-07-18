@@ -3,6 +3,7 @@ import threading
 import copy
 import json
 import os
+import subprocess
 
 from kivy.config import Config
 Config.set('kivy', 'keyboard_mode', 'systemandmulti')
@@ -81,7 +82,7 @@ ScreenManager:
 
             Image:
                 size_hint: None, None
-                source: "res/ic_wifi.png"
+                source: "res/ic_wifi_4.png"
                 width: 26
                 height: 26
                 allow_stretch: True
