@@ -12,3 +12,4 @@ yolov8n-obb.pt
 train_v2-0.py
 train_v1-0.py
 opencv_yolo_inference_study/
+ulang_obb_ml_backend/
