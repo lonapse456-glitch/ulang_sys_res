@@ -18,3 +18,7 @@ numpy
 polars
 pillow
 psutil
+
+# --- Label Studio ---
+label-studio
+label-studio-ml
