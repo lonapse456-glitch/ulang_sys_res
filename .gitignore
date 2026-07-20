@@ -13,3 +13,4 @@ train_v2-0.py
 train_v1-0.py
 opencv_yolo_inference_study/
 label_studio_ml_backend/
+__pycache__/
