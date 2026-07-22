@@ -1,0 +1,92 @@
+{
+  "event": "PROJECT_UPDATED",
+  "job_id": "1784608944",
+  "data": {
+    "project": {
+      "id": 17,
+      "task_number": 57,
+      "finished_task_number": 13,
+      "total_predictions_number": 6,
+      "total_annotations_number": 13,
+      "num_tasks_with_annotations": 13,
+      "useful_annotation_number": 13,
+      "ground_truth_number": 0,
+      "skipped_annotations_number": 0,
+      "title": "ulang_pl_set01",
+      "description": "",
+      "label_config": "<View>\n  <Image name=\"image\" value=\"$image\"/>\n  <RectangleLabels name=\"label\" toName=\"image\" model_score_threshold=\"0.25\">\n    <Label value=\"postlarvae\" background=\"blue\" predicted_value=\"postlarvae\"/>\n  </RectangleLabels>\n</View>",
+      "parsed_label_config": {
+        "label": {
+          "type": "RectangleLabels",
+          "to_name": [
+            "image"
+          ],
+          "inputs": [
+            {
+              "type": "Image",
+              "valueType": null,
+              "value": "image"
+            }
+          ],
+          "labels": [
+            "postlarvae"
+          ],
+          "labels_attrs": {
+            "postlarvae": {
+              "value": "postlarvae",
+              "background": "blue",
+              "predicted_value": "postlarvae"
+            }
+          }
+        }
+      },
+      "label_config_hash": 262178733619305475,
+      "expert_instruction": "",
+      "show_instruction": false,
+      "show_skip_button": true,
+      "enable_empty_annotation": true,
+      "reveal_preannotations_interactively": false,
+      "show_annotation_history": false,
+      "show_collab_predictions": true,
+      "evaluate_predictions_automatically": false,
+      "token": "OsYuGY5ns5y4MYbooohKU7tEvJQlI7kOb9ENDs60",
+      "result_count": 0,
+      "color": "#9AC422",
+      "maximum_annotations": 1,
+      "min_annotations_to_start_training": 0,
+      "control_weights": {
+        "label": {
+          "overall": 1.0,
+          "type": "RectangleLabels",
+          "labels": {
+            "postlarvae": 1.0
+          }
+        }
+      },
+      "model_version": "ulang_obb_v2",
+      "data_types": {
+        "image": "Image"
+      },
+      "is_draft": false,
+      "is_published": false,
+      "created_at": "2026-07-19T04:05:14.065152Z",
+      "updated_at": "2026-07-21T04:42:23.682346Z",
+      "sampling": "Sequential sampling",
+      "skip_queue": "REQUEUE_FOR_OTHERS",
+      "show_ground_truth_first": false,
+      "annotator_evaluation_enabled": false,
+      "show_overlap_first": false,
+      "overlap_cohort_percentage": 100,
+      "task_data_login": null,
+      "task_data_password": null,
+      "pinned_at": null,
+      "custom_task_lock_ttl": null,
+      "deleted_at": null,
+      "purge_at": null,
+      "search_vector": null,
+      "organization": 1,
+      "created_by": 1,
+      "deleted_by": null
+    }
+  }
+}

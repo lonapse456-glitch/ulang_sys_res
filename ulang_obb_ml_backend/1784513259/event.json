@@ -1,0 +1,479 @@
+{
+  "event": "ANNOTATION_CREATED",
+  "job_id": "1784513259",
+  "data": {
+    "annotation": {
+      "id": 293,
+      "result": [
+        {
+          "original_width": 3024,
+          "original_height": 4032,
+          "image_rotation": 0,
+          "value": {
+            "x": 36.33490374665798,
+            "y": 47.31103865839362,
+            "width": 6.688888840953839,
+            "height": 6.837617211537153,
+            "rotation": 32.1851058918885,
+            "rectanglelabels": [
+              "postlarvae"
+            ]
+          },
+          "id": "TJsJ3DjUa7",
+          "from_name": "label",
+          "to_name": "image",
+          "type": "rectanglelabels",
+          "origin": "manual"
+        },
+        {
+          "original_width": 3024,
+          "original_height": 4032,
+          "image_rotation": 0,
+          "value": {
+            "x": 42.674629080391234,
+            "y": 67.02189083456378,
+            "width": 5.881670289233537,
+            "height": 5.497897017083556,
+            "rotation": 21.058937544861067,
+            "rectanglelabels": [
+              "postlarvae"
+            ]
+          },
+          "id": "pib55JUsK1",
+          "from_name": "label",
+          "to_name": "image",
+          "type": "rectanglelabels",
+          "origin": "manual"
+        },
+        {
+          "original_width": 3024,
+          "original_height": 4032,
+          "image_rotation": 0,
+          "value": {
+            "x": 89.10119075355757,
+            "y": 60.520709511523116,
+            "width": 5.229968000396393,
+            "height": 4.956583309466545,
+            "rotation": 351.21688464388217,
+            "rectanglelabels": [
+              "postlarvae"
+            ]
+          },
+          "id": "WXhPua3_2V",
+          "from_name": "label",
+          "to_name": "image",
+          "type": "rectanglelabels",
+          "origin": "manual"
+        },
+        {
+          "original_width": 3024,
+          "original_height": 4032,
+          "image_rotation": 0,
+          "value": {
+            "x": 5.892118260705607,
+            "y": 69.53715776161211,
+            "width": 5.6978726037592695,
+            "height": 2.913684854195097,
+            "rotation": 0,
+            "rectanglelabels": [
+              "postlarvae"
+            ]
+          },
+          "id": "4CZikvobx9",
+          "from_name": "label",
+          "to_name": "image",
+          "type": "rectanglelabels",
+          "origin": "manual"
+        },
+        {
+          "original_width": 3024,
+          "original_height": 4032,
+          "image_rotation": 0,
+          "value": {
+            "x": 0,
+            "y": 80.5148248042574,
+            "width": 5.4388783944974834,
+            "height": 2.9136848541950826,
+            "rotation": 0,
+            "rectanglelabels": [
+              "postlarvae"
+            ]
+          },
+          "id": "0CTQKrf5DF",
+          "from_name": "label",
+          "to_name": "image",
+          "type": "rectanglelabels",
+          "origin": "manual"
+        },
+        {
+          "original_width": 3024,
+          "original_height": 4032,
+          "image_rotation": 0,
+          "value": {
+            "x": 40.46784519715389,
+            "y": 86.34219451264757,
+            "width": 7.3813349639608745,
+            "height": 4.1277202101097,
+            "rotation": 0,
+            "rectanglelabels": [
+              "postlarvae"
+            ]
+          },
+          "id": "GAnV_uMQUR",
+          "from_name": "label",
+          "to_name": "image",
+          "type": "rectanglelabels",
+          "origin": "manual"
+        },
+        {
+          "original_width": 3024,
+          "original_height": 4032,
+          "image_rotation": 0,
+          "value": {
+            "x": 60.928387728834906,
+            "y": 91.68395007867187,
+            "width": 6.928095097752745,
+            "height": 3.3021761680877546,
+            "rotation": 0,
+            "rectanglelabels": [
+              "postlarvae"
+            ]
+          },
+          "id": "-BaP2Bhen7",
+          "from_name": "label",
+          "to_name": "image",
+          "type": "rectanglelabels",
+          "origin": "manual"
+        },
+        {
+          "original_width": 3024,
+          "original_height": 4032,
+          "image_rotation": 0,
+          "value": {
+            "x": 69.14904954290462,
+            "y": 92.08412732902794,
+            "width": 4.28612473739787,
+            "height": 4.433614102446903,
+            "rotation": 332.2717425776815,
+            "rectanglelabels": [
+              "postlarvae"
+            ]
+          },
+          "id": "lRoJXtwJIz",
+          "from_name": "label",
+          "to_name": "image",
+          "type": "rectanglelabels",
+          "origin": "manual"
+        },
+        {
+          "original_width": 3024,
+          "original_height": 4032,
+          "image_rotation": 0,
+          "value": {
+            "x": 87.86138907499247,
+            "y": 83.51228689467494,
+            "width": 4.1366216001422424,
+            "height": 4.5774091476983605,
+            "rotation": 0,
+            "rectanglelabels": [
+              "postlarvae"
+            ]
+          },
+          "id": "rsD4k_THvL",
+          "from_name": "label",
+          "to_name": "image",
+          "type": "rectanglelabels",
+          "origin": "manual"
+        },
+        {
+          "original_width": 3024,
+          "original_height": 4032,
+          "image_rotation": 0,
+          "value": {
+            "x": 58.419778867501684,
+            "y": 32.13979472202913,
+            "width": 8.682924281652326,
+            "height": 4.110154731683799,
+            "rotation": 0,
+            "rectanglelabels": [
+              "postlarvae"
+            ]
+          },
+          "id": "Z_Oxjd7YNi",
+          "from_name": "label",
+          "to_name": "image",
+          "type": "rectanglelabels",
+          "origin": "manual"
+        },
+        {
+          "original_width": 3024,
+          "original_height": 4032,
+          "image_rotation": 0,
+          "value": {
+            "x": 58.34860735699633,
+            "y": 15.272146732261879,
+            "width": 8.398238239630949,
+            "height": 4.964212857747958,
+            "rotation": 0,
+            "rectanglelabels": [
+              "postlarvae"
+            ]
+          },
+          "id": "hjMoBng6TL",
+          "from_name": "label",
+          "to_name": "image",
+          "type": "rectanglelabels",
+          "origin": "manual"
+        },
+        {
+          "original_width": 3024,
+          "original_height": 4032,
+          "image_rotation": 0,
+          "value": {
+            "x": 78.20545878798816,
+            "y": 13.190380049980469,
+            "width": 4.8396627143636,
+            "height": 5.658135085175095,
+            "rotation": 0,
+            "rectanglelabels": [
+              "postlarvae"
+            ]
+          },
+          "id": "Nfp1as6fOO",
+          "from_name": "label",
+          "to_name": "image",
+          "type": "rectanglelabels",
+          "origin": "manual"
+        },
+        {
+          "original_width": 3024,
+          "original_height": 4032,
+          "image_rotation": 0,
+          "value": {
+            "x": 14.323652554021434,
+            "y": 25.91101561091656,
+            "width": 5.090802639104679,
+            "height": 5.988230860489042,
+            "rotation": 52.06672971640194,
+            "rectanglelabels": [
+              "postlarvae"
+            ]
+          },
+          "id": "1cWRmqk9Tr",
+          "from_name": "label",
+          "to_name": "image",
+          "type": "rectanglelabels",
+          "origin": "manual"
+        },
+        {
+          "original_width": 3024,
+          "original_height": 4032,
+          "image_rotation": 0,
+          "value": {
+            "x": 6.079427061386268,
+            "y": 4.903333882886889,
+            "width": 6.1367734770998705,
+            "height": 6.003502068522235,
+            "rotation": 48.42387124493041,
+            "rectanglelabels": [
+              "postlarvae"
+            ]
+          },
+          "id": "r4LtihnxEV",
+          "from_name": "label",
+          "to_name": "image",
+          "type": "rectanglelabels",
+          "origin": "manual"
+        },
+        {
+          "original_width": 3024,
+          "original_height": 4032,
+          "image_rotation": 0,
+          "value": {
+            "x": 26.264627501761183,
+            "y": 2.956928084374588,
+            "width": 4.330627857269735,
+            "height": 4.183936579525576,
+            "rotation": 36.705097712728104,
+            "rectanglelabels": [
+              "postlarvae"
+            ]
+          },
+          "id": "8nWDK5fnSx",
+          "from_name": "label",
+          "to_name": "image",
+          "type": "rectanglelabels",
+          "origin": "manual"
+        },
+        {
+          "original_width": 3024,
+          "original_height": 4032,
+          "image_rotation": 0,
+          "value": {
+            "x": 40.23953555447088,
+            "y": 9.723963251022946,
+            "width": 4.62614818284754,
+            "height": 4.658232374615211,
+            "rotation": 347.26570920465457,
+            "rectanglelabels": [
+              "postlarvae"
+            ]
+          },
+          "id": "P4f6-yFw11",
+          "from_name": "label",
+          "to_name": "image",
+          "type": "rectanglelabels",
+          "origin": "manual"
+        },
+        {
+          "original_width": 3024,
+          "original_height": 4032,
+          "image_rotation": 0,
+          "value": {
+            "x": 94.51613374965517,
+            "y": 10.459662627861277,
+            "width": 5.83451176681175,
+            "height": 3.8507864062738504,
+            "rotation": 19.964981994074662,
+            "rectanglelabels": [
+              "postlarvae"
+            ]
+          },
+          "id": "pGPTkIvMit",
+          "from_name": "label",
+          "to_name": "image",
+          "type": "rectanglelabels",
+          "origin": "manual"
+        }
+      ],
+      "was_cancelled": false,
+      "ground_truth": false,
+      "created_at": "2026-07-20T02:07:39.448255Z",
+      "updated_at": "2026-07-20T02:07:39.448289Z",
+      "draft_created_at": "2026-07-20T02:00:37.994148Z",
+      "lead_time": 434.259,
+      "prediction": {},
+      "result_count": 17,
+      "unique_id": "aba9fb4e-e75a-4e76-8929-783cddb9721b",
+      "import_id": null,
+      "last_action": null,
+      "bulk_created": false,
+      "task": 662,
+      "project": 17,
+      "completed_by": 1,
+      "updated_by": 1,
+      "parent_prediction": null,
+      "parent_annotation": null,
+      "last_created_by": null
+    },
+    "project": {
+      "id": 17,
+      "task_number": 57,
+      "finished_task_number": 5,
+      "total_predictions_number": 1,
+      "total_annotations_number": 5,
+      "num_tasks_with_annotations": 5,
+      "useful_annotation_number": 5,
+      "ground_truth_number": 0,
+      "skipped_annotations_number": 0,
+      "title": "ulang_pl_set01",
+      "description": "",
+      "label_config": "<View>\n  <Image name=\"image\" value=\"$image\"/>\n  <RectangleLabels name=\"label\" toName=\"image\">\n    <Label value=\"postlarvae\" background=\"blue\"/>\n  </RectangleLabels>\n</View>",
+      "parsed_label_config": {
+        "label": {
+          "type": "RectangleLabels",
+          "to_name": [
+            "image"
+          ],
+          "inputs": [
+            {
+              "type": "Image",
+              "valueType": null,
+              "value": "image"
+            }
+          ],
+          "labels": [
+            "postlarvae"
+          ],
+          "labels_attrs": {
+            "postlarvae": {
+              "value": "postlarvae",
+              "background": "blue"
+            }
+          }
+        }
+      },
+      "label_config_hash": 590764572014366214,
+      "expert_instruction": "",
+      "show_instruction": false,
+      "show_skip_button": true,
+      "enable_empty_annotation": true,
+      "reveal_preannotations_interactively": false,
+      "show_annotation_history": false,
+      "show_collab_predictions": true,
+      "evaluate_predictions_automatically": false,
+      "token": "OsYuGY5ns5y4MYbooohKU7tEvJQlI7kOb9ENDs60",
+      "result_count": 0,
+      "color": "#FFFFFF",
+      "maximum_annotations": 1,
+      "min_annotations_to_start_training": 0,
+      "control_weights": {
+        "label": {
+          "overall": 1.0,
+          "type": "RectangleLabels",
+          "labels": {
+            "postlarvae": 1.0
+          }
+        }
+      },
+      "model_version": "",
+      "data_types": {
+        "image": "Image"
+      },
+      "is_draft": false,
+      "is_published": false,
+      "created_at": "2026-07-19T04:05:14.065152Z",
+      "updated_at": "2026-07-19T04:07:38.755561Z",
+      "sampling": "Sequential sampling",
+      "skip_queue": "REQUEUE_FOR_OTHERS",
+      "show_ground_truth_first": false,
+      "annotator_evaluation_enabled": false,
+      "show_overlap_first": false,
+      "overlap_cohort_percentage": 100,
+      "task_data_login": null,
+      "task_data_password": null,
+      "pinned_at": null,
+      "custom_task_lock_ttl": null,
+      "deleted_at": null,
+      "purge_at": null,
+      "search_vector": null,
+      "organization": 1,
+      "created_by": 1,
+      "deleted_by": null
+    },
+    "task": {
+      "id": 662,
+      "data": {
+        "image": "/data/upload/17/893396ac-ulang_lrv_set01_img028.JPG"
+      },
+      "meta": {},
+      "created_at": "2026-07-19T04:06:23.685608Z",
+      "updated_at": "2026-07-20T02:07:39.540461Z",
+      "is_labeled": true,
+      "allow_skip": true,
+      "overlap": 1,
+      "inner_id": 28,
+      "total_annotations": 1,
+      "cancelled_annotations": 0,
+      "total_predictions": 0,
+      "precomputed_agreement": null,
+      "comment_count": 0,
+      "unresolved_comment_count": 0,
+      "last_comment_updated_at": null,
+      "project": 17,
+      "updated_by": 1,
+      "file_upload": 626,
+      "comment_authors": []
+    }
+  }
+}

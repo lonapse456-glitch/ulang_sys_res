@@ -546,7 +546,26 @@ ScreenManager:
                         font_name: "assets/sf_txt_reg.ttf"
                         font_size: 24
                         theme_text_color: "Custom"
-                        text_color: 'db3838'
+                        text_color: '#db3838'
+                        size_hint: 1, None
+                        height: 64
+
+                MDCard:
+                    orientation: 'horizontal'
+                    size_hint: 1, None
+                    height: 64
+                    padding: 12
+                    spacing: 12
+                    on_release: app.exit_program()
+
+                    MDLabel:
+                        text: "Exit Program"
+                        halign: 'center'
+                        pos_hint: {"center_y": .5}
+                        font_name: "assets/sf_txt_reg.ttf"
+                        font_size: 24
+                        theme_text_color: "Custom"
+                        text_color: '#db3838'
                         size_hint: 1, None
                         height: 64
 
@@ -1265,6 +1284,11 @@ class UlangSystemApp(MDApp):
             # Map GPIO Pin 22 to Start the Count (E.g. "ENTER" button)
             self.btn_start = HardwareButton(22)
             self.btn_start.when_pressed = lambda: Clock.schedule_once(self.start_batch_count)
+
+    def exit_program(self):
+        print("[INFO] Shutting down Kivy and stopping camera...")
+        # (Insert your code here to stop cv2.VideoCapture if it's running)
+        self.stop()
 
     def on_keyboard_down(self, window, keycode, scancode, text, modifiers):
         """Routes USB Numpad/Keyboard presses to actions."""

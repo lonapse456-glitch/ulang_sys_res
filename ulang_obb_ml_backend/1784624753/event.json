@@ -1,0 +1,599 @@
+{
+  "event": "ANNOTATION_CREATED",
+  "job_id": "1784624753",
+  "data": {
+    "annotation": {
+      "id": 304,
+      "result": [
+        {
+          "original_width": 3024,
+          "original_height": 4032,
+          "image_rotation": 0,
+          "value": {
+            "x": 5.326776597292785,
+            "y": 24.602153203907786,
+            "width": 2.846274589612886,
+            "height": 2.7159928135907636,
+            "rotation": 33.903712755459765,
+            "rectanglelabels": [
+              "postlarvae"
+            ]
+          },
+          "id": "gUV0pmgoTw",
+          "from_name": "label",
+          "to_name": "image",
+          "type": "rectanglelabels",
+          "origin": "prediction-changed",
+          "score": 0.8079242706298828
+        },
+        {
+          "original_width": 3024,
+          "original_height": 4032,
+          "image_rotation": 0,
+          "value": {
+            "x": 49.80017891689473,
+            "y": 87.60952977192818,
+            "width": 2.6215754470831136,
+            "height": 1.2147900475133073,
+            "rotation": 14.924260592873168,
+            "rectanglelabels": [
+              "postlarvae"
+            ]
+          },
+          "id": "t0ECPi2RKX",
+          "from_name": "label",
+          "to_name": "image",
+          "type": "rectanglelabels",
+          "origin": "prediction-changed",
+          "score": 0.7652732133865356
+        },
+        {
+          "original_width": 3024,
+          "original_height": 4032,
+          "image_rotation": 0,
+          "value": {
+            "x": 66.77112048653102,
+            "y": 90.51762843638086,
+            "width": 3.2352708058211026,
+            "height": 1.385764590371057,
+            "rotation": 358.7730287662024,
+            "rectanglelabels": [
+              "postlarvae"
+            ]
+          },
+          "id": "10G_rNc9Pw",
+          "from_name": "label",
+          "to_name": "image",
+          "type": "rectanglelabels",
+          "origin": "prediction-changed",
+          "score": 0.7613919377326965
+        },
+        {
+          "original_width": 3024,
+          "original_height": 4032,
+          "image_rotation": 0,
+          "value": {
+            "x": 17.649048199927787,
+            "y": 50.128704449915006,
+            "width": 2.236178654509761,
+            "height": 2.6910165367136027,
+            "rotation": 340.4818862127176,
+            "rectanglelabels": [
+              "postlarvae"
+            ]
+          },
+          "id": "Pq3rZG8fq9",
+          "from_name": "label",
+          "to_name": "image",
+          "type": "rectanglelabels",
+          "origin": "prediction-changed",
+          "score": 0.7583947777748108
+        },
+        {
+          "original_width": 3024,
+          "original_height": 4032,
+          "image_rotation": 0,
+          "value": {
+            "x": 29.57491130425185,
+            "y": 90.33075405491716,
+            "width": 1.9149792888177117,
+            "height": 1.7758925424949759,
+            "rotation": 1.27599662411302,
+            "rectanglelabels": [
+              "postlarvae"
+            ]
+          },
+          "id": "E5gCOF06gh",
+          "from_name": "label",
+          "to_name": "image",
+          "type": "rectanglelabels",
+          "origin": "prediction-changed",
+          "score": 0.7423388957977295
+        },
+        {
+          "original_width": 3024,
+          "original_height": 4032,
+          "image_rotation": 0,
+          "value": {
+            "x": 19.279085269705934,
+            "y": 14.468043367982347,
+            "width": 3.5445081692342395,
+            "height": 3.7465249593992214,
+            "rotation": 32.74753894708766,
+            "rectanglelabels": [
+              "postlarvae"
+            ]
+          },
+          "id": "Dfo8tDmv5C",
+          "from_name": "label",
+          "to_name": "image",
+          "type": "rectanglelabels",
+          "origin": "prediction-changed",
+          "score": 0.725521445274353
+        },
+        {
+          "original_width": 3024,
+          "original_height": 4032,
+          "image_rotation": 0,
+          "value": {
+            "x": 80.51365542148145,
+            "y": 66.05304303998626,
+            "width": 1.6770919658291872,
+            "height": 1.7828694317138738,
+            "rotation": 24.482234812438207,
+            "rectanglelabels": [
+              "postlarvae"
+            ]
+          },
+          "id": "28vjDFrA3t",
+          "from_name": "label",
+          "to_name": "image",
+          "type": "rectanglelabels",
+          "origin": "prediction-changed",
+          "score": 0.6925985217094421
+        },
+        {
+          "original_width": 3024,
+          "original_height": 4032,
+          "image_rotation": 0,
+          "value": {
+            "x": 50.29082723777848,
+            "y": 80.50246287577207,
+            "width": 3.7982852498159496,
+            "height": 1.7155479125307516,
+            "rotation": 13.914584426764009,
+            "rectanglelabels": [
+              "postlarvae"
+            ]
+          },
+          "id": "0hjkxv4Z22",
+          "from_name": "label",
+          "to_name": "image",
+          "type": "rectanglelabels",
+          "origin": "prediction-changed",
+          "score": 0.6893450617790222
+        },
+        {
+          "original_width": 3024,
+          "original_height": 4032,
+          "image_rotation": 0,
+          "value": {
+            "x": 31.775811217397493,
+            "y": 32.20264798316879,
+            "width": 3.0989073938967695,
+            "height": 1.57424945285275,
+            "rotation": 0.25440216170693475,
+            "rectanglelabels": [
+              "postlarvae"
+            ]
+          },
+          "id": "dHqPkgkKyD",
+          "from_name": "label",
+          "to_name": "image",
+          "type": "rectanglelabels",
+          "origin": "prediction-changed",
+          "score": 0.6808083057403564
+        },
+        {
+          "original_width": 3024,
+          "original_height": 4032,
+          "image_rotation": 0,
+          "value": {
+            "x": 86.54596387282024,
+            "y": 32.921047528879015,
+            "width": 1.718916291748827,
+            "height": 1.4073923955715666,
+            "rotation": 39.98191023049884,
+            "rectanglelabels": [
+              "postlarvae"
+            ]
+          },
+          "id": "nt-vgAtqp6",
+          "from_name": "label",
+          "to_name": "image",
+          "type": "rectanglelabels",
+          "origin": "prediction-changed",
+          "score": 0.611770510673523
+        },
+        {
+          "original_width": 3024,
+          "original_height": 4032,
+          "image_rotation": 0,
+          "value": {
+            "x": 65.80151766646568,
+            "y": 51.08398783716234,
+            "width": 1.5720881006621126,
+            "height": 1.6179533137481545,
+            "rotation": 6.325467623953102,
+            "rectanglelabels": [
+              "postlarvae"
+            ]
+          },
+          "id": "hEAnfhscX4",
+          "from_name": "label",
+          "to_name": "image",
+          "type": "rectanglelabels",
+          "origin": "prediction-changed",
+          "score": 0.566673755645752
+        },
+        {
+          "original_width": 3024,
+          "original_height": 4032,
+          "image_rotation": 0,
+          "value": {
+            "x": 49.50205355286169,
+            "y": 49.73673749777595,
+            "width": 2.5710164231179196,
+            "height": 1.6712408034297794,
+            "rotation": 358.5436302461811,
+            "rectanglelabels": [
+              "postlarvae"
+            ]
+          },
+          "id": "JHfi_nFPE-",
+          "from_name": "label",
+          "to_name": "image",
+          "type": "rectanglelabels",
+          "origin": "prediction-changed",
+          "score": 0.474181592464447
+        },
+        {
+          "original_width": 3024,
+          "original_height": 4032,
+          "image_rotation": 0,
+          "value": {
+            "x": 53.02241553952965,
+            "y": 73.36465641448486,
+            "width": 1.819679700383947,
+            "height": 1.7307675449088649,
+            "rotation": 41.724410101504134,
+            "rectanglelabels": [
+              "postlarvae"
+            ]
+          },
+          "id": "WOfqtfGOYZ",
+          "from_name": "label",
+          "to_name": "image",
+          "type": "rectanglelabels",
+          "origin": "prediction-changed",
+          "score": 0.46265771985054016
+        },
+        {
+          "original_width": 3024,
+          "original_height": 4032,
+          "image_rotation": 0,
+          "value": {
+            "x": 58.73671858595322,
+            "y": 13.607554512830678,
+            "width": 2.1683182841665443,
+            "height": 2.027930266502511,
+            "rotation": 296.2724434093482,
+            "rectanglelabels": [
+              "postlarvae"
+            ]
+          },
+          "id": "akWwamW3iX",
+          "from_name": "label",
+          "to_name": "image",
+          "type": "rectanglelabels",
+          "origin": "prediction-changed",
+          "score": 0.46095314621925354
+        },
+        {
+          "original_width": 3024,
+          "original_height": 4032,
+          "image_rotation": 0,
+          "value": {
+            "x": 70.96632794432664,
+            "y": 9.41663438025243,
+            "width": 1.3250297370209305,
+            "height": 1.5723109261616186,
+            "rotation": 339.26082784392463,
+            "rectanglelabels": [
+              "postlarvae"
+            ]
+          },
+          "id": "LBELOoPNd6",
+          "from_name": "label",
+          "to_name": "image",
+          "type": "rectanglelabels",
+          "origin": "prediction-changed",
+          "score": 0.45682385563850403
+        },
+        {
+          "original_width": 3024,
+          "original_height": 4032,
+          "image_rotation": 0,
+          "value": {
+            "x": 10.973200602882818,
+            "y": 64.89709155984671,
+            "width": 2.214940222848779,
+            "height": 1.2526454523321355,
+            "rotation": 337.8759095703617,
+            "rectanglelabels": [
+              "postlarvae"
+            ]
+          },
+          "id": "ZSod3YXZMi",
+          "from_name": "label",
+          "to_name": "image",
+          "type": "rectanglelabels",
+          "origin": "prediction-changed",
+          "score": 0.45621123909950256
+        },
+        {
+          "original_width": 3024,
+          "original_height": 4032,
+          "image_rotation": 0,
+          "value": {
+            "x": 42.06500027460782,
+            "y": 0.8379563606469154,
+            "width": 2.570892951827489,
+            "height": 2.5926844903960964,
+            "rotation": 44.023920275264175,
+            "rectanglelabels": [
+              "postlarvae"
+            ]
+          },
+          "id": "PAIjvHuRQP",
+          "from_name": "label",
+          "to_name": "image",
+          "type": "rectanglelabels",
+          "origin": "prediction-changed",
+          "score": 0.42437660694122314
+        },
+        {
+          "original_width": 3024,
+          "original_height": 4032,
+          "image_rotation": 0,
+          "value": {
+            "x": 67.77396356731688,
+            "y": 12.09045537895405,
+            "width": 1.6119054051586947,
+            "height": 1.668190710563863,
+            "rotation": 355.42101780536194,
+            "rectanglelabels": [
+              "postlarvae"
+            ]
+          },
+          "id": "yFywkV5HRC",
+          "from_name": "label",
+          "to_name": "image",
+          "type": "rectanglelabels",
+          "origin": "prediction-changed",
+          "score": 0.29745498299598694
+        },
+        {
+          "original_width": 3024,
+          "original_height": 4032,
+          "image_rotation": 0,
+          "value": {
+            "x": 95.82322515474564,
+            "y": 35.22547449313572,
+            "width": 1.8371313337295772,
+            "height": 1.5732128777828334,
+            "rotation": 2.3739212519404305,
+            "rectanglelabels": [
+              "postlarvae"
+            ]
+          },
+          "id": "-gG6JUtORu",
+          "from_name": "label",
+          "to_name": "image",
+          "type": "rectanglelabels",
+          "origin": "prediction-changed",
+          "score": 0.26056405901908875
+        },
+        {
+          "original_width": 3024,
+          "original_height": 4032,
+          "image_rotation": 0,
+          "value": {
+            "x": 78.76109018892606,
+            "y": 39.16135920389161,
+            "width": 2.299883563657744,
+            "height": 1.287248263241274,
+            "rotation": 0,
+            "rectanglelabels": [
+              "postlarvae"
+            ]
+          },
+          "id": "ZKpv7n8wvC",
+          "from_name": "label",
+          "to_name": "image",
+          "type": "rectanglelabels",
+          "origin": "manual"
+        },
+        {
+          "original_width": 3024,
+          "original_height": 4032,
+          "image_rotation": 0,
+          "value": {
+            "x": 98.90425526850785,
+            "y": 44.7189960706083,
+            "width": 1.0459381527880083,
+            "height": 1.456842427097554,
+            "rotation": 0,
+            "rectanglelabels": [
+              "postlarvae"
+            ]
+          },
+          "id": "4a_0S8-C3E",
+          "from_name": "label",
+          "to_name": "image",
+          "type": "rectanglelabels",
+          "origin": "manual"
+        },
+        {
+          "original_width": 3024,
+          "original_height": 4032,
+          "image_rotation": 0,
+          "value": {
+            "x": 99.10348158332461,
+            "y": 20.587708688428556,
+            "width": 0.8965184166753914,
+            "height": 1.6062621632101113,
+            "rotation": 0,
+            "rectanglelabels": [
+              "postlarvae"
+            ]
+          },
+          "id": "Ok39l_Ta9X",
+          "from_name": "label",
+          "to_name": "image",
+          "type": "rectanglelabels",
+          "origin": "manual"
+        }
+      ],
+      "was_cancelled": false,
+      "ground_truth": false,
+      "created_at": "2026-07-21T09:05:51.521008Z",
+      "updated_at": "2026-07-21T09:05:51.521042Z",
+      "draft_created_at": "2026-07-21T09:01:16.809597Z",
+      "lead_time": 287.438,
+      "prediction": {},
+      "result_count": 22,
+      "unique_id": "f1e16525-5606-4871-9555-511437875012",
+      "import_id": null,
+      "last_action": null,
+      "bulk_created": false,
+      "task": 646,
+      "project": 17,
+      "completed_by": 1,
+      "updated_by": 1,
+      "parent_prediction": 1474,
+      "parent_annotation": null,
+      "last_created_by": null
+    },
+    "project": {
+      "id": 17,
+      "task_number": 57,
+      "finished_task_number": 16,
+      "total_predictions_number": 8,
+      "total_annotations_number": 16,
+      "num_tasks_with_annotations": 16,
+      "useful_annotation_number": 16,
+      "ground_truth_number": 0,
+      "skipped_annotations_number": 0,
+      "title": "ulang_pl_set01",
+      "description": "",
+      "label_config": "<View>\n  <Image name=\"image\" value=\"$image\"/>\n  <RectangleLabels name=\"label\" toName=\"image\" model_score_threshold=\"0.25\">\n    <Label value=\"postlarvae\" background=\"blue\" predicted_values=\"postlarvae\"/>\n  </RectangleLabels>\n</View>",
+      "parsed_label_config": {
+        "label": {
+          "type": "RectangleLabels",
+          "to_name": [
+            "image"
+          ],
+          "inputs": [
+            {
+              "type": "Image",
+              "valueType": null,
+              "value": "image"
+            }
+          ],
+          "labels": [
+            "postlarvae"
+          ],
+          "labels_attrs": {
+            "postlarvae": {
+              "value": "postlarvae",
+              "background": "blue",
+              "predicted_values": "postlarvae"
+            }
+          }
+        }
+      },
+      "label_config_hash": -5759908845205968067,
+      "expert_instruction": "",
+      "show_instruction": false,
+      "show_skip_button": true,
+      "enable_empty_annotation": true,
+      "reveal_preannotations_interactively": false,
+      "show_annotation_history": false,
+      "show_collab_predictions": true,
+      "evaluate_predictions_automatically": false,
+      "token": "OsYuGY5ns5y4MYbooohKU7tEvJQlI7kOb9ENDs60",
+      "result_count": 0,
+      "color": "#9AC422",
+      "maximum_annotations": 1,
+      "min_annotations_to_start_training": 0,
+      "control_weights": {
+        "label": {
+          "overall": 1.0,
+          "type": "RectangleLabels",
+          "labels": {
+            "postlarvae": 1.0
+          }
+        }
+      },
+      "model_version": "ulang-obb v2.0",
+      "data_types": {
+        "image": "Image"
+      },
+      "is_draft": false,
+      "is_published": false,
+      "created_at": "2026-07-19T04:05:14.065152Z",
+      "updated_at": "2026-07-21T04:43:26.229439Z",
+      "sampling": "Sequential sampling",
+      "skip_queue": "REQUEUE_FOR_OTHERS",
+      "show_ground_truth_first": false,
+      "annotator_evaluation_enabled": false,
+      "show_overlap_first": false,
+      "overlap_cohort_percentage": 100,
+      "task_data_login": null,
+      "task_data_password": null,
+      "pinned_at": null,
+      "custom_task_lock_ttl": null,
+      "deleted_at": null,
+      "purge_at": null,
+      "search_vector": null,
+      "organization": 1,
+      "created_by": 1,
+      "deleted_by": null
+    },
+    "task": {
+      "id": 646,
+      "data": {
+        "image": "/data/upload/17/fe907939-ulang_lrv_set01_img012.JPG"
+      },
+      "meta": {},
+      "created_at": "2026-07-19T04:06:23.683568Z",
+      "updated_at": "2026-07-21T09:05:51.600315Z",
+      "is_labeled": true,
+      "allow_skip": true,
+      "overlap": 1,
+      "inner_id": 12,
+      "total_annotations": 1,
+      "cancelled_annotations": 0,
+      "total_predictions": 1,
+      "precomputed_agreement": null,
+      "comment_count": 0,
+      "unresolved_comment_count": 0,
+      "last_comment_updated_at": null,
+      "project": 17,
+      "updated_by": 1,
+      "file_upload": 610,
+      "comment_authors": []
+    }
+  }
+}

@@ -1,0 +1,329 @@
+{
+  "event": "ANNOTATION_CREATED",
+  "job_id": "1784624937",
+  "data": {
+    "annotation": {
+      "id": 305,
+      "result": [
+        {
+          "original_width": 3024,
+          "original_height": 4032,
+          "image_rotation": 0,
+          "value": {
+            "x": 76.3337127763714,
+            "y": 94.17772923360187,
+            "width": 2.4935012722139156,
+            "height": 1.4036403922641651,
+            "rotation": 347.1733321203129,
+            "rectanglelabels": [
+              "postlarvae"
+            ]
+          },
+          "id": "HI5fcTbN-7",
+          "from_name": "label",
+          "to_name": "image",
+          "type": "rectanglelabels",
+          "origin": "prediction-changed",
+          "score": 0.8119515180587769
+        },
+        {
+          "original_width": 3024,
+          "original_height": 4032,
+          "image_rotation": 0,
+          "value": {
+            "x": 76.01110406537298,
+            "y": 67.1557961646003,
+            "width": 2.429235682373672,
+            "height": 1.2471058815456713,
+            "rotation": 49.55926658699576,
+            "rectanglelabels": [
+              "postlarvae"
+            ]
+          },
+          "id": "SDOYMsKsf9",
+          "from_name": "label",
+          "to_name": "image",
+          "type": "rectanglelabels",
+          "origin": "prediction-changed",
+          "score": 0.8002283573150635
+        },
+        {
+          "original_width": 3024,
+          "original_height": 4032,
+          "image_rotation": 0,
+          "value": {
+            "x": 23.192767439534773,
+            "y": 24.84910101039172,
+            "width": 1.7211442399054997,
+            "height": 1.9209533468508309,
+            "rotation": 336.0857997573717,
+            "rectanglelabels": [
+              "postlarvae"
+            ]
+          },
+          "id": "LUTOguF7jC",
+          "from_name": "label",
+          "to_name": "image",
+          "type": "rectanglelabels",
+          "origin": "prediction-changed",
+          "score": 0.7078695297241211
+        },
+        {
+          "original_width": 3024,
+          "original_height": 4032,
+          "image_rotation": 0,
+          "value": {
+            "x": 37.66562641577739,
+            "y": 88.24676920127204,
+            "width": 3.490373839545683,
+            "height": 1.8430543402122361,
+            "rotation": 55.877578927990726,
+            "rectanglelabels": [
+              "postlarvae"
+            ]
+          },
+          "id": "7MeWIE-uDb",
+          "from_name": "label",
+          "to_name": "image",
+          "type": "rectanglelabels",
+          "origin": "prediction-changed",
+          "score": 0.6899820566177368
+        },
+        {
+          "original_width": 3024,
+          "original_height": 4032,
+          "image_rotation": 0,
+          "value": {
+            "x": 72.73977123580278,
+            "y": 31.324608376255725,
+            "width": 2.243920719411666,
+            "height": 1.4598661744731702,
+            "rotation": 32.83039413417566,
+            "rectanglelabels": [
+              "postlarvae"
+            ]
+          },
+          "id": "ZQ9gcp9W3A",
+          "from_name": "label",
+          "to_name": "image",
+          "type": "rectanglelabels",
+          "origin": "prediction-changed",
+          "score": 0.5764565467834473
+        },
+        {
+          "original_width": 3024,
+          "original_height": 4032,
+          "image_rotation": 0,
+          "value": {
+            "x": 79.07005227157146,
+            "y": 27.92410874552409,
+            "width": 2.3919790057293397,
+            "height": 1.2126898477511543,
+            "rotation": 12.572517480207694,
+            "rectanglelabels": [
+              "postlarvae"
+            ]
+          },
+          "id": "qcYHFOtTFJ",
+          "from_name": "label",
+          "to_name": "image",
+          "type": "rectanglelabels",
+          "origin": "prediction-changed",
+          "score": 0.481585830450058
+        },
+        {
+          "original_width": 3024,
+          "original_height": 4032,
+          "image_rotation": 0,
+          "value": {
+            "x": 59.5225650781979,
+            "y": 84.37914711943837,
+            "width": 3.2690626812244217,
+            "height": 1.6547276541826268,
+            "rotation": 42.97434860837075,
+            "rectanglelabels": [
+              "postlarvae"
+            ]
+          },
+          "id": "rjQ1XwesGM",
+          "from_name": "label",
+          "to_name": "image",
+          "type": "rectanglelabels",
+          "origin": "prediction-changed",
+          "score": 0.4331512153148651
+        },
+        {
+          "original_width": 3024,
+          "original_height": 4032,
+          "image_rotation": 0,
+          "value": {
+            "x": 96.42227461499586,
+            "y": 55.970935297244004,
+            "width": 2.365945629658915,
+            "height": 1.3165703780174252,
+            "rotation": 334.32210481105665,
+            "rectanglelabels": [
+              "postlarvae"
+            ]
+          },
+          "id": "nqZxkM_vRx",
+          "from_name": "label",
+          "to_name": "image",
+          "type": "rectanglelabels",
+          "origin": "prediction-changed",
+          "score": 0.4173171818256378
+        },
+        {
+          "original_width": 3024,
+          "original_height": 4032,
+          "image_rotation": 0,
+          "value": {
+            "x": 18.266056254033064,
+            "y": 34.94658513162005,
+            "width": 1.904865327968568,
+            "height": 2.062147489358141,
+            "rotation": 337.9906951873784,
+            "rectanglelabels": [
+              "postlarvae"
+            ]
+          },
+          "id": "tZGoCd-27b",
+          "from_name": "label",
+          "to_name": "image",
+          "type": "rectanglelabels",
+          "origin": "prediction-changed",
+          "score": 0.3804785907268524
+        }
+      ],
+      "was_cancelled": false,
+      "ground_truth": false,
+      "created_at": "2026-07-21T09:08:55.129905Z",
+      "updated_at": "2026-07-21T09:08:55.129963Z",
+      "draft_created_at": "2026-07-21T09:06:51.267463Z",
+      "lead_time": 160.359,
+      "prediction": {},
+      "result_count": 9,
+      "unique_id": "a64d9738-8096-4ac6-8f21-4146505ea00d",
+      "import_id": null,
+      "last_action": null,
+      "bulk_created": false,
+      "task": 649,
+      "project": 17,
+      "completed_by": 1,
+      "updated_by": 1,
+      "parent_prediction": 1479,
+      "parent_annotation": null,
+      "last_created_by": null
+    },
+    "project": {
+      "id": 17,
+      "task_number": 57,
+      "finished_task_number": 17,
+      "total_predictions_number": 9,
+      "total_annotations_number": 17,
+      "num_tasks_with_annotations": 17,
+      "useful_annotation_number": 17,
+      "ground_truth_number": 0,
+      "skipped_annotations_number": 0,
+      "title": "ulang_pl_set01",
+      "description": "",
+      "label_config": "<View>\n  <Image name=\"image\" value=\"$image\"/>\n  <RectangleLabels name=\"label\" toName=\"image\" model_score_threshold=\"0.25\">\n    <Label value=\"postlarvae\" background=\"blue\" predicted_values=\"postlarvae\"/>\n  </RectangleLabels>\n</View>",
+      "parsed_label_config": {
+        "label": {
+          "type": "RectangleLabels",
+          "to_name": [
+            "image"
+          ],
+          "inputs": [
+            {
+              "type": "Image",
+              "valueType": null,
+              "value": "image"
+            }
+          ],
+          "labels": [
+            "postlarvae"
+          ],
+          "labels_attrs": {
+            "postlarvae": {
+              "value": "postlarvae",
+              "background": "blue",
+              "predicted_values": "postlarvae"
+            }
+          }
+        }
+      },
+      "label_config_hash": -5759908845205968067,
+      "expert_instruction": "",
+      "show_instruction": false,
+      "show_skip_button": true,
+      "enable_empty_annotation": true,
+      "reveal_preannotations_interactively": false,
+      "show_annotation_history": false,
+      "show_collab_predictions": true,
+      "evaluate_predictions_automatically": false,
+      "token": "OsYuGY5ns5y4MYbooohKU7tEvJQlI7kOb9ENDs60",
+      "result_count": 0,
+      "color": "#9AC422",
+      "maximum_annotations": 1,
+      "min_annotations_to_start_training": 0,
+      "control_weights": {
+        "label": {
+          "overall": 1.0,
+          "type": "RectangleLabels",
+          "labels": {
+            "postlarvae": 1.0
+          }
+        }
+      },
+      "model_version": "ulang-obb v2.0",
+      "data_types": {
+        "image": "Image"
+      },
+      "is_draft": false,
+      "is_published": false,
+      "created_at": "2026-07-19T04:05:14.065152Z",
+      "updated_at": "2026-07-21T04:43:26.229439Z",
+      "sampling": "Sequential sampling",
+      "skip_queue": "REQUEUE_FOR_OTHERS",
+      "show_ground_truth_first": false,
+      "annotator_evaluation_enabled": false,
+      "show_overlap_first": false,
+      "overlap_cohort_percentage": 100,
+      "task_data_login": null,
+      "task_data_password": null,
+      "pinned_at": null,
+      "custom_task_lock_ttl": null,
+      "deleted_at": null,
+      "purge_at": null,
+      "search_vector": null,
+      "organization": 1,
+      "created_by": 1,
+      "deleted_by": null
+    },
+    "task": {
+      "id": 649,
+      "data": {
+        "image": "/data/upload/17/ae4dcba1-ulang_lrv_set01_img015.JPG"
+      },
+      "meta": {},
+      "created_at": "2026-07-19T04:06:23.683946Z",
+      "updated_at": "2026-07-21T09:08:55.218725Z",
+      "is_labeled": true,
+      "allow_skip": true,
+      "overlap": 1,
+      "inner_id": 15,
+      "total_annotations": 1,
+      "cancelled_annotations": 0,
+      "total_predictions": 1,
+      "precomputed_agreement": null,
+      "comment_count": 0,
+      "unresolved_comment_count": 0,
+      "last_comment_updated_at": null,
+      "project": 17,
+      "updated_by": 1,
+      "file_upload": 613,
+      "comment_authors": []
+    }
+  }
+}
