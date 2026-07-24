@@ -25,6 +25,8 @@ from kivy.uix.popup import Popup
 from kivy.animation import Animation
 from kivy.properties import BooleanProperty, ColorProperty, StringProperty, NumericProperty, ObjectProperty, OptionProperty
 from datetime import datetime
+from kivy.uix.widget import Widget
+from kivy.uix.behaviors import ButtonBehavior
 import random #temporary
 # ---------------------------------------------------------
 # HARDWARE GPIO SETUP (Fail-safe for Windows/Mac testing)
@@ -440,7 +442,7 @@ ScreenManager:
                     padding: 12
                     spacing: 12
                     on_release: 
-                        app.show_wifi_dialog()
+                        app.show_wifi_dialog() if app.wifi_on else None
 
                     Image:
                         size_hint: None, None
@@ -469,6 +471,10 @@ ScreenManager:
                         theme_text_color: "Custom"
                         text_color: 1, 1, 1, 0.5
                         size_hint_x: 1
+
+                    WiFiToggleSwitch:
+                        id: toggle_wifi 
+                        on_release: app.toggle_wifi(self.active)
 
                 MDCard:
                     orientation: 'horizontal'
@@ -989,6 +995,28 @@ ScreenManager:
             size: self.size
             radius: [self.height / 2]
 
+<WiFiToggleSwitch>:
+    # Set a default fixed size for the switch
+    size_hint: None, None
+    size: dp(60), dp(30)
+    
+    canvas:
+        Color:
+            rgba: (0.2, 0.8, 0.4, 1) if self.active else (0.3, 0.3, 0.3, 1)
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [self.height / 2]
+            
+        # 2. Draw the Knob (Slider)
+        Color:
+            rgba: (1, 1, 1, 1)
+        RoundedRectangle:
+            # X position is bound to the animated knob_pos property
+            pos: self.x + self.knob_pos, self.y + dp(2)
+            size: self.height - dp(4), self.height - dp(4)
+            radius: [(self.height - dp(4)) / 2]
+
 <BatchLogItem>
     orientation: 'vertical'
     padding: 19
@@ -1106,7 +1134,6 @@ ScreenManager:
 
 def config_conn_wifi(ssid, password):
     try:
-        # Pushes the connect command to the OS
         subprocess.check_call([
             'nmcli', 'connection', 'add', 
             'type', 'wifi', 
@@ -1116,8 +1143,7 @@ def config_conn_wifi(ssid, password):
             'wifi-sec.key-mgmt', 'wpa-psk', 
             'wifi-sec.psk', password
         ])
-        
-        # Step 2: Now that the profile exists, tell the Pi to switch to it
+
         subprocess.check_call([
             'nmcli', 'connection', 'up', ssid
         ])
@@ -1125,6 +1151,33 @@ def config_conn_wifi(ssid, password):
     except subprocess.CalledProcessError:
         # Wrong password or network out of range
         return False
+
+def get_initial_wifi_stat():
+    try:
+        result = subprocess.run(
+            ["nmcli", "radio", "wifi"], 
+            capture_output=True, 
+            text=True, 
+            timeout=2
+            )
+        return result.stdout.strip().lower() == "enabled"
+
+    except Exception as e:
+        print(f"[DEBUG] Failed to read initial state: {e}")
+        return False
+
+def set_wifi_state(enable: bool):
+        cmd = "on" if enable else "off"
+        try:
+            subprocess.run(
+                ["nmcli", "radio", "wifi", cmd],
+                capture_output=True,
+                check=True,
+                timeout=5
+            )
+            print(f"[INFO] Wi-Fi is set to: {cmd}")
+        except Exception as e:
+            print(f"[DEBUG] Error toggling Wi-Fi state: {e}")
 
 class DashboardScreen(Screen):
     def __init__(self, **kwargs):
@@ -1180,7 +1233,7 @@ class LogsScreen(Screen):
                 
         except Exception as e:
             err = e
-            print(f"Offline Mode Active. Could not reach Supabase: {err}")
+            print(f"[DEBUG] Offline Mode Active. Could not reach Supabase: {err}")
 
         # SORT THE MERGED LIST BY TIMESTAMP
         try:
@@ -1213,6 +1266,7 @@ class UlangSystemApp(MDApp):
     count_active = BooleanProperty(False)
     is_counting = BooleanProperty(False)
     is_online = BooleanProperty(False)
+    wifi_on = BooleanProperty(False)
     wifi_stat = ['disconnected', '1', '2', '3', '4']
     wifi_strength = NumericProperty(0)
 
@@ -1241,10 +1295,22 @@ class UlangSystemApp(MDApp):
     SUPABASE_API_URL = 'https://nltmvrjxasslpqbdyamg.supabase.co'
     SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sdG12cmp4YXNzbHBxYmR5YW1nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2MjcwNzUsImV4cCI6MjA5OTIwMzA3NX0.LCwGdbW5DVKSjl8Qql65LjQQgjOYMkhre7y3q94Eo68'
 
+# Wifi Configuration Commands
+
     def build(self):
         self.theme_cls.theme_style = "Dark"
         self.theme_cls.primary_palette = "Green"
-        self.is_online = self.get_wifi_stat()['connected']
+       
+        # If wifi is off do not check for connectivity
+        if get_initial_wifi_stat():
+            self.wifi_on = True
+            self.is_online = self.get_wifi_stat()['connected']
+            print("[INFO] Wifi status on build: OFF")
+        else: 
+            self.wifi_on = False
+            print("[INFO] Wifi status on build: OFF")
+
+        # Configure update_wifi_stat to ignore the hell out of its shit when wifi is not toggled
         Clock.schedule_interval(self.update_wifi_stat, 2.0)
 
         try:
@@ -1271,17 +1337,13 @@ class UlangSystemApp(MDApp):
         if not self.is_online:
             self.show_snackbar(message = "System is Running Offline", warning_mode=True)
 
-        # METHOD 2: Physical GPIO Push Buttons
         if GPIO_AVAILABLE:
-            # Map GPIO Pin 17 to go to Settings (E.g. "NEXT" button)
             self.btn_settings = HardwareButton(17)
             self.btn_settings.when_pressed = lambda: Clock.schedule_once(self.go_to_settings)
 
-            # Map GPIO Pin 27 to go back to Dashboard (E.g. "BACK" button)
             self.btn_home = HardwareButton(27)
             self.btn_home.when_pressed = lambda: Clock.schedule_once(self.hboard)
 
-            # Map GPIO Pin 22 to Start the Count (E.g. "ENTER" button)
             self.btn_start = HardwareButton(22)
             self.btn_start.when_pressed = lambda: Clock.schedule_once(self.start_batch_count)
 
@@ -1306,27 +1368,35 @@ class UlangSystemApp(MDApp):
         return FadeTransition(duration=0.1)
 
     def update_wifi_stat(self, dt):
-        status = self.get_wifi_stat()
-        self.is_online = status["connected"]
         wifi_text_widget = self.root.ids.settings_screen.ids.txt_conn_stat_ssid
-        
-        if not status["connected"]:
-            self.wifi_strength = 0
-            wifi_text_widget.text = "Disconnected"
-            return
+
+        def execute_update():
+            status = self.get_wifi_stat()
+            self.is_online = status["connected"]
             
-        # Update the network name
-        wifi_text_widget.text = f"Connected to {status["ssid"]}"
-        # Map signal strength (0-100)
-        strength = status["strength"]
-        if strength >= 75:
-            self.wifi_strength = 4
-        elif strength >= 50:
-            self.wifi_strength = 3
-        elif strength >= 25:
-            self.wifi_strength = 2
-        elif strength > 0:
-            self.wifi_strength = 1
+            if not status["connected"]:
+                self.wifi_strength = 0
+                wifi_text_widget.text = "Disconnected"
+                return
+                
+            # Update the network name
+            wifi_text_widget.text = f"Connected to {status["ssid"]}"
+            # Map signal strength (0-100)
+            strength = status["strength"]
+            if strength >= 75:
+                self.wifi_strength = 4
+            elif strength >= 50:
+                self.wifi_strength = 3
+            elif strength >= 25:
+                self.wifi_strength = 2
+            elif strength > 0:
+                self.wifi_strength = 1
+
+        if self.wifi_on:
+            execute_update()
+        else:
+            self.wifi_strength = 0
+            wifi_text_widget.text = "Off"
 
     def get_wifi_stat(self):
         """
@@ -1360,13 +1430,15 @@ class UlangSystemApp(MDApp):
         
     def connect_to_new_wifi(self, ssid, password):
         connected = config_conn_wifi(ssid, password) 
-
         if connected:
             self.show_snackbar(message = f"Connected to {ssid}")
             self.popup.dismiss()
         else:
             self.show_snackbar(message="Failed to connect to the Network", warning_mode=True)
 
+    def toggle_wifi(self, value):
+        self.wifi_on = not value  
+        print(self.wifi_on)
 #==================================================SCREEN NAVIGATION FUNCTIONS===============================================
     def go_to_settings(self, *args):
         if self.root.current != "settings":
@@ -1635,6 +1707,44 @@ class PillToggleButton(Button):
             self.current_color = self.color_on
         else:
             self.current_color = self.color_off
+
+class WiFiToggleSwitch(ButtonBehavior, Widget):
+    active = BooleanProperty(False)
+    knob_pos = NumericProperty(dp(2))    
+    _initializing = False
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        threading.Thread(target=get_initial_wifi_stat, daemon=True).start()
+
+    def _get_initial_wifi_stat(self):
+        is_on = get_initial_wifi_stat()
+        if is_on:
+            Clock.schedule_once(lambda dt: self._set_initial_state(is_on))
+        else:
+            self._initializing = False
+
+    def on_release(self):
+        self.active = not self.active
+
+    def on_active(self, instance, value):
+        if value:
+            target_x = self.width - self.height + dp(2)
+        else:
+            target_x = dp(2)
+        anim = Animation(knob_pos=target_x, duration=0.2, t='out_quad')
+        anim.start(self)
+
+        if self._initializing:
+            return
+        
+        threading.Thread(target=set_wifi_state, args=(value,), daemon=True).start()
+        print(self.active)
+
+    def _set_initial_state(self, is_on):
+        self.active = is_on
+        self.knob_pos = self.width - self.height + dp(2) if is_on else dp(2)
+        self._initializing = False
 
 class SubBatchItem(MDBoxLayout):
     batch_name = StringProperty("")
