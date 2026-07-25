@@ -315,7 +315,7 @@ ScreenManager:
                                     background_normal: "res/btn_pill_blue_l.png"
                                     background_down: "res/btn_pill_blue_l_down.png"
                                     on_release:
-                                        app.count_on_click()
+                                        app.count_on_click() if self._can_press else None
                                 
         MDBoxLayout:
             orientation: 'vertical'
@@ -1783,7 +1783,7 @@ class DebounceBtn(Button):
 
     def on_release(self):
         if not self._can_press:
-            print("[DEBUG] A press is swallowed")
+            print("[DEBUG] A press is swallowed.")
             return True
 
         self._can_press = False
