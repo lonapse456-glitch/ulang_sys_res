@@ -381,7 +381,7 @@ ScreenManager:
     MDBoxLayout:
         orientation: 'vertical'
         size_hint_y: 1
-        padding: 12
+        padding: [12, 12, 12, 0]
         spacing: 12
 
         MDBoxLayout:
@@ -580,7 +580,7 @@ ScreenManager:
     MDBoxLayout:
         orientation: 'vertical'
         size_hint_y: 1
-        padding: 12
+        padding: [12, 12, 12, 0]
         spacing: 12
 
         MDBoxLayout:
@@ -1782,7 +1782,7 @@ class DebounceBtn(Button):
         super().__init__(**kwargs)
         self._can_press = True
 
-    def on_press(self):
+    def on_release(self):
         if not self._can_press:
             return True
 
@@ -1791,7 +1791,7 @@ class DebounceBtn(Button):
 
         print("[DEBUG] Debounce Button Pressed!")
 
-        return super().on_press()
+        return super().on_release()
 
     def _enable_press(self, dt):
         self._can_press = True
