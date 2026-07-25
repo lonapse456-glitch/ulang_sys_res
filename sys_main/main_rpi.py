@@ -7,8 +7,8 @@ import subprocess
 
 from kivy.config import Config
 Config.set('kivy', 'keyboard_mode', 'systemandmulti')
-Config.set('graphics', 'fullscreen', 'auto')
-Config.set('graphics', 'resizable', False)
+#Config.set('graphics', 'fullscreen', 'auto')
+#Config.set('graphics', 'resizable', False)
 
 from kivymd.app import MDApp
 from kivy.lang import Builder
@@ -306,7 +306,7 @@ ScreenManager:
                                 Widget:
                                     size_hint: 1,1
 
-                                Button:
+                                DebounceBtn:
                                     text: "COUNT" if app.is_counting else "+SUB-BATCH"
                                     size_hint: 1, None
                                     height: 56
@@ -1773,6 +1773,25 @@ class BatchLogItem(MDCard):
     log_pl_count = NumericProperty(0)
     log_num_sbatches = NumericProperty(0)
     log_margin_of_err = NumericProperty(0.0)
+
+# Custom Button for Count/+Sub-batch to avoid double-clicking issue on touchscreen
+class DebounceBtn(Button):
+    debounce_time = 0.5
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._can_press = True
+
+    def on_press(self):
+        if not self._can_press:
+            return True
+
+        self._can_press = False
+        Clock.schedule_once(self._enable_press, self.debounce_time)
+        return super().on_press()
+
+    def _enable_press(self, dt):
+        self._can_press = True
 
 if __name__ == '__main__':
     UlangSystemApp().run()
