@@ -1280,6 +1280,7 @@ class UlangSystemApp(MDApp):
         "model_version": None,
         "accuracy": None
     }
+
     name_count_batch = ""
     name_operator = ""
     total_batches_created = NumericProperty(0)
@@ -1363,7 +1364,7 @@ class UlangSystemApp(MDApp):
         return FadeTransition(duration=0.1)
 
 #===Wifi Configuration Commands
-    def update_wifi_stat(self, dt, *args):
+    def update_wifi_stat(self, dt=0):
         wifi_text_widget = self.root.ids.settings_screen.ids.txt_conn_stat_ssid
 
         def execute_update():
