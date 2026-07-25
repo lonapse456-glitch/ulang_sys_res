@@ -7,8 +7,8 @@ import subprocess
 
 from kivy.config import Config
 Config.set('kivy', 'keyboard_mode', 'systemandmulti')
-Config.set('graphics', 'fullscreen', 'auto')
-Config.set('graphics', 'resizable', False)
+#Config.set('graphics', 'fullscreen', 'auto')
+#Config.set('graphics', 'resizable', False)
 
 from kivymd.app import MDApp
 from kivy.lang import Builder
@@ -1754,7 +1754,6 @@ class SystemDialog(Popup):
     command_on_proceed = ObjectProperty(None, allownone=True)
 
     def execute_proceed(self):
-        print("execute_proceed is called")
         if self.command_on_proceed and callable(self.command_on_proceed): 
             self.command_on_proceed()
         self.dismiss()
@@ -1784,6 +1783,7 @@ class DebounceBtn(Button):
 
     def on_release(self):
         if not self._can_press:
+            print("[DEBUG] A press is swallowed")
             return True
 
         self._can_press = False
