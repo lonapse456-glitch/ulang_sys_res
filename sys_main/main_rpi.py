@@ -7,8 +7,8 @@ import subprocess
 
 from kivy.config import Config
 Config.set('kivy', 'keyboard_mode', 'systemandmulti')
-#Config.set('graphics', 'fullscreen', 'auto')
-#Config.set('graphics', 'resizable', False)
+Config.set('graphics', 'fullscreen', 'auto')
+Config.set('graphics', 'resizable', False)
 
 from kivymd.app import MDApp
 from kivy.lang import Builder
