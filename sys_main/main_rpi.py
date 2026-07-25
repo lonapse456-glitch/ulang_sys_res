@@ -1788,6 +1788,9 @@ class DebounceBtn(Button):
 
         self._can_press = False
         Clock.schedule_once(self._enable_press, self.debounce_time)
+
+        print("[DEBUG] Debounce Button Pressed!")
+
         return super().on_press()
 
     def _enable_press(self, dt):
