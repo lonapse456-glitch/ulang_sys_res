@@ -475,6 +475,7 @@ ScreenManager:
                     WiFiToggleSwitch:
                         id: toggle_wifi 
                         on_release: app.toggle_wifi(self.active)
+                        pos_hint: {"center_y": .5}
 
                 MDCard:
                     orientation: 'horizontal'
@@ -506,14 +507,10 @@ ScreenManager:
 
                         canvas.before:
                             Color:
-                                rgba: 0.25, 0.25, 0.25, 1  # Your custom empty color (Dark Gray)
+                                rgba: 0.25, 0.25, 0.25, 1
                             Line:
-                                # THE MATH TRAP: Kivy Line width is a radius (half the thickness).
-                                # To match the 18dp value_track_width, this must be 9dp!
                                 width: 4 
                                 cap: 'round'
-                                
-                                # Draw the line exactly from the left padding to the right padding
                                 points: [self.x + self.padding, self.center_y, self.right - self.padding, self.center_y]
 
                 MDCard:
@@ -1295,8 +1292,6 @@ class UlangSystemApp(MDApp):
     SUPABASE_API_URL = 'https://nltmvrjxasslpqbdyamg.supabase.co'
     SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sdG12cmp4YXNzbHBxYmR5YW1nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2MjcwNzUsImV4cCI6MjA5OTIwMzA3NX0.LCwGdbW5DVKSjl8Qql65LjQQgjOYMkhre7y3q94Eo68'
 
-# Wifi Configuration Commands
-
     def build(self):
         self.theme_cls.theme_style = "Dark"
         self.theme_cls.primary_palette = "Green"
@@ -1348,7 +1343,7 @@ class UlangSystemApp(MDApp):
             self.btn_start.when_pressed = lambda: Clock.schedule_once(self.start_batch_count)
 
     def exit_program(self):
-        print("[INFO] Shutting down Kivy and stopping camera...")
+        print("[INFO] System shutting down...")
         # (Insert your code here to stop cv2.VideoCapture if it's running)
         self.stop()
 
@@ -1367,7 +1362,8 @@ class UlangSystemApp(MDApp):
     def get_fade_transition(self):
         return FadeTransition(duration=0.1)
 
-    def update_wifi_stat(self, dt):
+#===Wifi Configuration Commands
+    def update_wifi_stat(self, dt, *args):
         wifi_text_widget = self.root.ids.settings_screen.ids.txt_conn_stat_ssid
 
         def execute_update():
@@ -1379,7 +1375,7 @@ class UlangSystemApp(MDApp):
                 wifi_text_widget.text = "Disconnected"
                 return
                 
-            # Update the network name
+            # Update the network name on settings
             wifi_text_widget.text = f"Connected to {status["ssid"]}"
             # Map signal strength (0-100)
             strength = status["strength"]
@@ -1399,12 +1395,7 @@ class UlangSystemApp(MDApp):
             wifi_text_widget.text = "Off"
 
     def get_wifi_stat(self):
-        """
-        Queries the OS for active Wi-Fi connections and signal strength.
-        Returns a dictionary with status, SSID, and strength (0-100).
-        """
         try:
-            # Ask nmcli for terse (-t) output of active status, SSID, and signal strength
             result = subprocess.check_output(
                 ['nmcli', '-t', '-f', 'active,ssid,signal', 'dev', 'wifi'],
                 text=True
@@ -1423,7 +1414,6 @@ class UlangSystemApp(MDApp):
             return {"connected": False, "ssid": "Disconnected", "strength": 0}
             
         except subprocess.CalledProcessError:
-            # Occurs if nmcli is busy or hardware is missing
             return {"connected": False, "ssid": "Error", "strength": 0}
         except Exception as e:
             return {"connected": False, "ssid": "Error", "strength": 0}
@@ -1437,9 +1427,12 @@ class UlangSystemApp(MDApp):
             self.show_snackbar(message="Failed to connect to the Network", warning_mode=True)
 
     def toggle_wifi(self, value):
-        self.wifi_on = not value  
+        self.wifi_on = not value
+        self.update_wifi_stat() 
         print(self.wifi_on)
+
 #==================================================SCREEN NAVIGATION FUNCTIONS===============================================
+ 
     def go_to_settings(self, *args):
         if self.root.current != "settings":
             self.root.transition.direction = "left"
@@ -1456,10 +1449,8 @@ class UlangSystemApp(MDApp):
             self.root.current = "dashboard"
 
     def start_batch_count(self, *args):
-        """Triggered by the Touchscreen OR the Physical Buttons."""
         if self.root.current == "dashboard":
             dashboard_screen = self.root.get_screen("dashboard")
-            print("AI INITIALIZED: Starting Batch Count...")
             # Later, this is where you will tell OpenCV and YOLOv8 to start processing frames!
 
     def show_entry_details(self, *args):
@@ -1648,7 +1639,9 @@ class UlangSystemApp(MDApp):
 
             except Exception as e:
                 err = e
-                Clock.schedule_once(lambda dt: self.show_snackbar(warning_mode=True, message=f"Failed to push batch log to database: {e}"))
+                print(f"[DEBUG] Failed to Push Batch Count Log on Database: {err}")
+                save_to_local()
+                Clock.schedule_once(lambda dt: self.show_snackbar(warning_mode=True, message=f"Failed to push log on cloud, log is saved locally"))
 
         def save_to_local():
             try:
@@ -1744,6 +1737,8 @@ class WiFiToggleSwitch(ButtonBehavior, Widget):
     def _set_initial_state(self, is_on):
         self.active = is_on
         self.knob_pos = self.width - self.height + dp(2) if is_on else dp(2)
+        #DEBUG
+        print(f"[DEBUG] Wifi state on initialization: {'ON' if is_on else 'OFF'}")
         self._initializing = False
 
 class SubBatchItem(MDBoxLayout):
