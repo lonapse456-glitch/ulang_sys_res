@@ -3,7 +3,7 @@ import cv2
 # Since you are on CAM/DISP 1, OpenCV usually registers this as index 1, 
 # but sometimes on Pi 5 it maps to 0 or 2 depending on the V4L2 driver. 
 # Try 1 first, if it fails, try 0.
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 
 if not cap.isOpened():
     print("Error: Could not open the Ulang camera.")
