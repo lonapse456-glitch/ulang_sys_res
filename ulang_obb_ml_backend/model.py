@@ -8,7 +8,7 @@ class YOLOv8OBBModel(LabelStudioMLBase):
         super(YOLOv8OBBModel, self).__init__(**kwargs)
         
         # FIX 1: Use the direct filename (assuming it is in the same folder as model.py)
-        self.model = YOLO('ulangn-obb_v2-0.pt') 
+        self.model = YOLO('ulangn-obb_v3-1.pt') 
         
         # FIX 2: Manually parse the Label Studio configuration (replaces get_first_tag_keys)
         self.from_name = None
@@ -81,7 +81,7 @@ class YOLOv8OBBModel(LabelStudioMLBase):
             
             predictions.append({
                 'result': result_boxes,
-                'model_version': 'yolov8-obb-ulang-v2'
+                'model_version': 'ulangn-obb-v3-1'
             })
             
         return predictions

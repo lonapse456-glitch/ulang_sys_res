@@ -7,8 +7,8 @@ import subprocess
 
 from kivy.config import Config
 Config.set('kivy', 'keyboard_mode', 'systemandmulti')
-Config.set('graphics', 'fullscreen', 'auto')
-Config.set('graphics', 'resizable', False)
+#Config.set('graphics', 'fullscreen', 'auto')
+#Config.set('graphics', 'resizable', False)
 
 from kivymd.app import MDApp
 from kivy.lang import Builder
@@ -1654,9 +1654,8 @@ class UlangSystemApp(MDApp):
 
                 with open(filepath, "w") as json_file:
                     json.dump(cached_payload, json_file, indent=4) 
-                
-                self.show_snackbar(warning_mode=True, message="System offline, log saved locally.")
-                print(f"Success: Local Backup created at {filepath}")
+                print(f"[INFO] Local Backup created at {filepath}")
+                Clock.schedule_once(lambda dt: self.show_snackbar(warning_mode=True, message="System offline, log saved locally."))
                 
             except Exception as e:
                 print(f"CRITICAL HARDWARE ERROR: Failed to save local file! {e}")

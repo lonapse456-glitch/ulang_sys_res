@@ -1,0 +1,5 @@
+train: D:/ULANG SYSTEM RES/training/ulang_pl_set_03_obb/images
+val: D:/ULANG SYSTEM RES/training/ulang_pl_set_03_obb/images
+
+nc: 1
+names: ['postlarvae']
