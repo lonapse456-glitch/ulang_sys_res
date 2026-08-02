@@ -1,8 +1,10 @@
+import supabase
 from supabase import create_client, Client
 import threading
 import copy
 import json
 import os
+import uuid
 import subprocess
 import glob
 
@@ -54,8 +56,7 @@ ScreenManager:
 # ---------------------------------------------------DASHBOARD PAGE-------------------------------------------------------
 <DashboardScreen>:
     name: "dashboard"
-    md_bg_color: 0, 0, 0, 1
-    db_client: app.db_client 
+    md_bg_color: 0, 0, 0, 1 
 
     MDBoxLayout:
         orientation: 'vertical'
@@ -521,7 +522,7 @@ ScreenManager:
                     height: self.minimum_height
                     padding: [19, 0, 19, 0]
 
-                    MDLabel:
+                    ClickableMDLabel:
                         text: "Sync Logs to Cloud"
                         halign: 'left'
                         font_name: "assets/sf_txt_reg.ttf"
@@ -530,6 +531,7 @@ ScreenManager:
                         text_color: '#008ade'
                         size_hint: 1, None
                         height: 64
+                        on_release: app.sync_db_logs_thread(show_snackbar = True)
 
                     MDSeparator:
 
@@ -579,6 +581,7 @@ ScreenManager:
 <LogsScreen>:
     name: "logs"
     md_bg_color: 0.08, 0.08, 0.08, 1
+    on_enter: app.sync_db_logs_thread(show_snackbar=False)
 
     MDBoxLayout:
         orientation: 'vertical'
@@ -636,6 +639,7 @@ ScreenManager:
                 size_hint_x: None
                 width: self.texture_size[0] + 24
                 height: self.texture_size[1]
+                on_release: app.sync_db_logs_thread(show_snackbar = True)
 
         RecycleView:
             id: logs_recycle_view
@@ -1047,6 +1051,7 @@ ScreenManager:
             height: self.minimum_height + 10
             pos_hint: {"center_y": 0.5}
             md_bg_color: "#db3838"
+            on_release: app.del_log_entry(target_uuid=root.log_uuid, show_dialog=True)
 
             MDLabel:
                 size_hint_y: None
@@ -1220,66 +1225,7 @@ class SettingsScreen(Screen):
     pass
 
 class LogsScreen(Screen):
-    db_client = ObjectProperty(None, allownone=True)
-    def on_enter(self):
-        # Start the loading spinner here if you have one
-        threading.Thread(target=self.fetch_and_merge_logs).start()
-
-    def fetch_and_merge_logs(self):
-        master_log_list = []
-
-        # LOAD LOCAL "PENDING" LOGS
-        pending_folder = "pending_sync"
-        if os.path.exists(pending_folder):
-            for filename in os.listdir(pending_folder):
-                if filename.endswith(".json"):
-                    filepath = os.path.join(pending_folder, filename)
-                    try:
-                        with open(filepath, "r") as f:
-                            log_data = json.load(f)
-                            # Add a custom UI flag so the operator knows it isn't in the cloud yet
-                            log_data["ui_sync_status"] = "Pending (Offline)" 
-                            master_log_list.append(log_data)
-                    except Exception as e:
-                        print(f"Error reading local log {filename}: {e}")
-
-        # LOAD CLOUD (OR LOCAL HISTORY) LOGS
-        try:
-            response = self.db_client.table("batch_count_history_logs").select("*").order("timestamp", desc=True).limit(50).execute()
-            
-            for cloud_log in response.data:
-                cloud_log["ui_sync_status"] = "Synced to Cloud"
-                master_log_list.append(cloud_log)
-                
-        except Exception as e:
-            err = e
-            print(f"[DEBUG] Offline Mode Active. Could not reach Supabase: {err}")
-
-        # SORT THE MERGED LIST BY TIMESTAMP
-        try:
-            master_log_list.sort(
-                key=lambda x: datetime.strptime(x["timestamp"], "%b %d, %Y %I:%M %p"), 
-                reverse=True
-            )
-        except Exception as e:
-            print(f"Sorting error (likely a timestamp format mismatch): {e}")
-
-        #FORMAT FOR RECYCLEVIEW & UPDATE UI
-        rv_data = []
-        for log in master_log_list:
-            rv_data.append({
-                "log_id_batch": str(log.get("batch_id", "UNKNOWN")),
-                "log_timestamp": str(log.get("timestamp", "No Date")),
-                "log_name_op": str(log.get("op_name", "Unknown Operator")),
-                "log_pl_count": int(log.get("total_pl_count", 0)),
-                "log_num_sbatches": int(log.get("num_of_sbatch", 0)),
-                "log_margin_of_err": float(log.get("accuracy", 0.0))
-            })
-
-        Clock.schedule_once(lambda dt: self.update_rv(rv_data))
-
-    def update_rv(self, formatted_data):
-        self.ids.logs_recycle_view.data = formatted_data
+    pass
 
 class UlangSystemApp(MDApp):
 #===STATUS
@@ -1294,6 +1240,7 @@ class UlangSystemApp(MDApp):
     dialog = None
     sub_batch_history = {}
     payload = {
+        "log_uuid": None, #Auto-generated
         "timestamp": None,
         "batch_id": None,
         "op_name": None,
@@ -1329,7 +1276,6 @@ class UlangSystemApp(MDApp):
             self.wifi_on = False
             print("[INFO] Wifi status on build: OFF")
 
-        # Configure update_wifi_stat to ignore the hell out of its shit when wifi is not toggled
         Clock.schedule_interval(self.update_wifi_stat, 2.0)
 
         try:
@@ -1638,7 +1584,9 @@ class UlangSystemApp(MDApp):
 
 #=======================================================Database Functions=============================================================
     def save_batch_log(self):
+        new_loguuid = str(uuid.uuid4())
         self.payload.update({
+            "log_uuid": new_loguuid,
             "timestamp": datetime.now().strftime("%b %d, %Y %I:%M %p"),
             "batch_id": self.name_count_batch,
             "op_name": self.name_operator,
@@ -1671,7 +1619,7 @@ class UlangSystemApp(MDApp):
                 folder_name = "pending_sync"
                 os.makedirs(folder_name, exist_ok=True) 
 
-                filename = f"BCH{datetime.now().strftime("%Y%d%m%H%M-%f")}.json"
+                filename = f"{cached_payload["log_uuid"]}.json"
                 filepath = os.path.join(folder_name, filename)
 
                 with open(filepath, "w") as json_file:
@@ -1687,7 +1635,7 @@ class UlangSystemApp(MDApp):
         else:    
             save_to_local()
 
-    def wipe_local_logs(self, show_dialog: bool = False):
+    def wipe_local_logs(self, show_dialog: bool = False, *args):
         db_directory = "pending_sync/"
 
         def execute_wipe_local_logs():
@@ -1716,11 +1664,135 @@ class UlangSystemApp(MDApp):
 
         else: 
             execute_wipe_local_logs()
-    def fetch_db(self):
-        pass
 
-    def sync_db(self):
-        pass
+    def sync_db_logs(self, show_snackbar = False):
+        master_log_list = []
+        sync_succeed = False
+        pending_folder = "pending_sync"
+
+        # LOAD CLOUD (OR LOCAL HISTORY) LOGS
+        try:
+            response = self.db_client.table("batch_count_history_logs").select("*").order("timestamp", desc=True).limit(50).execute()
+            
+            for cloud_log in response.data:
+                cloud_log["ui_sync_status"] = "Synced to Cloud"
+                master_log_list.append(cloud_log)
+
+            sync_succeed = True
+        except Exception as e:
+            sync_succeed = False
+            print(f"[DEBUG] Offline Mode Active. Could not reach Supabase: {e}")
+
+        if os.path.exists(pending_folder):
+            for filename in os.listdir(pending_folder):
+                if filename.endswith(".json"):
+                    filepath = os.path.join(pending_folder, filename)
+                    try:
+                        with open(filepath, "r") as f:
+                            log_data = json.load(f)
+
+                        if sync_succeed:
+                            try:
+                                # Push to Supabase
+                                self.db_client.table("batch_count_history_logs").insert(log_data).execute()
+                                print(f"[DEBUG] Successfully synced {filename} to Cloud!")
+                                
+                                # Delete the local file once uploaded
+                                os.remove(filepath)
+                                
+                                # Add to UI list as synced
+                                log_data["ui_sync_status"] = "Synced to Cloud"
+                                master_log_list.append(log_data)
+                                
+                                continue # Skip the offline block below
+                                
+                            except Exception as upload_error:
+                                print(f"[DEBUG] Failed to upload {filename}: {upload_error}")
+                        # Add a custom UI flag so the operator knows it isn't in the cloud yet
+                        log_data["ui_sync_status"] = "Pending (Offline)" 
+                        master_log_list.append(log_data)
+                    except Exception as e:
+                        print(f"[DEBUG] Error reading local log {filename}: {e}")
+
+        # SORT THE MERGED LIST BY TIMESTAMP
+        try:
+            master_log_list.sort(
+                key=lambda x: datetime.strptime(x["timestamp"], "%b %d, %Y %I:%M %p"), 
+                reverse=True
+            )
+        except Exception as e:
+            print(f"[DEBUG] Sorting error (likely a timestamp format mismatch): {e}")
+
+        #FORMAT FOR RECYCLEVIEW & UPDATE UI
+        rv_data = []
+        for log in master_log_list:
+            rv_data.append({
+                "log_uuid": str(log.get("log_uuid", "NULL")),
+                "log_id_batch": str(log.get("batch_id", "UNKNOWN")),
+                "log_timestamp": str(log.get("timestamp", "No Date")),
+                "log_name_op": str(log.get("op_name", "Unknown Operator")),
+                "log_pl_count": int(log.get("total_pl_count", 0)),
+                "log_num_sbatches": int(log.get("num_of_sbatch", 0)),
+                "log_margin_of_err": float(log.get("accuracy", 0.0))
+            })
+
+        Clock.schedule_once(lambda dt: self.update_rv(rv_data))
+
+        if show_snackbar:
+            Clock.schedule_once(lambda dt: self.show_snackbar(warning_mode = not sync_succeed, message="Synced Successfully" if sync_succeed else "Sync Failed!"))
+
+    def sync_db_logs_thread(self, show_snackbar: bool = False, *args):
+        threading.Thread(target=self.sync_db_logs, args=(show_snackbar,)).start()
+
+    def update_rv(self, formatted_data):
+            self.root.ids.logs_screen.ids.logs_recycle_view.data = formatted_data
+
+    def del_log_entry(self, target_uuid:str="", show_dialog:bool=True, **args):
+        def execute_del_log_entry():
+            failed_on_db = False
+            failed_on_local = False
+            succeed_on_db = False
+            succed_on_local = False
+            try:
+                # Assuming your Supabase column is named 'id' or 'uuid'
+                self.db_client.table("batch_count_history_logs").delete().eq("log_uuid", target_uuid).execute()
+                print(f"[INFO] {target_uuid} is successfully removed from database")
+                succeed_on_db = True
+            except Exception as e:
+                print(f"[INFO] Cloud delete failed (offline?): {e}")
+                failed_on_db = True
+
+            try:
+                # Because you used the UUID as the filename, finding it is easy!
+                file_path = f"pending_sync/{target_uuid}.json" 
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+                    print(f"[INFO] {file_path} is successfully removed from local logs")
+                    succed_on_local = True
+            except Exception as e:
+                print(f"[DEBUG] Local delete failed: {e}")
+                failed_on_local = True
+
+            if failed_on_local and failed_on_db:
+                self.show_snackbar(message="Failed to delete log!", warning_mode=True)
+            elif (failed_on_db and succed_on_local) or (failed_on_local and succeed_on_db):
+                self.show_snackbar(f"Permanently deleted log from {"database" if failed_on_local else "local logs"} only")
+            elif succeed_on_db and succed_on_local:
+                self.show_snackbar(message="Permanently deleted log")
+            else:
+                self.show_snackbar(message="Failed to delete log!", warning_mode=True)
+            rv = self.root.ids.logs_screen.ids.logs_recycle_view
+            rv.data = [item for item in rv.data if item.get('log_uuid') != target_uuid]
+
+        if show_dialog:
+            SystemDialog(
+                dialog_title = "Delete Log Item",
+                dialog_msg = "Are you sure you want to delete this log? This process cannot be undone.",
+                mode = 'destructive',
+                command_on_proceed = execute_del_log_entry
+                ).open()
+        else:
+            execute_del_log_entry()
 
 class PillToggleButton(Button):
     is_toggleable = BooleanProperty(True)
@@ -1815,6 +1887,7 @@ class Snackbar(MDBoxLayout):
         self.warning_mode = self.warning_mode
 
 class BatchLogItem(MDCard):
+    log_uuid = StringProperty("")
     log_timestamp = StringProperty("")
     log_id_batch = StringProperty("")
     log_name_op = StringProperty("")
