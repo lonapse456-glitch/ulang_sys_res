@@ -1346,7 +1346,7 @@ class UlangSystemApp(MDApp):
                 return
                 
             # Update the network name on settings
-            wifi_text_widget.text = f"Connected to {status["ssid"]}"
+            wifi_text_widget.text = f"Connected to {status['ssid']}"
             # Map signal strength (0-100)
             strength = status["strength"]
             if strength >= 75:
