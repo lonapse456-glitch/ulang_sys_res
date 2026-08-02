@@ -1610,7 +1610,7 @@ class UlangSystemApp(MDApp):
                 for key, value in cached_payload.items():
                     print(f"{key}: {value} | type: {type(value)}")
 
-                Clock.schedule_once(lambda dt: self.show_snackbar(warning_mode = False, message=f"{cached_payload["batch_id"]} is saved to Logs"))
+                Clock.schedule_once(lambda dt: self.show_snackbar(warning_mode = False, message=f"{cached_payload['batch_id']} is saved to Logs"))
 
             except Exception as e:
                 err = e
@@ -1623,7 +1623,7 @@ class UlangSystemApp(MDApp):
                 folder_name = "pending_sync"
                 os.makedirs(folder_name, exist_ok=True) 
 
-                filename = f"{cached_payload["log_uuid"]}.json"
+                filename = f"{cached_payload['log_uuid']}.json"
                 filepath = os.path.join(folder_name, filename)
 
                 with open(filepath, "w") as json_file:
