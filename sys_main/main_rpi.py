@@ -1504,8 +1504,12 @@ class UlangSystemApp(MDApp):
         dialog.open()
 
     def show_snackbar(self, message = "", warning_mode = False, *args):
-        if not self.snackbar:
-            self.snackbar = Snackbar(warning_mode = warning_mode)
+        if getattr(self, 'snackbar', None) is None:
+            self.snackbar = Snackbar()
+
+        self.snackbar.warning_mode = warning_mode
+        self.snackbar.ids.toast_text.text = message
+
         if self.snackbar.parent:
             self.snackbar.parent.remove_widget(self.snackbar)
         Window.add_widget(self.snackbar)
@@ -1530,7 +1534,6 @@ class UlangSystemApp(MDApp):
             t="in_quad"
         )
 #-------Completely remove it from the Window memory when done
-        anim_out.bind(on_complete=lambda *args: Window.remove_widget(self.snackbar))
         anim_out.bind(on_complete=lambda *args: Window.remove_widget(self.snackbar))
         anim_out.start(self.snackbar)
 
@@ -1704,11 +1707,11 @@ class UlangSystemApp(MDApp):
                                 log_data["ui_sync_status"] = "Synced to Cloud"
                                 master_log_list.append(log_data)
                                 
-                                continue # Skip the offline block below
+                                continue
                                 
                             except Exception as upload_error:
                                 print(f"[DEBUG] Failed to upload {filename}: {upload_error}")
-                        # Add a custom UI flag so the operator knows it isn't in the cloud yet
+
                         log_data["ui_sync_status"] = "Pending (Offline)" 
                         master_log_list.append(log_data)
                     except Exception as e:
@@ -1753,8 +1756,8 @@ class UlangSystemApp(MDApp):
             failed_on_local = False
             succeed_on_db = False
             succed_on_local = False
+
             try:
-                # Assuming your Supabase column is named 'id' or 'uuid'
                 self.db_client.table("batch_count_history_logs").delete().eq("log_uuid", target_uuid).execute()
                 print(f"[INFO] {target_uuid} is successfully removed from database")
                 succeed_on_db = True
@@ -1763,7 +1766,7 @@ class UlangSystemApp(MDApp):
                 failed_on_db = True
 
             try:
-                # Because you used the UUID as the filename, finding it is easy!
+                # Set uuid as filename
                 file_path = f"pending_sync/{target_uuid}.json" 
                 if os.path.exists(file_path):
                     os.remove(file_path)
@@ -1881,10 +1884,6 @@ class SystemDialog(Popup):
 
 class Snackbar(MDBoxLayout):
     warning_mode = BooleanProperty(False)
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.warning_mode = self.warning_mode
 
 class BatchLogItem(MDCard):
     log_uuid = StringProperty("")
