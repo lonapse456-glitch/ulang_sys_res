@@ -1504,6 +1504,7 @@ class UlangSystemApp(MDApp):
         dialog.open()
 
     def show_snackbar(self, message = "", warning_mode = False, *args):
+
         if getattr(self, 'snackbar', None) is None:
             self.snackbar = Snackbar()
 
