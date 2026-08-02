@@ -4,6 +4,7 @@ import copy
 import json
 import os
 import subprocess
+import glob
 
 from kivy.config import Config
 Config.set('kivy', 'keyboard_mode', 'systemandmulti')
@@ -17,6 +18,7 @@ from kivy.uix.screenmanager import ScreenManager, Screen, FadeTransition
 from kivy.uix.floatlayout import FloatLayout
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.card import MDCard
+from kivymd.uix.label import MDLabel
 from kivy.metrics import dp
 from kivy.clock import Clock
 from kivy.factory import Factory
@@ -543,7 +545,7 @@ ScreenManager:
 
                     MDSeparator:
 
-                    MDLabel:
+                    ClickableMDLabel:
                         text: "Clear Locally Stored Logs"
                         halign: 'left'
                         font_name: "assets/sf_txt_reg.ttf"
@@ -552,6 +554,7 @@ ScreenManager:
                         text_color: '#db3838'
                         size_hint: 1, None
                         height: 64
+                        on_release: app.wipe_local_logs(show_dialog=True)
 
                 MDCard:
                     orientation: 'horizontal'
@@ -640,7 +643,7 @@ ScreenManager:
             
             # This layout manager handles the scrolling math
             RecycleBoxLayout:
-                default_size: None, 215 # Approximate starting height of your card
+                default_size: None, 250 # Approximate starting height of your card
                 default_size_hint: 1, None
                 size_hint_y: None
                 height: self.minimum_height
@@ -1004,12 +1007,10 @@ ScreenManager:
             pos: self.pos
             size: self.size
             radius: [self.height / 2]
-            
-        # 2. Draw the Knob (Slider)
+
         Color:
             rgba: (1, 1, 1, 1)
         RoundedRectangle:
-            # X position is bound to the animated knob_pos property
             pos: self.x + self.knob_pos, self.y + dp(2)
             size: self.height - dp(4), self.height - dp(4)
             radius: [(self.height - dp(4)) / 2]
@@ -1018,7 +1019,7 @@ ScreenManager:
     orientation: 'vertical'
     padding: 19
     size_hint: 1, None
-    height: 230
+    height: 275
     radius: [16, 16, 16, 16]
     spacing: 8
 
@@ -1028,23 +1029,24 @@ ScreenManager:
         size_hint_y: None
 
         MDLabel:
-            markup: True
-            size_hint_x: 1
-            size_hint_y: None
-            height: self.texture_size[1]
-            font_size: 24
-            halign: 'left'
-            text: f"[font=assets/sf_mono_bold.otf][color=#ffffff]BATCH ID: [/font][/color][font=assets/sf_mono_reg.otf][color=#ffff00]{root.log_id_batch}[/font][/color]"
-
-        MDLabel:
             size_hint_x: 1
             size_hint_y: None
             height: self.texture_size[1]
             font_size: 24
             font_name: 'assets/sf_mono_reg.otf'
-            text_color: 1, 1, 1, 0.5
+            theme_text_color: "Custom"
+            text_color: 0.5, 0.5, 0.5, 1
             text: root.log_timestamp
-            halign: 'right'
+            halign: 'left'
+
+    MDLabel:
+        markup: True
+        size_hint_x: 1
+        size_hint_y: None
+        height: self.texture_size[1]
+        font_size: 24
+        halign: 'left'
+        text: f"[font=assets/sf_mono_bold.otf][color=#ffffff]BATCH ID: [/font][/color][font=assets/sf_mono_reg.otf][color=#ffff00]{root.log_id_batch}[/font][/color]"
     
     MDLabel:
         markup: True
@@ -1053,7 +1055,7 @@ ScreenManager:
         height: self.texture_size[1]
         font_size: 24
         halign: 'left'
-        text: f"[font=assets/sf_mono_reg.otf][color=#ffffff]OPERATOR: [/font][/color][font=assets/sf_mono_reg.otf][color=#008ade]{root.log_name_op}[/font][/color]"
+        text: f"[font=assets/sf_mono_reg.otf][color=#999999]OPERATOR: [/font][/color][font=assets/sf_mono_reg.otf][color=#008ade]{root.log_name_op}[/font][/color]"
 
     MDLabel:
         markup: True
@@ -1062,7 +1064,7 @@ ScreenManager:
         height: self.texture_size[1]
         font_size: 24
         halign: 'left'
-        text: f"[font=assets/sf_mono_reg.otf][color=#ffffff]PL COUNT: [/font][/color][font=assets/sf_mono_reg.otf][color=#008ade]{root.log_pl_count}[/font][/color]"
+        text: f"[font=assets/sf_mono_reg.otf][color=#999999]PL COUNT: [/font][/color][font=assets/sf_mono_reg.otf][color=#008ade]{root.log_pl_count}[/font][/color]"
 
     MDLabel:
         markup: True
@@ -1071,7 +1073,7 @@ ScreenManager:
         height: self.texture_size[1]
         font_size: 24
         halign: 'left'
-        text: f"[font=assets/sf_mono_reg.otf][color=#ffffff]SUB-BATCHES: [/font][/color][font=assets/sf_mono_reg.otf][color=#008ade]{root.log_num_sbatches}[/font][/color]"    
+        text: f"[font=assets/sf_mono_reg.otf][color=#999999]SUB-BATCHES: [/font][/color][font=assets/sf_mono_reg.otf][color=#008ade]{root.log_num_sbatches}[/font][/color]"    
 
     MDLabel:
         markup:True
@@ -1080,7 +1082,7 @@ ScreenManager:
         height: self.texture_size[1]
         font_size: 24
         halign: 'left'
-        text: f"[font=assets/sf_mono_reg.otf][color=#ffffff]MARGIN OF ERROR: [/font][/color][font=assets/sf_mono_reg.otf][color=#008ade]{root.log_margin_of_err:.2f}[/font][/color]"
+        text: f"[font=assets/sf_mono_reg.otf][color=#999999]MARGIN OF ERROR: [/font][/color][font=assets/sf_mono_reg.otf][color=#db3838]{root.log_margin_of_err:.2f}[/font][/color]"
 
 <SubBatchItem>
     orientation: "vertical"
@@ -1429,8 +1431,7 @@ class UlangSystemApp(MDApp):
 
     def toggle_wifi(self, value):
         self.wifi_on = not value
-        self.update_wifi_stat() 
-        print(self.wifi_on)
+        self.update_wifi_stat()
 
 #==================================================SCREEN NAVIGATION FUNCTIONS===============================================
  
@@ -1468,7 +1469,7 @@ class UlangSystemApp(MDApp):
     
         def execute_activation():
             self.count_active = True
-            print('Counting Process Activated')
+            print('[INFO] Counting Process Activated')
             self.popup.dismiss()
             self.aerator.is_active = False
             self.aerator.is_toggleable = False
@@ -1476,7 +1477,7 @@ class UlangSystemApp(MDApp):
             self.led_panels.is_toggleable = False
             self.right_pane.current = "panel_count_active"
             self.btm_btn.current = "btn_count_active"
-            print(f"Count started for: {self.name_count_batch}.\nOperated by: {self.name_operator}")
+            print(f"[INFO] Count started for: {self.name_count_batch}.\nOperated by: {self.name_operator}")
 
         if not (self.name_count_batch and self.name_operator):
             self.show_snackbar(warning_mode=True, message="Batch detail entries are required.")
@@ -1486,7 +1487,7 @@ class UlangSystemApp(MDApp):
     def deactivate_count(self, abort = False, *args):
         def execute_deactivation():
             self.count_active = False
-            print('Counting Process Deactivated')
+            print('[INFO] Counting Process Deactivated')
 #-----------Reset Status
             self.aerator.is_toggleable = True
             self.led_panels.is_toggleable = True
@@ -1605,7 +1606,7 @@ class UlangSystemApp(MDApp):
             if widget_to_remove.batch_name in self.sub_batch_history:
                 del self.sub_batch_history[widget_to_remove.batch_name]
             self.sub_batch_scrollview.remove_widget(widget_to_remove)
-            print(f"Removed {widget_to_remove.batch_name}. Current Backend Data:", self.sub_batch_history)
+            print(f"[INFO] Removed {widget_to_remove.batch_name}. Current Backend Data:", self.sub_batch_history)
 #-------Show a confirmation dialog
         dialog = SystemDialog(
             dialog_title = "Remove Sub-batch",
@@ -1631,7 +1632,7 @@ class UlangSystemApp(MDApp):
         def push_data():
             try:
                 self.db_client.table("batch_count_history_logs").insert(cached_payload).execute()
-                print("Log Saved to Database:")
+                print("[INFO] Log Saved to Database:")
 
                 for key, value in cached_payload.items():
                     print(f"{key}: {value} | type: {type(value)}")
@@ -1658,13 +1659,42 @@ class UlangSystemApp(MDApp):
                 Clock.schedule_once(lambda dt: self.show_snackbar(warning_mode=True, message="System offline, log saved locally."))
                 
             except Exception as e:
-                print(f"CRITICAL HARDWARE ERROR: Failed to save local file! {e}")
+                print(f"[DEBUG] CRITICAL HARDWARE ERROR: Failed to save local file! {e}")
 
         if self.is_online:
             threading.Thread(target=push_data).start()
         else:    
             save_to_local()
 
+    def wipe_local_logs(self, show_dialog: bool = False):
+        db_directory = "pending_sync/"
+
+        def execute_wipe_local_logs():
+            if os.path.exists(db_directory):
+                log_files = glob.glob(os.path.join(db_directory, "*.json"))
+
+                if log_files:
+                    for file_path in log_files:
+                        try:
+                            os.remove(file_path)
+                            self.show_snackbar(warning_mode=False, message="Local logs permanently deleted")
+                            print(f"[INFO] {file_path} permanently deleted")
+                        except Exception as e:
+                            print(f"[DEBUG] System Warning: Could not delete {file_path} - {e}")
+                            self.show_snackbar(message="Failed to wipe local logs")
+
+                else:
+                    self.show_snackbar(warning_mode=False, message="Local logs already empty")
+
+        if show_dialog:
+            dialog = SystemDialog(dialog_title = "Wipe Local Logs", 
+                                  dialog_msg = "This will permanently delete all offline logs. Cloud backups will remain safe.", 
+                                  mode="destructive", 
+                                  command_on_proceed=execute_wipe_local_logs)
+            dialog.open()
+
+        else: 
+            execute_wipe_local_logs()
     def fetch_db(self):
         pass
 
@@ -1732,7 +1762,6 @@ class WiFiToggleSwitch(ButtonBehavior, Widget):
             return
         
         threading.Thread(target=set_wifi_state, args=(value,), daemon=True).start()
-        print(self.active)
 
     def _set_initial_state(self, is_on):
         self.active = is_on
@@ -1787,13 +1816,15 @@ class DebounceBtn(Button):
 
         self._can_press = False
         Clock.schedule_once(self._enable_press, self.debounce_time)
-
-        print("[DEBUG] Debounce Button Pressed!")
+        #print("[DEBUG] Debounce Button Pressed!")
 
         return super().on_release()
 
     def _enable_press(self, dt):
         self._can_press = True
+
+class ClickableMDLabel(ButtonBehavior, MDLabel):
+    pass
 
 if __name__ == '__main__':
     UlangSystemApp().run()
