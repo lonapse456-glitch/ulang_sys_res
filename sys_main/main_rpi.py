@@ -639,7 +639,7 @@ ScreenManager:
 
         RecycleView:
             id: logs_recycle_view
-            viewclass: 'BatchLogItem' # <--- Points directly to your custom MDCard!
+            viewclass: 'BatchLogItem'
             
             # This layout manager handles the scrolling math
             RecycleBoxLayout:
@@ -1022,11 +1022,14 @@ ScreenManager:
     height: 275
     radius: [16, 16, 16, 16]
     spacing: 8
+    line_color: '#999999'
+    line_width: 1.0
 
     MDBoxLayout:
         orientation: 'horizontal'
         size_hint_x: 1
         size_hint_y: None
+        adaptive_height: True
 
         MDLabel:
             size_hint_x: 1
@@ -1038,6 +1041,24 @@ ScreenManager:
             text_color: 0.5, 0.5, 0.5, 1
             text: root.log_timestamp
             halign: 'left'
+
+        MDCard:
+            size_hint: None, None
+            height: self.minimum_height + 10
+            pos_hint: {"center_y": 0.5}
+            md_bg_color: "#db3838"
+
+            MDLabel:
+                size_hint_y: None
+                height: self.texture_size[1]
+                pos_hint: {"center_y": 0.5}
+                font_size: 20
+                font_name: 'assets/sf_txt_reg.ttf'
+                theme_text_color: "Custom"
+                text_color: 1, 1, 1, 1
+                text: "DELETE"
+                halign: 'center'
+                valign: 'center'
 
     MDLabel:
         markup: True
