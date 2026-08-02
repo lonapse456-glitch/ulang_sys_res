@@ -1780,7 +1780,7 @@ class UlangSystemApp(MDApp):
             if failed_on_local and failed_on_db:
                 self.show_snackbar(message="Failed to delete log!", warning_mode=True)
             elif (failed_on_db and succed_on_local) or (failed_on_local and succeed_on_db):
-                self.show_snackbar(f"Permanently deleted log from {"database" if failed_on_local else "local logs"} only")
+                self.show_snackbar(f"Permanently deleted log from {'database' if failed_on_local else 'local logs'} only")
             elif succeed_on_db and succed_on_local:
                 self.show_snackbar(message="Permanently deleted log")
             else:
