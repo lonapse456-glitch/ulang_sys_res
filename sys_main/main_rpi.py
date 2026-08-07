@@ -1026,14 +1026,14 @@ ScreenManager:
     height: 275
     radius: [16, 16, 16, 16]
     spacing: 8
-    line_color: '#999999'
+    line_color: '#353535'
     line_width: 1.0
 
     MDBoxLayout:
         orientation: 'horizontal'
         size_hint_x: 1
         size_hint_y: None
-        adaptive_height: True
+        height: 36
 
         MDLabel:
             size_hint_x: 1
@@ -1046,24 +1046,17 @@ ScreenManager:
             text: root.log_timestamp
             halign: 'left'
 
-        MDCard:
-            size_hint: None, None
-            height: self.minimum_height + 10
-            pos_hint: {"center_y": 0.5}
-            md_bg_color: "#db3838"
+        Button:
+            id: btn_bck_dashboard
+            text: "DELETE"
+            font_name: "assets/sf_txt_reg.ttf"
+            font_size: 18
+            background_normal: "res/btn_pill_gray_s.png"
+            background_down: "res/btn_pill_gray_s_down.png"
+            size_hint_x: None
+            width: self.texture_size[0] + 24
+            height: self.texture_size[1]
             on_release: app.del_log_entry(target_uuid=root.log_uuid, show_dialog=True)
-
-            MDLabel:
-                size_hint_y: None
-                height: self.texture_size[1]
-                pos_hint: {"center_y": 0.5}
-                font_size: 20
-                font_name: 'assets/sf_txt_reg.ttf'
-                theme_text_color: "Custom"
-                text_color: 1, 1, 1, 1
-                text: "DELETE"
-                halign: 'center'
-                valign: 'center'
 
     MDLabel:
         markup: True
@@ -1081,7 +1074,7 @@ ScreenManager:
         height: self.texture_size[1]
         font_size: 24
         halign: 'left'
-        text: f"[font=assets/sf_mono_reg.otf][color=#999999]OPERATOR: [/font][/color][font=assets/sf_mono_reg.otf][color=#008ade]{root.log_name_op}[/font][/color]"
+        text: f"[font=assets/sf_mono_reg.otf][color=#ffffff]OPERATOR: [/font][/color][font=assets/sf_mono_reg.otf][color=#008ade]{root.log_name_op}[/font][/color]"
 
     MDLabel:
         markup: True
@@ -1090,7 +1083,7 @@ ScreenManager:
         height: self.texture_size[1]
         font_size: 24
         halign: 'left'
-        text: f"[font=assets/sf_mono_reg.otf][color=#999999]PL COUNT: [/font][/color][font=assets/sf_mono_reg.otf][color=#008ade]{root.log_pl_count}[/font][/color]"
+        text: f"[font=assets/sf_mono_reg.otf][color=#ffffff]PL COUNT: [/font][/color][font=assets/sf_mono_reg.otf][color=#008ade]{root.log_pl_count}[/font][/color]"
 
     MDLabel:
         markup: True
@@ -1099,7 +1092,7 @@ ScreenManager:
         height: self.texture_size[1]
         font_size: 24
         halign: 'left'
-        text: f"[font=assets/sf_mono_reg.otf][color=#999999]SUB-BATCHES: [/font][/color][font=assets/sf_mono_reg.otf][color=#008ade]{root.log_num_sbatches}[/font][/color]"    
+        text: f"[font=assets/sf_mono_reg.otf][color=#ffffff]SUB-BATCHES: [/font][/color][font=assets/sf_mono_reg.otf][color=#008ade]{root.log_num_sbatches}[/font][/color]"    
 
     MDLabel:
         markup:True
@@ -1108,7 +1101,7 @@ ScreenManager:
         height: self.texture_size[1]
         font_size: 24
         halign: 'left'
-        text: f"[font=assets/sf_mono_reg.otf][color=#999999]MARGIN OF ERROR: [/font][/color][font=assets/sf_mono_reg.otf][color=#db3838]{root.log_margin_of_err:.2f}[/font][/color]"
+        text: f"[font=assets/sf_mono_reg.otf][color=#ffffff]MARGIN OF ERROR: [/font][/color][font=assets/sf_mono_reg.otf][color=#db3838]{root.log_margin_of_err:.2f}[/font][/color]"
 
 <SubBatchItem>
     orientation: "vertical"
@@ -1755,6 +1748,7 @@ class UlangSystemApp(MDApp):
         def del_from_db():
             try:
                 self.db_client.table("batch_count_history_logs").delete().eq("log_uuid", target_uuid).execute()
+                rv.data = [item for item in rv.data if item.get('log_uuid') != target_uuid]
                 print(f"[INFO] {target_uuid} is successfully removed from database")
                 self.show_snackbar(message="Successfully removed from Database", warning_mode=False)
             except Exception as e:
@@ -1767,6 +1761,7 @@ class UlangSystemApp(MDApp):
                 file_path = f"pending_sync/{target_uuid}.json" 
                 if os.path.exists(file_path):
                     os.remove(file_path)
+                    rv.data = [item for item in rv.data if item.get('log_uuid') != target_uuid]
                     print(f"[INFO] {file_path} is successfully removed from local logs")
                     self.show_snackbar(message="Successfully removed from Local Logs", warning_mode=False)
             except Exception as e:
@@ -1781,7 +1776,6 @@ class UlangSystemApp(MDApp):
             return
 
         del_cmd = del_from_db if target_item.get("log_loc") == "cloud" else del_from_local
-        rv.data = [item for item in rv.data if item.get('log_uuid') != target_uuid]
 
         if show_dialog:
             SystemDialog(
