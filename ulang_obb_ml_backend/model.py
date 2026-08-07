@@ -1,22 +1,22 @@
+import cv2
+import numpy as np
 from label_studio_ml.model import LabelStudioMLBase
 from label_studio_ml.utils import get_image_local_path
 from ultralytics import YOLO
-import math
 
 class YOLOv8OBBModel(LabelStudioMLBase):
     def __init__(self, **kwargs):
         super(YOLOv8OBBModel, self).__init__(**kwargs)
         
-        # FIX 1: Use the direct filename (assuming it is in the same folder as model.py)
+        # Load your specific YOLOv8 OBB model
         self.model = YOLO('ulangn-obb_v3-1.pt') 
         
-        # FIX 2: Manually parse the Label Studio configuration (replaces get_first_tag_keys)
+        # Parse the Label Studio UI configuration
         self.from_name = None
         self.to_name = None
         self.value = None
         self.labels = []
         
-        # Loop through your Label Studio UI XML config to find the bounding box setup
         for control_name, info in self.parsed_label_config.items():
             if info['type'].lower() == 'rectanglelabels':
                 self.from_name = control_name
@@ -33,37 +33,53 @@ class YOLOv8OBBModel(LabelStudioMLBase):
             image_url = task['data'][self.value]
             image_path = get_image_local_path(image_url)
             
-            # 2. Run your Ulang OBB model inference
-            results = self.model(image_path)
+            # 2. Run your Ulang OBB model
+            results = self.model.predict(image_path)
+            
+            # 3. Get exact image dimensions (Crucial for the CV2 conversion)
+            img_h, img_w = results[0].orig_shape 
             
             result_boxes = []
-            for r in results:
-                # Grab original image height and width to calculate percentages
-                img_h, img_w = r.orig_shape 
-                
-                # Check if the model detected any OBBs in this specific image
-                if r.obb is None:
-                    continue
-                    
-                for obb in r.obb:
-                    # OBB output: center_x, center_y, width, height, rotation (in radians)
-                    x, y, w, h, r_rad = obb.xywhr[0].tolist() 
+            
+            # Check if any bounding boxes were found
+            if results[0].obb is not None:
+                for obb in results[0].obb:
+                    # Get class index and confidence score
                     cls = int(obb.cls[0].item())
                     conf = float(obb.conf[0].item())
                     
-                    # Convert absolute center coordinates to Label Studio's top-left percentages
+                    # --- THE POLYGON TO RECTANGLE CONVERSION LOGIC ---
+                    
+                    # A. Get the 4 physical corner points (xyxyxyxy) in pixel space
+                    pts = obb.xyxyxyxy[0].cpu().numpy()
+                    
+                    # B. Get the minimum area bounding rectangle
+                    rect = cv2.minAreaRect(pts)
+                    (cx, cy), (w, h), angle = rect
+                    
+                    # C. Standardize orientation to align with Label Studio
+                    if w < h:
+                        w, h = h, w
+                        angle += 90
+                        
+                    # D. Calculate the top-left corner relative to the unrotated box
+                    # (This accurately determines Label Studio's required anchor point!)
+                    cos_a = np.cos(np.radians(angle))
+                    sin_a = np.sin(np.radians(angle))
+                    
+                    x = cx - (w / 2) * cos_a + (h / 2) * sin_a
+                    y = cy - (w / 2) * sin_a - (h / 2) * cos_a
+
+                    # E. Convert back to Label Studio 0-100 percentage format
+                    ls_x = (x / img_w) * 100
+                    ls_y = (y / img_h) * 100
                     ls_w = (w / img_w) * 100
                     ls_h = (h / img_h) * 100
-                    ls_x = ((x - w / 2) / img_w) * 100
-                    ls_y = ((y - h / 2) / img_h) * 100
                     
-                    # YOLOv8 uses radians. Label Studio requires degrees!
-                    ls_rotation = math.degrees(r_rad)
-                    
-                    # Grab the class name directly from your YOLO training configuration
+                    # Grab the class name
                     class_name = self.model.names[cls] 
 
-                    # 3. Format into Label Studio's strict JSON structure WITH rotation
+                    # Format into Label Studio's strict JSON structure
                     result_boxes.append({
                         'from_name': self.from_name,
                         'to_name': self.to_name,
@@ -74,7 +90,7 @@ class YOLOv8OBBModel(LabelStudioMLBase):
                             'y': ls_y,
                             'width': ls_w,
                             'height': ls_h,
-                            'rotation': ls_rotation
+                            'rotation': angle
                         },
                         'score': conf
                     })

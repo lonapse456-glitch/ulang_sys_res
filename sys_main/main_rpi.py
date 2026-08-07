@@ -1504,7 +1504,6 @@ class UlangSystemApp(MDApp):
         dialog.open()
 
     def show_snackbar(self, message = "", warning_mode = False, *args):
-
         if getattr(self, 'snackbar', None) is None:
             self.snackbar = Snackbar()
 
@@ -1679,10 +1678,10 @@ class UlangSystemApp(MDApp):
             response = self.db_client.table("batch_count_history_logs").select("*").order("timestamp", desc=True).limit(50).execute()
             
             for cloud_log in response.data:
-                cloud_log["ui_sync_status"] = "Synced to Cloud"
+                cloud_log["log_loc"] = "cloud"
                 master_log_list.append(cloud_log)
-
             sync_succeed = True
+
         except Exception as e:
             sync_succeed = False
             print(f"[DEBUG] Offline Mode Active. Could not reach Supabase: {e}")
@@ -1705,7 +1704,7 @@ class UlangSystemApp(MDApp):
                                 os.remove(filepath)
                                 
                                 # Add to UI list as synced
-                                log_data["ui_sync_status"] = "Synced to Cloud"
+                                log_data["log_loc"] = "cloud"
                                 master_log_list.append(log_data)
                                 
                                 continue
@@ -1713,7 +1712,7 @@ class UlangSystemApp(MDApp):
                             except Exception as upload_error:
                                 print(f"[DEBUG] Failed to upload {filename}: {upload_error}")
 
-                        log_data["ui_sync_status"] = "Pending (Offline)" 
+                        log_data["log_loc"] = "local" 
                         master_log_list.append(log_data)
                     except Exception as e:
                         print(f"[DEBUG] Error reading local log {filename}: {e}")
@@ -1737,7 +1736,8 @@ class UlangSystemApp(MDApp):
                 "log_name_op": str(log.get("op_name", "Unknown Operator")),
                 "log_pl_count": int(log.get("total_pl_count", 0)),
                 "log_num_sbatches": int(log.get("num_of_sbatch", 0)),
-                "log_margin_of_err": float(log.get("accuracy", 0.0))
+                "log_margin_of_err": float(log.get("accuracy", 0.0)),
+                "log_loc": str(log.get("log_loc", "UNKNOWN"))
             })
 
         Clock.schedule_once(lambda dt: self.update_rv(rv_data))
@@ -1745,58 +1745,53 @@ class UlangSystemApp(MDApp):
         if show_snackbar:
             Clock.schedule_once(lambda dt: self.show_snackbar(warning_mode = not sync_succeed, message="Synced Successfully" if sync_succeed else "Sync Failed!"))
 
-    def sync_db_logs_thread(self, show_snackbar: bool = False, *args):
+    def sync_db_logs_thread(self, show_snackbar: bool=False, *args):
         threading.Thread(target=self.sync_db_logs, args=(show_snackbar,)).start()
 
     def update_rv(self, formatted_data):
             self.root.ids.logs_screen.ids.logs_recycle_view.data = formatted_data
 
     def del_log_entry(self, target_uuid:str="", show_dialog:bool=True, **args):
-        def execute_del_log_entry():
-            failed_on_db = False
-            failed_on_local = False
-            succeed_on_db = False
-            succed_on_local = False
-
+        def del_from_db():
             try:
                 self.db_client.table("batch_count_history_logs").delete().eq("log_uuid", target_uuid).execute()
                 print(f"[INFO] {target_uuid} is successfully removed from database")
-                succeed_on_db = True
+                self.show_snackbar(message="Successfully removed from Database", warning_mode=False)
             except Exception as e:
-                print(f"[INFO] Cloud delete failed (offline?): {e}")
-                failed_on_db = True
+                print(f"[DEBUG] Cloud delete failed (offline?): {e}")
+                self.show_snackbar(message="Failed to remove from Database", warning_mode=True)
 
+        def del_from_local():
             try:
                 # Set uuid as filename
                 file_path = f"pending_sync/{target_uuid}.json" 
                 if os.path.exists(file_path):
                     os.remove(file_path)
                     print(f"[INFO] {file_path} is successfully removed from local logs")
-                    succed_on_local = True
+                    self.show_snackbar(message="Successfully removed from Local Logs", warning_mode=False)
             except Exception as e:
                 print(f"[DEBUG] Local delete failed: {e}")
-                failed_on_local = True
+                self.show_snackbar(message="Failed to remove from Local Logs", warning_mode=True)
 
-            if failed_on_local and failed_on_db:
-                self.show_snackbar(message="Failed to delete log!", warning_mode=True)
-            elif (failed_on_db and succed_on_local) or (failed_on_local and succeed_on_db):
-                self.show_snackbar(f"Permanently deleted log from {'database' if failed_on_local else 'local logs'} only")
-            elif succeed_on_db and succed_on_local:
-                self.show_snackbar(message="Permanently deleted log")
-            else:
-                self.show_snackbar(message="Failed to delete log!", warning_mode=True)
-            rv = self.root.ids.logs_screen.ids.logs_recycle_view
-            rv.data = [item for item in rv.data if item.get('log_uuid') != target_uuid]
+        rv = self.root.ids.logs_screen.ids.logs_recycle_view
+        target_item = next((item for item in rv.data if item.get('log_uuid') == target_uuid), None)
+
+        if not target_item:
+            print("[ERROR] Could not find the target log in the RecycleView.")
+            return
+
+        del_cmd = del_from_db if target_item.get("log_loc") == "cloud" else del_from_local
+        rv.data = [item for item in rv.data if item.get('log_uuid') != target_uuid]
 
         if show_dialog:
             SystemDialog(
                 dialog_title = "Delete Log Item",
                 dialog_msg = "Are you sure you want to delete this log? This process cannot be undone.",
                 mode = 'destructive',
-                command_on_proceed = execute_del_log_entry
+                command_on_proceed = del_cmd
                 ).open()
         else:
-            execute_del_log_entry()
+            del_cmd()
 
 class PillToggleButton(Button):
     is_toggleable = BooleanProperty(True)

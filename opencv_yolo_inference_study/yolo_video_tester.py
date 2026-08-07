@@ -6,8 +6,8 @@ from ultralytics import YOLO
 # Use the .pt file for Windows testing! 
 # (Swap this back to the _ncnn_model folder ONLY when running on the Raspberry Pi)
 # ==========================================
-MODEL_PATH = "models/pre-trained/ulangn-obb_v2-0.pt" 
-VIDEO_PATH = "training/test/lrv_vd_02.mp4"
+MODEL_PATH = "models/pre-trained/ulangn-obb_v3-1.pt" 
+VIDEO_PATH = "training/test/pl_vd_12.mp4"
 
 print("[INFO] Loading PyTorch model for fast Windows inference...")
 model = YOLO(MODEL_PATH)
@@ -39,7 +39,7 @@ while cap.isOpened():
     results = model.predict(frame, imgsz=640, verbose=False)
 
     # Extract the frame with the bounding boxes drawn on it
-    annotated_frame = results[0].plot()
+    annotated_frame = results[0].plot(labels=False, conf=False, line_width=1)
 
     # Show the frame in our controlled, scaled-down window
     cv2.imshow("Ulang AI - Live Inference", annotated_frame)
