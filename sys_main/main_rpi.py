@@ -8,6 +8,8 @@ import uuid
 import subprocess
 import glob
 
+import cv2
+
 from kivy.config import Config
 Config.set('kivy', 'keyboard_mode', 'systemandmulti')
 #Config.set('graphics', 'fullscreen', 'auto')
@@ -16,18 +18,19 @@ Config.set('kivy', 'keyboard_mode', 'systemandmulti')
 from kivymd.app import MDApp
 from kivy.lang import Builder
 from kivy.core.window import Window
+from kivy.clock import Clock, mainthread
+from kivy.factory import Factory
+from kivy.graphics.texture import Texture
+from kivy.properties import BooleanProperty, ColorProperty, StringProperty, NumericProperty, ObjectProperty, OptionProperty
 from kivy.uix.screenmanager import ScreenManager, Screen, FadeTransition
 from kivy.uix.floatlayout import FloatLayout
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.card import MDCard
 from kivymd.uix.label import MDLabel
 from kivy.metrics import dp
-from kivy.clock import Clock
-from kivy.factory import Factory
 from kivy.uix.button import Button
 from kivy.uix.popup import Popup
 from kivy.animation import Animation
-from kivy.properties import BooleanProperty, ColorProperty, StringProperty, NumericProperty, ObjectProperty, OptionProperty
 from datetime import datetime
 from kivy.uix.widget import Widget
 from kivy.uix.behaviors import ButtonBehavior
@@ -35,13 +38,14 @@ import random #temporary
 # ---------------------------------------------------------
 # HARDWARE GPIO SETUP (Fail-safe for Windows/Mac testing)
 # ---------------------------------------------------------
-try:
+
+'''try:
     from gpiozero import Button as HardwareButton
     GPIO_AVAILABLE = True
 except ImportError:
     GPIO_AVAILABLE = False
-    print("Warning: gpiozero not found. Physical GPIO buttons disabled (Running on Laptop).")
-
+    print("Warning: gpiozero not found. Physical GPIO buttons disabled (Running on Laptop).")'''
+GPIO_AVAILABLE=False
 Window.size = (800, 480)
 
 INTERFACE = '''
@@ -126,14 +130,49 @@ ScreenManager:
                 md_bg_color: 0, 0, 0, 1
                 radius: [12, 12, 12, 12]
 
-                MDLabel:
-                    text: "LIVE YOLOv8 CAMERA FEED\\n\\n[size=14][color=#666666](Awaiting OpenCV Video Stream)[/color][/size]"
-                    halign: "center"
-                    theme_text_color: "Custom"
-                    text_color: 0.8, 0.8, 0.8, 1
-                    markup: True
-                    bold: True
+                ScreenManager:
+                    id: camfeed_pane
+                    transition: app.get_fade_transition()
+                    
+                    MDScreen:
+                        name: "camfeed_loading_screen"
 
+                        MDBoxLayout:
+                            orientation: 'vertical'
+                            adaptive_height: True
+                            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+                            spacing: 16
+                            
+                            MDSpinner:
+                                size_hint: None, None
+                                size: dp(26), dp(26)
+                                pos_hint: {'center_x': .5}
+                                active: True
+                                
+                            MDLabel:
+                                text: "Camera Loading..."
+                                font_name: "assets/sf_txt_reg.ttf"
+                                font_size: 24
+                                halign: "center"
+                                theme_text_color: "Secondary"
+                                adaptive_height: True
+
+                    MDScreen:
+                        name: "camfeed_live_screen"
+
+                        Image:
+                            id: camera_feed
+                            size_hint: 1, 1
+                            allow_stretch: True
+                            keep_ratio: True
+
+                    MDScreen: 
+                        name: "camfeed_null_screen"
+
+                        MDLabel:
+                            text: "Empty Chamber Detected"
+                            halign: "center"
+                    
             # RIGHT PANE: Data & Controls
             MDBoxLayout:
                 orientation: 'vertical'
@@ -657,13 +696,16 @@ ScreenManager:
 # --------------------------------------------------CUSTOM CLASSES-------------------------------------------------------
 <Snackbar>:
     id: snackbar
+    orientation: "horizontal"
     size_hint: None, None
-    size: dp(350), 48
+    size: 480, 48
     opacity: 0
     pos_hint: {"center_x": 0.5, "center_y": 0.05} 
+    spacing: 10
     padding: 14
     elevation: 3
-    shadow_color: 0, 0, 0, 0.1
+    shadow_color: 0, 0, 0, 0.2
+
     canvas.before:
         Color:
             rgba: 1, 1, 1, 1 
@@ -673,15 +715,27 @@ ScreenManager:
             size: self.size
             source: 'res/bg_snackbar_red.png' if root.warning_mode else 'res/bg_snackbar_white.png'
             border: [24, 24, 24, 24]
+
+    Image:
+        id: toast_icon
+        size_hint: None, None
+        source: 'res/ic_warn_s.png' if root.warning_mode else 'res/ic_info_s.png'
+        width: 26
+        height: 26
+        allow_stretch: True
+        keep_ratio: True
+        pos_hint: {"center_y": .5}
+
     
     MDLabel:
         id: toast_text
-        text: ""
+        text: self.text
         font_name: 'assets/sf_txt_reg.ttf'
         font_size: 20
         theme_text_color: "Custom"
         text_color: (1, 1, 1, 1) if root.warning_mode else (0, 0, 0, 1)
-        halign: 'center'
+        halign: 'left'
+        width: self.texture_size[0]
 
 <BatchCountDialog@Popup>
     width: 500
@@ -1149,7 +1203,6 @@ ScreenManager:
 
     MDSeparator:
 '''
-
 def config_conn_wifi(ssid, password):
     try:
         subprocess.check_call([
@@ -1222,8 +1275,10 @@ class LogsScreen(Screen):
 
 class UlangSystemApp(MDApp):
 #===STATUS
-    count_active = BooleanProperty(False)
-    is_counting = BooleanProperty(False)
+    count_active = BooleanProperty(False) # For switching UI interface mode
+    is_counting = BooleanProperty(False) # Inferernce active state
+
+    # Connectivity Status
     is_online = BooleanProperty(False)
     wifi_on = BooleanProperty(False)
     wifi_stat = ['disconnected', '1', '2', '3', '4']
@@ -1231,6 +1286,8 @@ class UlangSystemApp(MDApp):
 
 #===PLACEHOLDERS
     dialog = None
+    snackbar = None
+
     sub_batch_history = {}
     payload = {
         "log_uuid": None, #Auto-generated
@@ -1249,7 +1306,6 @@ class UlangSystemApp(MDApp):
     total_batches_created = NumericProperty(0)
     total_count = NumericProperty(0)
     current_active_widget = ObjectProperty(None, allownone=True)
-    snackbar = None
     empty_chamber = True
 
 #===CLIENT CREATION
@@ -1259,12 +1315,14 @@ class UlangSystemApp(MDApp):
     def build(self):
         self.theme_cls.theme_style = "Dark"
         self.theme_cls.primary_palette = "Green"
-       
+
+        wifi_init_stat = get_initial_wifi_stat()
+
         # If wifi is off do not check for connectivity
-        if get_initial_wifi_stat():
+        if wifi_init_stat:
             self.wifi_on = True
-            self.is_online = self.get_wifi_stat()['connected']
-            print("[INFO] Wifi status on build: OFF")
+            self.is_online = wifi_init_stat['connected']
+            print("[INFO] Wifi status on build: ON")
         else: 
             self.wifi_on = False
             print("[INFO] Wifi status on build: OFF")
@@ -1293,7 +1351,7 @@ class UlangSystemApp(MDApp):
         self.sub_batch_scrollview = self.root.ids.dashboard_screen.ids.sub_batch_scrollview
 
         if not self.is_online:
-            self.show_snackbar(message = "System is Running Offline", warning_mode=True)
+            self.show_snackbar(message = "System is Running Offline", warning_mode=False)
 
         if GPIO_AVAILABLE:
             self.btn_settings = HardwareButton(17)
@@ -1305,9 +1363,12 @@ class UlangSystemApp(MDApp):
             self.btn_start = HardwareButton(22)
             self.btn_start.when_pressed = lambda: Clock.schedule_once(self.start_batch_count)
 
+        #Initialize camera
+        self.start_camera_loading()
+
     def exit_program(self):
         print("[INFO] System shutting down...")
-        # (Insert your code here to stop cv2.VideoCapture if it's running)
+        self.stop_camera()
         self.stop()
 
     def on_keyboard_down(self, window, keycode, scancode, text, modifiers):
@@ -1324,6 +1385,73 @@ class UlangSystemApp(MDApp):
 
     def get_fade_transition(self):
         return FadeTransition(duration=0.1)
+
+#===Camera Live Feed Functions
+    def start_camera_loading(self):
+        """1. Resets the UI and spawns the background worker."""
+        # Ensure we always start on the loading screen
+        self.root.ids.dashboard_screen.ids.camfeed_pane.current = "camfeed_loading_screen"
+
+        # Spawn the chef (background thread) to do the heavy lifting
+        threading.Thread(target=self._init_hardware, daemon=True).start()
+
+    def _init_hardware(self):
+        """2. BACKGROUND THREAD: Negotiates with the Raspberry Pi hardware."""
+        # This is the line that causes the 2-second lag!
+        self.capture = cv2.VideoCapture(0) 
+        
+        # Once the hardware handshake is complete, signal the UI
+        self._camera_ready()
+
+    @mainthread
+    def _camera_ready(self):
+        """3. MAIN THREAD: Swaps the UI and starts the 30 FPS clock."""
+        # Simply command the ScreenManager to slide to the camera feed!
+        self.root.ids.dashboard_screen.ids.camfeed_pane.current = "camfeed_live_screen"
+        
+        # Start the video loop
+        self.camera_event = Clock.schedule_interval(self.update_feed, 1.0 / 10.0)
+
+    def update_feed(self, dt):
+        """Standard Kivy Texture update function"""
+        if hasattr(self, 'capture') and self.capture.isOpened():
+            ret, frame = self.capture.read()
+            if ret:
+                frame = cv2.flip(frame, 0)
+                buffer = frame.tobytes()
+                texture = Texture.create(size=(frame.shape[1], frame.shape[0]), colorfmt='bgr')
+                texture.blit_buffer(buffer, colorfmt='bgr', bufferfmt='ubyte')
+                self.root.ids.dashboard_screen.ids.camera_feed.texture = texture
+
+    def stop_camera(self):
+        """Cleans up memory when navigating away"""
+        if hasattr(self, 'camera_event'):
+            self.camera_event.cancel()
+        if hasattr(self, 'capture'):
+            self.capture.release()
+
+    '''
+    def start_camera(self):
+        self.capture = cv2.VideoCapture(0) 
+        self.camera_event = Clock.schedule_interval(self.update_feed, 1.0 / 30.0)
+
+    def update_feed(self, dt):
+        """Grabs a frame from OpenCV and paints it onto the Kivy UI."""
+        ret, frame = self.capture.read()
+        if ret:
+            frame = cv2.flip(frame, 0)
+            buffer = frame.tobytes()
+            texture = Texture.create(size=(frame.shape[1], frame.shape[0]), colorfmt='bgr')
+            texture.blit_buffer(buffer, colorfmt='bgr', bufferfmt='ubyte')
+            self.root.ids.dashboard_screen.ids.camera_feed.texture = texture
+
+    def stop_camera(self):
+        if hasattr(self, 'camera_event'):
+            self.camera_event.cancel()
+        if hasattr(self, 'capture'):
+            self.capture.release()
+
+    '''
 
 #===Wifi Configuration Commands
     def update_wifi_stat(self, dt=0):
@@ -1400,15 +1528,23 @@ class UlangSystemApp(MDApp):
             self.root.transition.direction = "left"
             self.root.current = "settings"
 
+        self.stop_camera()
+
     def go_to_logs(self, *args):
         if self.root.current != "logs":
             self.root.transition.direction = "left"
             self.root.current = "logs"
 
+        self.stop_camera()
+
     def go_to_dashboard(self, *args):
         if self.root.current != "dashboard":
             self.root.transition.direction = "right"
             self.root.current = "dashboard"
+
+        self.start_camera_loading()
+
+#============================================================================================================================
 
     def start_batch_count(self, *args):
         if self.root.current == "dashboard":
@@ -1894,12 +2030,11 @@ class DebounceBtn(Button):
 
     def on_release(self):
         if not self._can_press:
-            print("[DEBUG] A press is swallowed.")
+            print("[INFO] DebounceBtn: A press is swallowed.")
             return True
 
         self._can_press = False
         Clock.schedule_once(self._enable_press, self.debounce_time)
-        #print("[DEBUG] Debounce Button Pressed!")
 
         return super().on_release()
 
