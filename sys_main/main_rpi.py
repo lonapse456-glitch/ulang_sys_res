@@ -1,4 +1,3 @@
-import supabase
 from supabase import create_client, Client
 import threading
 import copy
@@ -7,8 +6,13 @@ import os
 import uuid
 import subprocess
 import glob
+import time
+
+import traceback
 
 import cv2
+
+from ultralytics import YOLO
 
 from kivy.config import Config
 Config.set('kivy', 'keyboard_mode', 'systemandmulti')
@@ -22,6 +26,7 @@ from kivy.clock import Clock, mainthread
 from kivy.factory import Factory
 from kivy.graphics.texture import Texture
 from kivy.properties import BooleanProperty, ColorProperty, StringProperty, NumericProperty, ObjectProperty, OptionProperty
+from kivymd.uix.screen import MDScreen
 from kivy.uix.screenmanager import ScreenManager, Screen, FadeTransition
 from kivy.uix.floatlayout import FloatLayout
 from kivymd.uix.boxlayout import MDBoxLayout
@@ -1389,39 +1394,80 @@ class UlangSystemApp(MDApp):
 #===Camera Live Feed Functions
     def start_camera_loading(self):
         """1. Resets the UI and spawns the background worker."""
-        # Ensure we always start on the loading screen
         self.root.ids.dashboard_screen.ids.camfeed_pane.current = "camfeed_loading_screen"
 
-        # Spawn the chef (background thread) to do the heavy lifting
         threading.Thread(target=self._init_hardware, daemon=True).start()
 
     def _init_hardware(self):
-        """2. BACKGROUND THREAD: Negotiates with the Raspberry Pi hardware."""
-        # This is the line that causes the 2-second lag!
-        self.capture = cv2.VideoCapture(0) 
-        
-        # Once the hardware handshake is complete, signal the UI
+        """@backgroundthread: Initializes capturing and loading AI model"""
+        self.capture = cv2.VideoCapture(0)
+        self.model = YOLO("ulangn-obb_v3-1.pt")
         self._camera_ready()
+        self._run_inf_loop()
 
     @mainthread
     def _camera_ready(self):
-        """3. MAIN THREAD: Swaps the UI and starts the 30 FPS clock."""
-        # Simply command the ScreenManager to slide to the camera feed!
+        """@mainthread: Swaps camfeed_pane with camera live feed"""
         self.root.ids.dashboard_screen.ids.camfeed_pane.current = "camfeed_live_screen"
-        
-        # Start the video loop
-        self.camera_event = Clock.schedule_interval(self.update_feed, 1.0 / 10.0)
 
-    def update_feed(self, dt):
-        """Standard Kivy Texture update function"""
-        if hasattr(self, 'capture') and self.capture.isOpened():
+    def _run_inf_loop(self):
+        """@backgroundthread: Grabs camera live feed frames, runs inference, pass to UI"""
+
+        targ_fps = 10
+        targ_frame_time = 1/targ_fps
+
+        while hasattr(self, 'capture') and self.capture.isOpened():
+            sttime = time.time()
+
             ret, frame = self.capture.read()
-            if ret:
-                frame = cv2.flip(frame, 0)
-                buffer = frame.tobytes()
-                texture = Texture.create(size=(frame.shape[1], frame.shape[0]), colorfmt='bgr')
-                texture.blit_buffer(buffer, colorfmt='bgr', bufferfmt='ubyte')
-                self.root.ids.dashboard_screen.ids.camera_feed.texture = texture
+
+            if not ret:
+                continue
+
+            try:
+                inf_result = self.model.predict(frame, conf=0.50, verbose=False)
+
+                if inf_result[0].obb is not None:
+                    inf_count = len(inf_result[0].obb)
+                else:
+                    inf_count = 0
+
+                inf_count = len(inf_result[0].obb)
+                inf_wframe = inf_result[0].plot(labels=False, line_width=2)
+
+                cv2.imwrite("frame_debug/debug_camera_frame.jpg", inf_wframe)
+
+                rgb_frame = cv2.cvtColor(inf_wframe, cv2.COLOR_BGR2RGB)
+
+                # Frame data conversion to kivy compatible image
+                frame_bytes = rgb_frame.tobytes()
+                frame_width = rgb_frame.shape[1]
+                frame_height = rgb_frame.shape[0]
+
+                self.update_feed(frame_bytes, frame_width, frame_height, inf_count)
+
+                eltime = time.time()-sttime
+                slptime = targ_frame_time-eltime
+
+                if slptime>0:
+                    time.sleep(slptime)
+
+            except Exception as e:
+                print(f"[DEBUG] {e}")
+                traceback.print_exc()
+
+    @mainthread
+    def update_feed(self, frame_bytes, width, height, total_count):
+        """@mainthread: Refresh camera_feed"""
+        texture = Texture.create(size=(width, height), colorfmt='rgb')
+        texture.blit_buffer(frame_bytes, colorfmt='rgb', bufferfmt='ubyte')
+
+        texture.flip_vertical()
+
+        cam_widget = self.root.ids.dashboard_screen.ids.camera_feed
+        cam_widget.texture = texture
+        cam_widget.canvas.ask_update()
+        print(f"[INFO|COUNTING] Count: {total_count}")
 
     def stop_camera(self):
         """Cleans up memory when navigating away"""
@@ -1429,29 +1475,6 @@ class UlangSystemApp(MDApp):
             self.camera_event.cancel()
         if hasattr(self, 'capture'):
             self.capture.release()
-
-    '''
-    def start_camera(self):
-        self.capture = cv2.VideoCapture(0) 
-        self.camera_event = Clock.schedule_interval(self.update_feed, 1.0 / 30.0)
-
-    def update_feed(self, dt):
-        """Grabs a frame from OpenCV and paints it onto the Kivy UI."""
-        ret, frame = self.capture.read()
-        if ret:
-            frame = cv2.flip(frame, 0)
-            buffer = frame.tobytes()
-            texture = Texture.create(size=(frame.shape[1], frame.shape[0]), colorfmt='bgr')
-            texture.blit_buffer(buffer, colorfmt='bgr', bufferfmt='ubyte')
-            self.root.ids.dashboard_screen.ids.camera_feed.texture = texture
-
-    def stop_camera(self):
-        if hasattr(self, 'camera_event'):
-            self.camera_event.cancel()
-        if hasattr(self, 'capture'):
-            self.capture.release()
-
-    '''
 
 #===Wifi Configuration Commands
     def update_wifi_stat(self, dt=0):
