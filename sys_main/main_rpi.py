@@ -1396,25 +1396,33 @@ class UlangSystemApp(MDApp):
 #===Camera Live Feed Functions
     def start_camera_loading(self):
         """1. Resets the UI and spawns the background worker."""
+        if hasattr(self, 'picam2') or self.is_cam_initializing:
+            return
+        self.is_cam_initializing = True
         self.root.ids.dashboard_screen.ids.camfeed_pane.current = "camfeed_loading_screen"
 
         threading.Thread(target=self._init_hardware, daemon=True).start()
 
     def _init_hardware(self):
         """@backgroundthread: Initializes capturing and loading AI model"""
+        try:
+            self.picam2 = Picamera2()
 
-        self.picam2 = Picamera2()
+            vd_config =self.picam2.create_video_configuration(
+                main={"size": (1920,1080), "format": "RGB888"}
+            )
+            self.picam2.configure(vd_config)
+            self.picam2.start_preview(Preview.NULL)
+            self.picam2.start()
+            #self.capture = cv2.VideoCapture(0) main_win.py
+            self.model = YOLO("models/pre-trained/ulangn-obb_v3-1_ncnn_model")
+            self._camera_ready()
+            self._run_inf_loop()
 
-        vd_config =self.picam2.create_video_configuration(
-            main={"size": (1920,1080), "format": "RGB888"}
-        )
-        self.picam2.configure(vd_config)
-        self.picam2.start_preview(Preview.NULL)
-        self.picam2.start()
-        #self.capture = cv2.VideoCapture(0) main_win.py
-        self.model = YOLO("models/pre-trained/ulangn-obb_v3-1_ncnn_model")
-        self._camera_ready()
-        self._run_inf_loop()
+        except Exception as e:
+            print(f"[ERROR] Camera init failed: {e}")
+        finally:
+            self.is_cam_initializing = False
 
     @mainthread
     def _camera_ready(self):
@@ -1426,7 +1434,7 @@ class UlangSystemApp(MDApp):
         targ_fps = 10
         targ_frame_time = 1/targ_fps
 
-        while hasattr(self, 'capture') and self.capture.isOpened():
+        while True:
             sttime = time.time()
 
             #ret, frame = self.capture.read()
@@ -1481,10 +1489,15 @@ class UlangSystemApp(MDApp):
 
     def stop_camera(self):
         """Cleans up memory when navigating away"""
-        if hasattr(self, 'camera_event'):
-            self.camera_event.cancel()
-        if hasattr(self, 'capture'):
-            self.capture.release()
+        if hasattr(self, 'picam2'):
+            try:
+                self.picam2.stop()
+                self.picam2.close()
+            except Exception as e:
+                print(f"[DEBUG] Camera stop error: {e}")
+            finally:
+                delattr(self, 'picam2')
+        self.is_cam_initializing = False
 
 #===Wifi Configuration Commands
     def update_wifi_stat(self, dt=0):
