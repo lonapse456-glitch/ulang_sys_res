@@ -44,6 +44,8 @@ import random #temporary
 # HARDWARE GPIO SETUP (Fail-safe for Windows/Mac testing)
 # ---------------------------------------------------------
 
+from picamera2 import Picamera2
+
 '''try:
     from gpiozero import Button as HardwareButton
     GPIO_AVAILABLE = True
@@ -1400,7 +1402,16 @@ class UlangSystemApp(MDApp):
 
     def _init_hardware(self):
         """@backgroundthread: Initializes capturing and loading AI model"""
-        self.capture = cv2.VideoCapture(0)
+
+        self.picam2 = Picamera2()
+
+        vd_config =self.picam2.create_video_configuration(
+            main={"size": (1920,1080), "format": "RBG888"}
+        )
+        self.picam2.configure(vd_config)
+        self.picam2.start()
+
+        #self.capture = cv2.VideoCapture(0) main_win.py
         self.model = YOLO("models/pre-trained/ulangn-obb_v3-1_ncnn_model")
         self._camera_ready()
         self._run_inf_loop()
@@ -1418,36 +1429,36 @@ class UlangSystemApp(MDApp):
         while hasattr(self, 'capture') and self.capture.isOpened():
             sttime = time.time()
 
-            ret, frame = self.capture.read()
+            #ret, frame = self.capture.read()
+            #if not ret:
+            #    continue
 
-            if not ret:
-                continue
+            hi_res_frame = self.picam2.capture_array()
 
             try:
-                inf_result = self.model.predict(frame, conf=0.50, verbose=False)
+                inf_result = self.model.predict(hi_res_frame, conf=0.50, verbose=False)
 
                 if inf_result[0].obb is not None:
                     inf_count = len(inf_result[0].obb)
                 else:
                     inf_count = 0
 
-                inf_count = len(inf_result[0].obb)
-                inf_wframe = inf_result[0].plot(labels=False, line_width=2)
+                inf_wframe = inf_result[0].plot(labels=False, line_width=2, conf=False)
 
-                cv2.imwrite("frame_debug/debug_camera_frame.jpg", inf_wframe)
+                #cv2.imwrite("frame_debug/debug_camera_frame.jpg", inf_wframe)
 
-                rgb_frame = cv2.cvtColor(inf_wframe, cv2.COLOR_BGR2RGB)
-
+                disp_frame = cv2.resize(inf_wframe, (640, 480), interpolation=cv2.INTER_LINEAR)
+                rgb_frame = cv2.cvtColor(disp_frame, cv2.COLOR_BGR2RGB)
                 # Frame data conversion to kivy compatible image
                 frame_bytes = rgb_frame.tobytes()
-                frame_width = rgb_frame.shape[1]
-                frame_height = rgb_frame.shape[0]
+                #frame_width = rgb_frame.shape[1]
+                #frame_height = rgb_frame.shape[0]
 
-                self.update_feed(frame_bytes, frame_width, frame_height, inf_count)
+                self.update_feed(frame_bytes, 640, 480, inf_count)
 
                 eltime = time.time()-sttime
+                print(f"[INFO] Inference Loop Speed: {eltime}")
                 slptime = targ_frame_time-eltime
-
                 if slptime>0:
                     time.sleep(slptime)
 
