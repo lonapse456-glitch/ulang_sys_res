@@ -1456,19 +1456,15 @@ class UlangSystemApp(MDApp):
 
                 inf_wframe = inf_result[0].plot(labels=False, line_width=2, conf=False)
 
-                #cv2.imwrite("frame_debug/debug_camera_frame.jpg", inf_wframe)
-
                 disp_frame = cv2.resize(inf_wframe, (434, 244), interpolation=cv2.INTER_LINEAR)
                 rgb_frame = cv2.cvtColor(disp_frame, cv2.COLOR_BGR2RGB)
-                # Frame data conversion to kivy compatible image
-                frame_bytes = rgb_frame.tobytes()
-                #frame_width = rgb_frame.shape[1]
-                #frame_height = rgb_frame.shape[0]
 
+                frame_bytes = rgb_frame.tobytes()
+ 
                 self.update_feed(frame_bytes, 434, 244, inf_count)
 
                 eltime = time.time()-sttime
-                print(f"[INFO] Inference Loop Speed: {eltime}")
+                print(f"[INFO] Inference Loop Speed: {(eltime*1000):.2f}ms")
                 slptime = targ_frame_time-eltime
                 if slptime>0:
                     time.sleep(slptime)
@@ -1488,6 +1484,7 @@ class UlangSystemApp(MDApp):
         cam_widget = self.root.ids.dashboard_screen.ids.camera_feed
         cam_widget.texture = texture
         cam_widget.canvas.ask_update()
+        
         print(f"[INFO|COUNTING] Count: {total_count}")
 
     def stop_camera(self):
