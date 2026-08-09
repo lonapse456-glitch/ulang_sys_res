@@ -46,6 +46,7 @@ import random #temporary
 # ---------------------------------------------------------
 
 from picamera2 import Picamera2, Preview
+from libcamera import controls
 
 '''try:
     from gpiozero import Button as HardwareButton
@@ -1415,8 +1416,8 @@ class UlangSystemApp(MDApp):
             )
             self.picam2.configure(vd_config)
             self.picam2.start_preview(Preview.NULL)
+            self.picam2.set_controls({"AfMode": controls.AfModeEnum.Continuous})
             self.picam2.start()
-            #self.capture = cv2.VideoCapture(0) main_win.py
             self.model = YOLO("models/pre-trained/ulangn-obb_v3-1_ncnn_model")
             self._camera_ready()
             self._run_inf_loop()
@@ -1457,14 +1458,14 @@ class UlangSystemApp(MDApp):
 
                 #cv2.imwrite("frame_debug/debug_camera_frame.jpg", inf_wframe)
 
-                disp_frame = cv2.resize(inf_wframe, (640, 480), interpolation=cv2.INTER_LINEAR)
+                disp_frame = cv2.resize(inf_wframe, (434, 244), interpolation=cv2.INTER_LINEAR)
                 rgb_frame = cv2.cvtColor(disp_frame, cv2.COLOR_BGR2RGB)
                 # Frame data conversion to kivy compatible image
                 frame_bytes = rgb_frame.tobytes()
                 #frame_width = rgb_frame.shape[1]
                 #frame_height = rgb_frame.shape[0]
 
-                self.update_feed(frame_bytes, 640, 480, inf_count)
+                self.update_feed(frame_bytes, 434, 244, inf_count)
 
                 eltime = time.time()-sttime
                 print(f"[INFO] Inference Loop Speed: {eltime}")
