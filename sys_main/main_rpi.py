@@ -15,9 +15,12 @@ import cv2
 from ultralytics import YOLO
 
 from kivy.config import Config
+
 Config.set('kivy', 'keyboard_mode', 'systemandmulti')
 Config.set('graphics', 'fullscreen', 'auto')
 Config.set('graphics', 'resizable', False)
+Config.set('input', 'mouse', 'mouse,disable_multitouch')
+Config.set('input', '%(name)s', 'probesysfs,provider=mtdev')
 
 from kivymd.app import MDApp
 from kivy.lang import Builder
@@ -1284,6 +1287,7 @@ class UlangSystemApp(MDApp):
 #===STATUS
     count_active = BooleanProperty(False) # For switching UI interface mode
     is_counting = BooleanProperty(False) # Inferernce active state
+    is_cam_initializing = BooleanProperty(False)
 
     # Connectivity Status
     is_online = BooleanProperty(False)
