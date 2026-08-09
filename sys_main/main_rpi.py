@@ -1401,7 +1401,7 @@ class UlangSystemApp(MDApp):
     def _init_hardware(self):
         """@backgroundthread: Initializes capturing and loading AI model"""
         self.capture = cv2.VideoCapture(0)
-        self.model = YOLO("ulangn-obb_v3-1.pt")
+        self.model = YOLO("models/pre-trained/ulangn-obb_v3-1_ncnn_model")
         self._camera_ready()
         self._run_inf_loop()
 
@@ -1412,7 +1412,6 @@ class UlangSystemApp(MDApp):
 
     def _run_inf_loop(self):
         """@backgroundthread: Grabs camera live feed frames, runs inference, pass to UI"""
-
         targ_fps = 10
         targ_frame_time = 1/targ_fps
 
