@@ -1326,7 +1326,7 @@ class UlangSystemApp(MDApp):
         # If wifi is off do not check for connectivity
         if wifi_init_stat:
             self.wifi_on = True
-            self.is_online = wifi_init_stat['connected']
+            self.is_online = wifi_init_stat
             print("[INFO] Wifi status on build: ON")
         else: 
             self.wifi_on = False
