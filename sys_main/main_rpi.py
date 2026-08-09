@@ -16,8 +16,8 @@ from ultralytics import YOLO
 
 from kivy.config import Config
 Config.set('kivy', 'keyboard_mode', 'systemandmulti')
-#Config.set('graphics', 'fullscreen', 'auto')
-#Config.set('graphics', 'resizable', False)
+Config.set('graphics', 'fullscreen', 'auto')
+Config.set('graphics', 'resizable', False)
 
 from kivymd.app import MDApp
 from kivy.lang import Builder
@@ -1325,7 +1325,7 @@ class UlangSystemApp(MDApp):
 
         # If wifi is off do not check for connectivity
         if wifi_init_stat:
-            self.wifi_on = True
+            self.wifi_on = wifi_init_stat
             self.is_online = wifi_init_stat
             print("[INFO] Wifi status on build: ON")
         else: 
