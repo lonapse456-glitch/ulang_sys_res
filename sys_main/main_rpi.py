@@ -19,8 +19,6 @@ from kivy.config import Config
 Config.set('kivy', 'keyboard_mode', 'systemandmulti')
 Config.set('graphics', 'fullscreen', 'auto')
 Config.set('graphics', 'resizable', False)
-Config.set('input', 'mouse', 'mouse,disable_multitouch')
-Config.set('input', '%(name)s', 'probesysfs,provider=mtdev')
 
 from kivymd.app import MDApp
 from kivy.lang import Builder
