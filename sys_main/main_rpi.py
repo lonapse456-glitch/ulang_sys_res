@@ -295,7 +295,7 @@ ScreenManager:
                                     color_off: 0, 0.47, 1, 0.2
                                     line_height: 0.9
                                     cmd_on: lambda *args: app.talk_to_ard("aerator_on")
-                                    cmd_on: lambda *args: app.talk_to_ard("aerator_off")
+                                    cmd_off: lambda *args: app.talk_to_ard("aerator_off")
 
                                 PillToggleButton:
                                     id: toggle_led_panels
@@ -308,7 +308,7 @@ ScreenManager:
                                     color_off: 0.8, 0.73, 0, 0.2
                                     line_height: 0.9
                                     cmd_on: lambda *args: app.talk_to_ard("led_on")
-                                    cmd_on: lambda *args: app.talk_to_ard("led_off")
+                                    cmd_off: lambda *args: app.talk_to_ard("led_off")
 
                     Screen:
                         name: "panel_count_active"
