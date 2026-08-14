@@ -8,6 +8,8 @@ import subprocess
 import glob
 import time
 
+import serial
+
 import traceback
 
 import cv2
@@ -56,6 +58,12 @@ except ImportError:
     print("Warning: gpiozero not found. Physical GPIO buttons disabled (Running on Laptop).")'''
 GPIO_AVAILABLE=False
 Window.size = (800, 480)
+
+try:
+    arduino = serial.Serial('/dev/ttyUSB0', 115200, timeout=1)
+    time.sleep(2) # Give the Arduino a second to reset after connecting
+except Exception as e:
+    print(f"Error connecting to Arduino: {e}")
 
 INTERFACE = '''
 ScreenManager:
@@ -209,6 +217,7 @@ ScreenManager:
                                 valign: 'bottom'
 
                                 MDLabel:
+                                    id: water_temp_label
                                     text: "28.5 °C"
                                     theme_text_color: "Custom"
                                     text_color: 0.2, 0.8, 0.2, 1 
@@ -233,6 +242,7 @@ ScreenManager:
                                 #adaptive_height: True
 
                                 MDLabel:
+                                    id: water_lvl_label
                                     text: "8.0 cm"
                                     theme_text_color: "Custom"
                                     text_color: 0.2, 0.8, 0.2, 1  # Green
@@ -290,6 +300,8 @@ ScreenManager:
                                     color_on: '#0078ff'
                                     color_off: 0, 0.47, 1, 0.2
                                     line_height: 0.9
+                                    cmd_on: app.talk_to_ard("aerator_on")
+                                    cmd_on: app.talk_to_ard("aerator_off")
 
                                 PillToggleButton:
                                     id: toggle_led_panels
@@ -301,6 +313,8 @@ ScreenManager:
                                     color_on: 'ccba00'
                                     color_off: 0.8, 0.73, 0, 0.2
                                     line_height: 0.9
+                                    cmd_on: app.talk_to_ard("led_on")
+                                    cmd_on: app.talk_to_ard("led_off")
 
                     Screen:
                         name: "panel_count_active"
@@ -314,7 +328,7 @@ ScreenManager:
                             md_bg_color: 0.3, 0.3, 0.3, 1
 
                             ScrollView:
-                                do_scroll_x: False # Force vertical scrolling only
+                                do_scroll_x: False
                                 size_hint: 1, 0.6
 
                                 MDBoxLayout:
@@ -1212,6 +1226,7 @@ ScreenManager:
 
     MDSeparator:
 '''
+
 def config_conn_wifi(ssid, password):
     try:
         subprocess.check_call([
@@ -1375,6 +1390,51 @@ class UlangSystemApp(MDApp):
 
         #Initialize camera
         self.start_camera_loading()
+        listener = threading.Thread(target=self.listen_to_ard, daemon=True)
+        listener.start()
+
+    @mainthread
+    def update_sensor_reads(self, data):
+        """@mainthread: Updates the screen with the JSON data"""
+        # Because we used on_start, we know for a fact these IDs exist!
+        self.root.ids.dashboard_screen.ids.water_temp_label.text = f"{data.get('temp')} °C"
+        self.root.ids.dashboard_screen.ids.water_lvl_label.text = f"{data.get('light')} Lux"
+
+    def listen_to_ard(self):
+        """
+        Background thread (The Chef): Continuously listens for incoming sensor 
+        data so the Kivy UI never freezes.
+        """
+        while True:
+            if arduino.in_waiting > 0:
+                try:
+                    # Read the line until \n and decode it
+                    raw_data = arduino.readline().decode('utf-8').strip()
+                    
+                    # Parse the JSON
+                    sensor_data = json.loads(raw_data)
+                    
+                    print(f"[Sensors Updated] Temp: {sensor_data.get('temp')}°C, Light: {sensor_data.get('light')}")
+                    
+                    self.update_sensor_reads(sensor_data)
+                    
+                except json.JSONDecodeError:
+                    print("Failed to decode JSON from Arduino.")
+
+            time.sleep(0.05)
+
+    def talk_to_ard(self, action):
+        """
+        Triggered by the Main UI Thread when a technician taps a Kivy button.
+        """
+        command_dict = {"command": action}
+        
+        # Convert Python dictionary to JSON string and add the newline delimiter
+        json_string = json.dumps(command_dict) + "\n"
+        
+        # Send it down the USB wire
+        arduino.write(json_string.encode('utf-8'))
+        print(f"Sent command to Arduino: {action}")
 
     def exit_program(self):
         print("[INFO] System shutting down...")
@@ -1978,6 +2038,8 @@ class PillToggleButton(Button):
     color_pressed = ColorProperty([0.4, 0.4, 0.4, 1])
 
     current_color = ColorProperty([0.25, 0.25, 0.25, 1])
+    cmd_on = ObjectProperty(None, allownone = True)
+    cmd_off = ObjectProperty(None, allownone = True)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -1996,8 +2058,12 @@ class PillToggleButton(Button):
     def on_is_active(self, instance, value):
         if value:
             self.current_color = self.color_on
+            if self.cmd_on and callable(self.cmd_on): 
+                self.cmd_on()
         else:
             self.current_color = self.color_off
+            if self.cmd_on and callable(self.cmd_on): 
+                self.cmd_off()
 
 class WiFiToggleSwitch(ButtonBehavior, Widget):
     active = BooleanProperty(False)
