@@ -2052,19 +2052,22 @@ class PillToggleButton(Button):
 
         if self.is_toggleable:
             self.is_active = not self.is_active
+            if self.is_active:
+                if self.cmd_on and callable(self.cmd_on): 
+                    self.cmd_on()
+
+            else:
+                if self.cmd_off and callable(self.cmd_off): 
+                    self.cmd_off()
+                
         else:
             print(f"[{self.text}] Standard Push Triggered!")
 
     def on_is_active(self, instance, value):
         if value:
             self.current_color = self.color_on
-            if self.cmd_on and callable(self.cmd_on): 
-                self.cmd_on()
         else:
             self.current_color = self.color_off
-            if self.cmd_off and callable(self.cmd_off): 
-                self.cmd_off()
-
 class WiFiToggleSwitch(ButtonBehavior, Widget):
     active = BooleanProperty(False)
     knob_pos = NumericProperty(dp(2))    
