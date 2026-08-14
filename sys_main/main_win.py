@@ -16,8 +16,8 @@ from ultralytics import YOLO
 
 from kivy.config import Config
 Config.set('kivy', 'keyboard_mode', 'systemandmulti')
-Config.set('graphics', 'fullscreen', 'auto')
-Config.set('graphics', 'resizable', False)
+#Config.set('graphics', 'fullscreen', 'auto')
+#Config.set('graphics', 'resizable', False)
 
 from kivymd.app import MDApp
 from kivy.lang import Builder
@@ -640,7 +640,8 @@ ScreenManager:
 
             Button:
                 id: logs_btn_bck_dashboard
-                text: "Dashboard"
+                markup: True
+                text: "[image=res/ic_back.png][/image] Dashboard"
                 font_name: "assets/sf_txt_reg.ttf"
                 font_size: 18
                 background_normal: "res/btn_pill_gray_s.png"
