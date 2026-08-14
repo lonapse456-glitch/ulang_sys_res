@@ -59,12 +59,6 @@ except ImportError:
 GPIO_AVAILABLE=False
 Window.size = (800, 480)
 
-try:
-    arduino = serial.Serial('/dev/ttyUSB0', 115200, timeout=1)
-    time.sleep(2) # Give the Arduino a second to reset after connecting
-except Exception as e:
-    print(f"Error connecting to Arduino: {e}")
-
 INTERFACE = '''
 ScreenManager:
     DashboardScreen:
@@ -1362,6 +1356,12 @@ class UlangSystemApp(MDApp):
             err = e
             print(f"[WARNING] Cloud connection failed. Running offline. Error: {err}")
 
+        try:
+            self.arduino = serial.Serial('/dev/ttyUSB0', 115200, timeout=1)
+            time.sleep(2) # Give the Arduino a second to reset after connecting
+        except Exception as e:
+            print(f"Error connecting to Arduino: {e}")
+
         Window.bind(on_key_down=self.on_keyboard_down)
         return Builder.load_string(INTERFACE)
 
@@ -1406,10 +1406,10 @@ class UlangSystemApp(MDApp):
         data so the Kivy UI never freezes.
         """
         while True:
-            if arduino.in_waiting > 0:
+            if self.arduino.in_waiting > 0:
                 try:
                     # Read the line until \n and decode it
-                    raw_data = arduino.readline().decode('utf-8').strip()
+                    raw_data = self.arduino.readline().decode('utf-8').strip()
                     
                     # Parse the JSON
                     sensor_data = json.loads(raw_data)
@@ -1433,7 +1433,7 @@ class UlangSystemApp(MDApp):
         json_string = json.dumps(command_dict) + "\n"
         
         # Send it down the USB wire
-        arduino.write(json_string.encode('utf-8'))
+        self.arduino.write(json_string.encode('utf-8'))
         print(f"Sent command to Arduino: {action}")
 
     def exit_program(self):
