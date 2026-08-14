@@ -2062,7 +2062,7 @@ class PillToggleButton(Button):
                 self.cmd_on()
         else:
             self.current_color = self.color_off
-            if self.cmd_on and callable(self.cmd_on): 
+            if self.cmd_off and callable(self.cmd_off): 
                 self.cmd_off()
 
 class WiFiToggleSwitch(ButtonBehavior, Widget):
