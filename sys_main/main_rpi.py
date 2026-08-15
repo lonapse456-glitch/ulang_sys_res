@@ -1472,7 +1472,7 @@ class UlangSystemApp(MDApp):
             self.picam2 = Picamera2()
 
             vd_config =self.picam2.create_video_configuration(
-                main={"size": (1920,1080), "format": "RGB888"}
+                main={"size": (2304, 1269), "format": "RGB888"}
             )
             self.picam2.configure(vd_config)
             self.picam2.start_preview(Preview.NULL)
