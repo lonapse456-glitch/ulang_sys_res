@@ -1,0 +1,5 @@
+train: D:/DATA/dataset/images
+val: D:/DATA/dataset/images
+
+nc: 1
+names: ['postlarvae']

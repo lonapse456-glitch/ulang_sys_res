@@ -13,10 +13,10 @@ if __name__ == '__main__':
     # 3. Run the training command 
     # (Note: device=0 will correctly use your GPU as discussed earlier)
     results = model.train(
-        data='data_v3-0.yaml', 
+        data='data_v4-0.yaml', 
         epochs=100, 
         imgsz=640, 
-        batch=16, 
+        batch=8, 
         name='ulang_obb_v2-0',
         device=0,
         workers=0
