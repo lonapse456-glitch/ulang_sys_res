@@ -1359,10 +1359,11 @@ class UlangSystemApp(MDApp):
 
         try:
             self.arduino = serial.Serial('/dev/ttyACM0', 115200, timeout=1)
-            time.sleep(2) # Give the Arduino a second to reset after connecting
+            time.sleep(2)
+            print("[INFO] Arduino Active")
         except Exception as e:
             self.arduino = None
-            print(f"Error connecting to Arduino: {e}")
+            print(f"[WARNING] Arduino Unavailable: {e}")
 
         Window.bind(on_key_down=self.on_keyboard_down)
         return Builder.load_string(INTERFACE)
@@ -1400,8 +1401,16 @@ class UlangSystemApp(MDApp):
     def update_sensor_reads(self, data):
         """@mainthread: Updates the screen with the JSON data"""
         # Because we used on_start, we know for a fact these IDs exist!
+        wtrlvl = data.get('wtrlvl')
         self.root.ids.dashboard_screen.ids.water_temp_label.text = f"{data.get('temp')} °C"
-        self.root.ids.dashboard_screen.ids.water_lvl_label.text = f"{data.get('wtrlvl')} cm"
+        self.root.ids.dashboard_screen.ids.water_lvl_label.text = f"{wtrlvl} cm"
+ 
+        if not wtrlvl=="--":
+            #Calculate the water volume here, output in liters
+            wtrvol = random()
+        else:
+            wtrvol="--"
+        self.root.ids.dashboard_screen.ids.water_lvl_label.text = f"{wtrvol} L"
 
     def listen_to_ard(self):
         """
