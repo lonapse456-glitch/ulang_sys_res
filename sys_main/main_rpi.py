@@ -50,13 +50,13 @@ import random #temporary
 from picamera2 import Picamera2, Preview
 from libcamera import controls
 
-'''try:
+try:
     from gpiozero import Button as HardwareButton
     GPIO_AVAILABLE = True
 except ImportError:
     GPIO_AVAILABLE = False
-    print("Warning: gpiozero not found. Physical GPIO buttons disabled (Running on Laptop).")'''
-GPIO_AVAILABLE=False
+    print("Warning: gpiozero not found. Physical GPIO buttons disabled (Running on Laptop).")
+    
 Window.size = (800, 480)
 
 INTERFACE = '''
@@ -553,16 +553,17 @@ ScreenManager:
                         size_hint_x: 0.3
 
                     Slider:
-                        min: 0
-                        max: 100
+                        min: 10
+                        max: 255
                         value: 60
-                        step: 20
+                        step: 5
                         size_hint_x: 0.7
                         value_track: True
                         value_track_color: '#ffff00'
                         cursor_size: 64, 34
                         cursor_image: 'res/slider_cursor.png'
                         background_width: 0
+                        on_value: app.config_scrn_brightness(self, self.value)
 
                         canvas.before:
                             Color:
@@ -1500,10 +1501,6 @@ class UlangSystemApp(MDApp):
         while True:
             sttime = time.time()
 
-            #ret, frame = self.capture.read()
-            #if not ret:
-            #    continue
-
             hi_res_frame = self.picam2.capture_array()
 
             try:
@@ -2029,6 +2026,22 @@ class UlangSystemApp(MDApp):
         else:
             del_cmd()
 
+    def config_scrn_brightness(self, instance, slider_value):
+        """Adjust screen brightness via Kivy Slider. Set minimum to 10 and maximum to 255"""
+        # Ensure it's a clean integer
+        brightness_level = int(slider_value)
+        
+        try:
+            # Auto-find the exact DSI display path on Bookworm
+            backlight_paths = glob.glob('/sys/class/backlight/*/brightness')
+            
+            if backlight_paths:
+                with open(backlight_paths[0], 'w') as f:
+                    f.write(str(brightness_level))
+                    
+        except PermissionError:
+            print("[ERROR] Kivy does not have Linux permission to modify hardware.")
+
 class PillToggleButton(Button):
     is_toggleable = BooleanProperty(True)
     is_active = BooleanProperty(False)
@@ -2068,6 +2081,7 @@ class PillToggleButton(Button):
             self.current_color = self.color_on
         else:
             self.current_color = self.color_off
+
 class WiFiToggleSwitch(ButtonBehavior, Widget):
     active = BooleanProperty(False)
     knob_pos = NumericProperty(dp(2))    
