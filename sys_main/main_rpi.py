@@ -1361,6 +1361,7 @@ class UlangSystemApp(MDApp):
             self.arduino = serial.Serial('/dev/ttyACM0', 115200, timeout=1)
             time.sleep(2) # Give the Arduino a second to reset after connecting
         except Exception as e:
+            self.arduino = None
             print(f"Error connecting to Arduino: {e}")
 
         Window.bind(on_key_down=self.on_keyboard_down)
@@ -1394,34 +1395,32 @@ class UlangSystemApp(MDApp):
         listener = threading.Thread(target=self.listen_to_ard, daemon=True)
         listener.start()
 
+#===Arduino-Raspi Communication Protocol
     @mainthread
     def update_sensor_reads(self, data):
         """@mainthread: Updates the screen with the JSON data"""
         # Because we used on_start, we know for a fact these IDs exist!
         self.root.ids.dashboard_screen.ids.water_temp_label.text = f"{data.get('temp')} °C"
-        self.root.ids.dashboard_screen.ids.water_lvl_label.text = f"{data.get('light')} Lux"
+        self.root.ids.dashboard_screen.ids.water_lvl_label.text = f"{data.get('wtrlvl')} cm"
 
     def listen_to_ard(self):
         """
-        Background thread (The Chef): Continuously listens for incoming sensor 
-        data so the Kivy UI never freezes.
+        @bgthread: Checks the readings from Arduino MCU
         """
         while True:
-            if self.arduino.in_waiting > 0:
-                try:
-                    # Read the line until \n and decode it
-                    raw_data = self.arduino.readline().decode('utf-8').strip()
-                    
-                    # Parse the JSON
-                    sensor_data = json.loads(raw_data)
-                    
-                    print(f"[Sensors Updated] Temp: {sensor_data.get('temp')}°C, Light: {sensor_data.get('light')}")
-                    
-                    self.update_sensor_reads(sensor_data)
-                    
-                except json.JSONDecodeError:
-                    print("Failed to decode JSON from Arduino.")
-
+            if self.arduino:
+                if self.arduino.in_waiting > 0:
+                    try:
+                        raw_data = self.arduino.readline().decode('utf-8').strip()
+                        sensor_data = json.loads(raw_data)
+                        print(f"[Sensors Updated] Temp: {sensor_data.get('temp')}°C, Light: {sensor_data.get('wtrlvl')}")
+                        self.update_sensor_reads(sensor_data)
+                        
+                    except json.JSONDecodeError:
+                        print("Failed to decode JSON from Arduino.")
+            else:
+                sensor_data = {"temp":"--", "wtrlvl":"--"}
+                self.update_sensor_reads(sensor_data)
             time.sleep(0.05)
 
     def talk_to_ard(self, action):
@@ -2041,6 +2040,8 @@ class UlangSystemApp(MDApp):
                     
         except PermissionError:
             print("[ERROR] Kivy does not have Linux permission to modify hardware.")
+
+#=====================================================Graphics Commands====================================================
 
 class PillToggleButton(Button):
     is_toggleable = BooleanProperty(True)
