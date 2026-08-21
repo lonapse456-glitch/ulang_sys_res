@@ -260,6 +260,7 @@ ScreenManager:
                                 valign: 'bottom'
 
                                 MDLabel:
+                                    id: water_vol_label
                                     text: "2.0 L"
                                     theme_text_color: "Custom"
                                     text_color: 0.2, 0.8, 0.2, 1  # Green
@@ -1410,7 +1411,8 @@ class UlangSystemApp(MDApp):
             wtrvol = random()
         else:
             wtrvol="--"
-        self.root.ids.dashboard_screen.ids.water_lvl_label.text = f"{wtrvol} L"
+            
+        self.root.ids.dashboard_screen.ids.water_vol_label.text = f"{wtrvol} L"
 
     def listen_to_ard(self):
         """
