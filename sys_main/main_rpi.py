@@ -1058,7 +1058,7 @@ ScreenManager:
                 orientation: 'vertical'
                 size_hint: 1, None
                 height: self.minimum_height
-                padding: [19, 0, 19, 0]
+                padding: [12, 0, 12, 0]
                 radius: [9,9,9,9]
 
                 MDBoxLayout:
@@ -1088,6 +1088,7 @@ ScreenManager:
                         on_release: root.set_timerange("opt_1")
 
                 MDSeparator:
+                    padding: [30, 0, 0, 0]
 
                 MDBoxLayout:
                     orientation: 'horizontal'
@@ -1116,6 +1117,7 @@ ScreenManager:
                         on_release: root.set_timerange("opt_2")
 
                 MDSeparator:
+                    padding: [30, 0, 0, 0]
 
                 MDBoxLayout:
                     orientation: 'horizontal'
@@ -2269,8 +2271,9 @@ class UlangSystemApp(MDApp):
                         .select("*").execute()
                 else:
                     time_format = "%b %d, %Y %I:%M %p"
-                    start_time = time.now()
-                    end_time = start_time - timedelta (days_window)
+                    end_time = time.now()
+                    start_time = end_time - timedelta(days_window)
+                    print(f"[INFO] Fetching Logs from {end_time.strf(time_format)}")
                     response = self.db_client.table("batch_count_history_logs") \
                         .select("*") \
                         .gte("timestamp", start_time.strf(time_format)) \
