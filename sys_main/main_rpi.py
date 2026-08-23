@@ -993,6 +993,7 @@ ScreenManager:
     background_color: 0, 0, 0, 0
     separator_height: 0
     title: ""
+    command_on_proceed: app.export_logs
     auto_dismiss: False
 
     MDBoxLayout:
@@ -2453,7 +2454,7 @@ class ExportLogsDialog(Popup):
 
     def execute_proceed(self, email, timerange):
         if self.command_on_proceed and callable(self.command_on_proceed): 
-            self.command_on_proceed(email=email, timerange=timerange)
+            self.command_on_proceed(email, timerange)
         self.dismiss()
 
 class Snackbar(MDBoxLayout):
