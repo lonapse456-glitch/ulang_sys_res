@@ -2292,7 +2292,7 @@ class UlangSystemApp(MDApp):
                     Clock.schedule_once(lambda dt: self.show_snackbar(warning_mode=True, message="No logs found for this timeframe."))
                     return
 
-                csv_filename = f"exports/log_export_{timerange}.csv"
+                csv_filename = f"log_export_{timerange}.csv"
                 with open(csv_filename, mode='w', newline='') as file:
                     writer = csv.DictWriter(file, fieldnames=raw_data[0].keys())
                     writer.writeheader()
