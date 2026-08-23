@@ -1168,7 +1168,7 @@ ScreenManager:
                 font_name: "assets/sf_txt_bold.ttf"
                 background_normal: "res/btn_pill_blue_l.png"
                 background_down: "res/btn_pill_blue_l_down.png"
-                on_release: root.execute_proceed(root.input_email, root.input_timerange)
+                on_release: root.execute_proceed(root.ids.input_email.txt, root.input_timerange)
 
 <SystemDialog>
     width: 500
