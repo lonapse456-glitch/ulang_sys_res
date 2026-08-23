@@ -608,6 +608,7 @@ ScreenManager:
                         text_color: '#008ade'
                         size_hint: 1, None
                         height: 64
+                        on_release: app.show_export_dialog()
 
                     MDSeparator:
 
@@ -1058,10 +1059,10 @@ ScreenManager:
                 padding: [19, 0, 19, 0]
                 radius: [9,9,9,9]
 
-                    MDBoxLayout:
-                        orientation: 'horizontal'
-                        size_hint: 1, None
-                        spacing: 19
+                MDBoxLayout:
+                    orientation: 'horizontal'
+                    size_hint: 1, None
+                    spacing: 19
 
                         Image:
                             id: check_1
