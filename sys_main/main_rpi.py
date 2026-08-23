@@ -562,7 +562,7 @@ ScreenManager:
                     Slider:
                         min: 10
                         max: 255
-                        value: 60
+                        value: 255
                         step: 5
                         size_hint_x: 0.7
                         value_track: True
@@ -2270,7 +2270,7 @@ class UlangSystemApp(MDApp):
                 else:
                     time_format = "%b %d, %Y %I:%M %p"
                     start_time = time.now()
-                    end_time = start_time + timedelta (days_window)
+                    end_time = start_time - timedelta (days_window)
                     response = self.db_client.table("batch_count_history_logs") \
                         .select("*") \
                         .gte("timestamp", start_time.strf(time_format)) \
@@ -2327,7 +2327,7 @@ class UlangSystemApp(MDApp):
 
             except Exception as e:
                 print(f"[ERROR] Export Failed: {e}")
-                Clock.schedule_once(lambda dt: self.show_snackbar(warning_mode=True, message="Failed to send email. Check Wi-Fi."))
+                Clock.schedule_once(lambda dt: self.show_snackbar(warning_mode=True, message="Failed to send email"))
 
         threading.Thread(target=_export_worker, daemon=True).start()
 #=====================================================Graphics====================================================
