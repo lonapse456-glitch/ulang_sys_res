@@ -1035,7 +1035,7 @@ ScreenManager:
         MDBoxLayout:
             orientation: 'vertical'
             size_hint: 1, None
-            height: 108
+            height: 204
             spacing: 12
 
             TextInput:
@@ -1064,79 +1064,79 @@ ScreenManager:
                     size_hint: 1, None
                     spacing: 19
 
-                        Image:
-                            id: check_1
-                            size_hint: None, None
-                            source: 'res/ic_check_s.png'
-                            width: 26
-                            height: 26
-                            allow_stretch: True
-                            keep_ratio: True
-                            pos_hint: {"center_y": .5}
+                    Image:
+                        id: check_1
+                        size_hint: None, None
+                        source: 'res/ic_check_s.png'
+                        width: 26
+                        height: 26
+                        allow_stretch: True
+                        keep_ratio: True
+                        pos_hint: {"center_y": .5}
 
-                        ClickableMDLabel:
-                            id: opt_1
-                            text: "Last 7 days"
-                            halign: 'left'
-                            font_name: "assets/sf_txt_reg.ttf"
-                            font_size: 24
-                            size_hint: 1, None
-                            height: 48
-                            on_release: root.set_timeframe("opt_1")
-
-                    MDSeparator:
-
-                    MDBoxLayout:
-                        orientation: 'horizontal'
+                    ClickableMDLabel:
+                        id: opt_1
+                        text: "Last 7 days"
+                        halign: 'left'
+                        font_name: "assets/sf_txt_reg.ttf"
+                        font_size: 24
                         size_hint: 1, None
-                        spacing: 19
+                        height: 48
+                        on_release: root.set_timeframe("opt_1")
 
-                        Image:
-                            id: check_2
-                            size_hint: None, None
-                            source: 'res/ic_check_s.png'
-                            width: 26
-                            height: 26
-                            allow_stretch: True
-                            keep_ratio: True
-                            pos_hint: {"center_y": .5}
+                MDSeparator:
 
-                        ClickableMDLabel:
-                            id: opt_2
-                            text: "Last 30 days"
-                            halign: 'left'
-                            font_name: "assets/sf_txt_reg.ttf"
-                            font_size: 24
-                            size_hint: 1, None
-                            height: 48
-                            on_release: root.set_timeframe("opt_2")
+                MDBoxLayout:
+                    orientation: 'horizontal'
+                    size_hint: 1, None
+                    spacing: 19
 
-                    MDSeparator:
+                    Image:
+                        id: check_2
+                        size_hint: None, None
+                        source: 'res/ic_check_s.png'
+                        width: 26
+                        height: 26
+                        allow_stretch: True
+                        keep_ratio: True
+                        pos_hint: {"center_y": .5}
 
-                    MDBoxLayout:
-                        orientation: 'horizontal'
+                    ClickableMDLabel:
+                        id: opt_2
+                        text: "Last 30 days"
+                        halign: 'left'
+                        font_name: "assets/sf_txt_reg.ttf"
+                        font_size: 24
                         size_hint: 1, None
-                        spacing: 19
+                        height: 48
+                        on_release: root.set_timeframe("opt_2")
 
-                        Image:
-                            id: check_3
-                            size_hint: None, None
-                            source: 'res/ic_check_s.png'
-                            width: 26
-                            height: 26
-                            allow_stretch: True
-                            keep_ratio: True
-                            pos_hint: {"center_y": .5}
+                MDSeparator:
 
-                        ClickableMDLabel:
-                            id: opt_3
-                            text: "All time"
-                            halign: 'left'
-                            font_name: "assets/sf_txt_reg.ttf"
-                            font_size: 24
-                            size_hint: 1, None
-                            height: 48
-                            on_release: root.set_timeframe("opt_3")
+                MDBoxLayout:
+                    orientation: 'horizontal'
+                    size_hint: 1, None
+                    spacing: 19
+
+                    Image:
+                        id: check_3
+                        size_hint: None, None
+                        source: 'res/ic_check_s.png'
+                        width: 26
+                        height: 26
+                        allow_stretch: True
+                        keep_ratio: True
+                        pos_hint: {"center_y": .5}
+
+                    ClickableMDLabel:
+                        id: opt_3
+                        text: "All time"
+                        halign: 'left'
+                        font_name: "assets/sf_txt_reg.ttf"
+                        font_size: 24
+                        size_hint: 1, None
+                        height: 48
+                        on_release: root.set_timeframe("opt_3")
 
         MDBoxLayout:
             orientation: 'horizontal'
