@@ -1018,7 +1018,7 @@ ScreenManager:
             padding: [15, 10, 15, 8]
 
             MDLabel:
-                text: "Export Logs via Email" if not app.is_online else "Change Wi-Fi Network"
+                text: "Export Logs via Email"
                 font_name: "assets/sf_txt_bold.ttf"
                 font_size: 24
                 text_color: 1, 1, 1, 1
@@ -1070,8 +1070,8 @@ ScreenManager:
                         id: check_1
                         size_hint: None, None
                         source: 'res/ic_check_s.png'
-                        width: 26
-                        height: 26
+                        width: 20
+                        height: 20
                         allow_stretch: True
                         keep_ratio: True
                         pos_hint: {"center_y": .5}
@@ -1081,7 +1081,7 @@ ScreenManager:
                         text: "Last 7 days"
                         halign: 'left'
                         font_name: "assets/sf_txt_reg.ttf"
-                        font_size: 24
+                        font_size: 20
                         size_hint: 1, None
                         height: 48
                         on_release: root.set_timerange("opt_1")
@@ -1098,8 +1098,8 @@ ScreenManager:
                         id: check_2
                         size_hint: None, None
                         source: 'res/ic_check_s.png'
-                        width: 26
-                        height: 26
+                        width: 20
+                        height: 20
                         allow_stretch: True
                         keep_ratio: True
                         pos_hint: {"center_y": .5}
@@ -1109,7 +1109,7 @@ ScreenManager:
                         text: "Last 30 days"
                         halign: 'left'
                         font_name: "assets/sf_txt_reg.ttf"
-                        font_size: 24
+                        font_size: 20
                         size_hint: 1, None
                         height: 48
                         on_release: root.set_timerange("opt_2")
@@ -1126,8 +1126,8 @@ ScreenManager:
                         id: check_3
                         size_hint: None, None
                         source: 'res/ic_check_s.png'
-                        width: 26
-                        height: 26
+                        width: 20
+                        height: 20
                         allow_stretch: True
                         keep_ratio: True
                         pos_hint: {"center_y": .5}
@@ -1137,7 +1137,7 @@ ScreenManager:
                         text: "All time"
                         halign: 'left'
                         font_name: "assets/sf_txt_reg.ttf"
-                        font_size: 24
+                        font_size: 20
                         size_hint: 1, None
                         height: 48
                         on_release: root.set_timerange("opt_3")
@@ -2451,9 +2451,9 @@ class ExportLogsDialog(Popup):
             self.ids.check_2.opacity = 0
             self.ids.check_3.opacity = 1
 
-    def execute_proceed(self):
+    def execute_proceed(self, email, timerange):
         if self.command_on_proceed and callable(self.command_on_proceed): 
-            self.command_on_proceed(email = self.ids.input_email.text, timerange = self.input_timerange)
+            self.command_on_proceed(email=email, timerange=timerange)
         self.dismiss()
 
 class Snackbar(MDBoxLayout):
