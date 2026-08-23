@@ -1064,6 +1064,7 @@ ScreenManager:
                     orientation: 'horizontal'
                     size_hint: 1, None
                     spacing: 19
+                    height: 48
 
                     Image:
                         id: check_1
@@ -1083,7 +1084,7 @@ ScreenManager:
                         font_size: 24
                         size_hint: 1, None
                         height: 48
-                        on_release: root.set_timeframe("opt_1")
+                        on_release: root.set_timerange("opt_1")
 
                 MDSeparator:
 
@@ -1091,6 +1092,7 @@ ScreenManager:
                     orientation: 'horizontal'
                     size_hint: 1, None
                     spacing: 19
+                    height: 48
 
                     Image:
                         id: check_2
@@ -1110,13 +1112,14 @@ ScreenManager:
                         font_size: 24
                         size_hint: 1, None
                         height: 48
-                        on_release: root.set_timeframe("opt_2")
+                        on_release: root.set_timerange("opt_2")
 
                 MDSeparator:
 
                 MDBoxLayout:
                     orientation: 'horizontal'
                     size_hint: 1, None
+                    height: 48
                     spacing: 19
 
                     Image:
@@ -1137,7 +1140,7 @@ ScreenManager:
                         font_size: 24
                         size_hint: 1, None
                         height: 48
-                        on_release: root.set_timeframe("opt_3")
+                        on_release: root.set_timerange("opt_3")
 
         MDBoxLayout:
             orientation: 'horizontal'
