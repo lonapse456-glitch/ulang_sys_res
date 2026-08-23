@@ -998,7 +998,7 @@ ScreenManager:
     MDBoxLayout:
         orientation: 'vertical'
         size_hint: 1, None
-        height: 364
+        height: 460
         spacing: 28
         padding: 12
 
@@ -2427,7 +2427,7 @@ class SystemDialog(Popup):
         self.dismiss()
 
 class ExportLogsDialog(Popup):
-    input_timerange = OptionProperty("all_time", options=["last_7", "last_30"])
+    input_timerange = OptionProperty("all_time", options=["last_7", "last_30", "all_time"])
     command_on_proceed = ObjectProperty(None, allownone=True)
 
     def __init__(self, **kwargs):
