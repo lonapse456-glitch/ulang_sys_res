@@ -14,10 +14,16 @@ import traceback
 
 import cv2
 
+import smtplib
+import csv
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.base import MIMEBase
+from email import encoders
+
 from ultralytics import YOLO
 
 from kivy.config import Config
-
 Config.set('kivy', 'keyboard_mode', 'systemandmulti')
 Config.set('graphics', 'fullscreen', 'auto')
 Config.set('graphics', 'resizable', False)
@@ -39,7 +45,7 @@ from kivy.metrics import dp
 from kivy.uix.button import Button
 from kivy.uix.popup import Popup
 from kivy.animation import Animation
-from datetime import datetime
+from datetime import datetime, timedelta
 from kivy.uix.widget import Widget
 from kivy.uix.behaviors import ButtonBehavior
 import random #temporary
@@ -977,6 +983,187 @@ ScreenManager:
                 on_release:
                     app.connect_to_new_wifi(input_ssid.text, input_password.text)
 
+<ExportLogsDialog>
+    width: 500
+    height: 460
+    size_hint: None, None
+    background: ''
+    background_color: 0, 0, 0, 0
+    separator_height: 0
+    title: ""
+    auto_dismiss: False
+
+    MDBoxLayout:
+        orientation: 'vertical'
+        size_hint: 1, None
+        height: 364
+        spacing: 28
+        padding: 12
+
+        canvas.before:
+            Color:
+                rgba: 1, 1, 1, 1 # Ensure the image renders at full brightness
+            BorderImage:
+                source: 'res/bg_dialog.png'
+                pos: self.pos
+                size: self.size
+                border: [35, 35, 35, 35]
+
+        MDBoxLayout:
+            orientation: 'vertical'
+            size_hint: 1, 1
+            spacing: 12
+            padding: [15, 10, 15, 8]
+
+            MDLabel:
+                text: "Export Logs via Email" if not app.is_online else "Change Wi-Fi Network"
+                font_name: "assets/sf_txt_bold.ttf"
+                font_size: 24
+                text_color: 1, 1, 1, 1
+                size_hint_x: 1
+                halign: 'left'
+
+            MDLabel:
+                text: "Logs are exported in csv format via email. Enter the email address and pick the range of log date you want to export."
+                font_name: "assets/sf_txt_reg.ttf"
+                font_size: 20
+                text_color: 1, 1, 1, 1
+                size_hint_x: 1
+                halign: 'left'
+
+        MDBoxLayout:
+            orientation: 'vertical'
+            size_hint: 1, None
+            height: 108
+            spacing: 12
+
+            TextInput:
+                id: input_email
+                hint_text: "Email Address"
+                multiline: False
+                size_hint_y: None
+                height: 48
+                padding: ["16dp", 10, "16dp", 8]
+                background_normal: 'res/bg_txt_field_inactive.png'
+                background_active: 'res/bg_txt_field_active.png'
+                border: [1, 1, 1,1]  
+                font_name: "assets/sf_txt_reg.ttf"
+                font_size: 24
+                foreground_color: 1, 1, 1, 1
+
+            MDCard:
+                orientation: 'vertical'
+                size_hint: 1, None
+                height: self.minimum_height
+                padding: [19, 0, 19, 0]
+                radius: [9,9,9,9]
+
+                    MDBoxLayout:
+                        orientation: 'horizontal'
+                        size_hint: 1, None
+                        spacing: 19
+
+                        Image:
+                            id: check_1
+                            size_hint: None, None
+                            source: 'res/ic_check_s.png'
+                            width: 26
+                            height: 26
+                            allow_stretch: True
+                            keep_ratio: True
+                            pos_hint: {"center_y": .5}
+
+                        ClickableMDLabel:
+                            id: opt_1
+                            text: "Last 7 days"
+                            halign: 'left'
+                            font_name: "assets/sf_txt_reg.ttf"
+                            font_size: 24
+                            size_hint: 1, None
+                            height: 48
+                            on_release: root.set_timeframe("opt_1")
+
+                    MDSeparator:
+
+                    MDBoxLayout:
+                        orientation: 'horizontal'
+                        size_hint: 1, None
+                        spacing: 19
+
+                        Image:
+                            id: check_2
+                            size_hint: None, None
+                            source: 'res/ic_check_s.png'
+                            width: 26
+                            height: 26
+                            allow_stretch: True
+                            keep_ratio: True
+                            pos_hint: {"center_y": .5}
+
+                        ClickableMDLabel:
+                            id: opt_2
+                            text: "Last 30 days"
+                            halign: 'left'
+                            font_name: "assets/sf_txt_reg.ttf"
+                            font_size: 24
+                            size_hint: 1, None
+                            height: 48
+                            on_release: root.set_timeframe("opt_2")
+
+                    MDSeparator:
+
+                    MDBoxLayout:
+                        orientation: 'horizontal'
+                        size_hint: 1, None
+                        spacing: 19
+
+                        Image:
+                            id: check_3
+                            size_hint: None, None
+                            source: 'res/ic_check_s.png'
+                            width: 26
+                            height: 26
+                            allow_stretch: True
+                            keep_ratio: True
+                            pos_hint: {"center_y": .5}
+
+                        ClickableMDLabel:
+                            id: opt_3
+                            text: "All time"
+                            halign: 'left'
+                            font_name: "assets/sf_txt_reg.ttf"
+                            font_size: 24
+                            size_hint: 1, None
+                            height: 48
+                            on_release: root.set_timeframe("opt_3")
+
+        MDBoxLayout:
+            orientation: 'horizontal'
+            size_hint: 1, None
+            spacing: 12
+            height: 64
+
+            Button:
+                text: "CANCEL"
+                size_hint: 1, None
+                height: 56
+                font_size: 24
+                font_name: "assets/sf_txt_bold.ttf"
+                background_normal: "res/btn_pill_gray_l.png"
+                background_down: "res/btn_pill_gray_l_down.png"
+                on_release:
+                    root.dismiss()
+
+            Button:
+                text: "EXPORT"
+                size_hint: 1, None
+                height: 56
+                font_size: 24
+                font_name: "assets/sf_txt_bold.ttf"
+                background_normal: "res/btn_pill_blue_l.png"
+                background_down: "res/btn_pill_blue_l_down.png"
+                on_release: root.execute_proceed()
+
 <SystemDialog>
     width: 500
     height: dialog_container.height
@@ -1411,7 +1598,6 @@ class UlangSystemApp(MDApp):
             wtrvol = random()
         else:
             wtrvol="--"
-            
         self.root.ids.dashboard_screen.ids.water_vol_label.text = f"{wtrvol} L"
 
     def listen_to_ard(self):
@@ -1670,6 +1856,10 @@ class UlangSystemApp(MDApp):
 
     def show_wifi_dialog(self, *args):
         self.popup = Factory.WifiConnectDialog()
+        self.popup.open()
+
+    def show_export_dialog(self, *args):
+        self.popup=Factory.ExportLogsDialog()
         self.popup.open()
 
     def activate_count(self, input_name_batch = "", input_name_op = "", *args):
@@ -2052,7 +2242,89 @@ class UlangSystemApp(MDApp):
         except PermissionError:
             print("[ERROR] Kivy does not have Linux permission to modify hardware.")
 
-#=====================================================Graphics Commands====================================================
+    def export_logs(self, email:str, timerange:str, *args):
+        self.show_snackbar(message="Preparing export... Please wait.")
+        if timerange == "all_time":
+            all_time = True
+        elif timerange == "last_7":
+            days_window = 7
+        elif timerange == "last_30":
+            days_window = 30
+        else:
+            print("[ERROR] Invalid given timeframe.")
+            Clock.schedule_once(lambda dt: self.show_snackbar(warning_mode=True, message="Failed to export. Invalid timeframe."))
+            pass
+        
+        def fetch_logs():
+            """Fetches batch logs within the given specific time window."""
+            try:
+                if all_time:
+                    response = self.db_client.table("batch_count_history_logs") \
+                        .select("*").execute()
+                else:
+                    time_format = "%b %d, %Y %I:%M %p"
+                    start_time = time.now()
+                    end_time = start_time + timedelta (days_window)
+                    response = self.db_client.table("batch_count_history_logs") \
+                        .select("*") \
+                        .gte("timestamp", start_time.strf(time_format)) \
+                        .lte("timestamp", end_time.strf(time_format)) \
+                        .execute()
+
+                fetched_data = response.data
+                print(f"[INFO] Fetched {len(fetched_data)} logs from Supabase.")
+                return fetched_data
+
+            except Exception as e:
+                print(f"[ERROR] Failed to fetch data: {e}")
+                return []
+            
+        def _export_worker():
+            try:
+                raw_data = fetch_logs()
+                if not raw_data:
+                    Clock.schedule_once(lambda dt: self.show_snackbar(warning_mode=True, message="No logs found for this timeframe."))
+                    return
+
+                csv_filename = f"exports/log_export_{timerange}.csv"
+                with open(csv_filename, mode='w', newline='') as file:
+                    writer = csv.DictWriter(file, fieldnames=raw_data[0].keys())
+                    writer.writeheader()
+                    writer.writerows(raw_data)
+
+                sender_email = "noreply.ulang.pl.counter.system@gmail.com"
+                app_password = "jqrstqxgasqkvmaz"
+
+                msg = MIMEMultipart()
+                msg['From'] = sender_email
+                msg['To'] = email
+                msg['Subject'] = f"Ulang Hatchery - Batch Logs ({timerange})"
+                msg.attach(MIMEText(f"Attached is the requested CSV log export for: {timerange}.", 'plain'))
+
+                with open(csv_filename, "rb") as attachment:
+                    part = MIMEBase("application", "octet-stream")
+                    part.set_payload(attachment.read())
+                encoders.encode_base64(part)
+                part.add_header("Content-Disposition", f"attachment; filename={csv_filename}")
+                msg.attach(part)
+
+                server = smtplib.SMTP('smtp.gmail.com', 587)
+                server.starttls()
+                server.login(sender_email, app_password)
+                server.send_message(msg)
+                server.quit()
+
+                if os.path.exists(csv_filename):
+                    os.remove(csv_filename)
+
+                Clock.schedule_once(lambda dt: self.show_snackbar(message=f"Logs sent successfully to {email}!"))
+
+            except Exception as e:
+                print(f"[ERROR] Export Failed: {e}")
+                Clock.schedule_once(lambda dt: self.show_snackbar(warning_mode=True, message="Failed to send email. Check Wi-Fi."))
+
+        threading.Thread(target=_export_worker, daemon=True).start()
+#=====================================================Graphics====================================================
 
 class PillToggleButton(Button):
     is_toggleable = BooleanProperty(True)
@@ -2147,6 +2419,36 @@ class SystemDialog(Popup):
     def execute_proceed(self):
         if self.command_on_proceed and callable(self.command_on_proceed): 
             self.command_on_proceed()
+        self.dismiss()
+
+class ExportLogsDialog(Popup):
+    input_timerange = OptionProperty("all_time", options=["last_7", "last_30"])
+    command_on_proceed = ObjectProperty(None, allownone=True)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.set_timerange("all_time")
+
+    def set_timerange(self, id):
+        if id == 'opt_1':
+            self.input_timerange = "last_7"
+            self.ids.check_1.opacity = 1
+            self.ids.check_2.opacity = 0
+            self.ids.check_3.opacity = 0
+        elif id == 'opt_2':
+            self.input_timerange = "last_30"
+            self.ids.check_1.opacity = 0
+            self.ids.check_2.opacity = 1
+            self.ids.check_3.opacity = 0
+        else:
+            self.input_timerange = "all_time"
+            self.ids.check_1.opacity = 0
+            self.ids.check_2.opacity = 0
+            self.ids.check_3.opacity = 1
+
+    def execute_proceed(self):
+        if self.command_on_proceed and callable(self.command_on_proceed): 
+            self.command_on_proceed(email = self.ids.input_email.text, timerange = self.input_timerange)
         self.dismiss()
 
 class Snackbar(MDBoxLayout):
