@@ -608,7 +608,8 @@ ScreenManager:
                         text_color: '#008ade'
                         size_hint: 1, None
                         height: 64
-                        on_release: app.show_export_dialog()
+                        on_release: 
+                            app.show_export_dialog()
 
                     MDSeparator:
 
