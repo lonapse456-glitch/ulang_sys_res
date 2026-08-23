@@ -599,7 +599,7 @@ ScreenManager:
 
                     MDSeparator:
 
-                    MDLabel:
+                    ClickableMDLabel:
                         text: "Export Logs"
                         halign: 'left'
                         font_name: "assets/sf_txt_reg.ttf"
