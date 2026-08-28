@@ -1491,7 +1491,7 @@ class LogsScreen(Screen):
 class UlangSystemApp(MDApp):
 #===STATUS
     count_active = BooleanProperty(False) # For switching UI interface mode
-    is_counting = BooleanProperty(False) # Inferernce active state
+    is_counting = BooleanProperty(False) # Inference active state
     is_cam_initializing = BooleanProperty(False)
 
     # Connectivity Status
@@ -1524,7 +1524,7 @@ class UlangSystemApp(MDApp):
     current_active_widget = ObjectProperty(None, allownone=True)
     empty_chamber = True
 
-#===CLIENT CREATION
+#===SUPABASE CLIENT
     SUPABASE_API_URL = 'https://nltmvrjxasslpqbdyamg.supabase.co'
     SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sdG12cmp4YXNzbHBxYmR5YW1nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2MjcwNzUsImV4cCI6MjA5OTIwMzA3NX0.LCwGdbW5DVKSjl8Qql65LjQQgjOYMkhre7y3q94Eo68'
 
@@ -1661,14 +1661,13 @@ class UlangSystemApp(MDApp):
     def get_fade_transition(self):
         return FadeTransition(duration=0.1)
 
-#===Camera Live Feed Functions
+#===Camera and Image Processing and AI Inference
     def start_camera_loading(self):
         """1. Resets the UI and spawns the background worker."""
         if hasattr(self, 'picam2') or self.is_cam_initializing:
             return
         self.is_cam_initializing = True
         self.root.ids.dashboard_screen.ids.camfeed_pane.current = "camfeed_loading_screen"
-
         threading.Thread(target=self._init_hardware, daemon=True).start()
 
     def _init_hardware(self):
@@ -1704,24 +1703,27 @@ class UlangSystemApp(MDApp):
 
         while True:
             sttime = time.time()
-
             hi_res_frame = self.picam2.capture_array()
-
+            
             try:
-                inf_result = self.model.predict(hi_res_frame, conf=0.50, verbose=False)
+                if self.is_counting:
+                    inf_result = self.model.predict(hi_res_frame, conf=0.50, verbose=False)
 
-                if inf_result[0].obb is not None:
-                    inf_count = len(inf_result[0].obb)
+                    if inf_result[0].obb is not None:
+                        inf_count = len(inf_result[0].obb)
+                    else:
+                        inf_count = 0
+
+                    inf_wframe = inf_result[0].plot(labels=False, line_width=2, conf=False)
+
+                    disp_frame = cv2.resize(inf_wframe, (434, 244), interpolation=cv2.INTER_LINEAR)
+                    rgb_frame = cv2.cvtColor(disp_frame, cv2.COLOR_BGR2RGB)
+
                 else:
-                    inf_count = 0
-
-                inf_wframe = inf_result[0].plot(labels=False, line_width=2, conf=False)
-
-                disp_frame = cv2.resize(inf_wframe, (434, 244), interpolation=cv2.INTER_LINEAR)
-                rgb_frame = cv2.cvtColor(disp_frame, cv2.COLOR_BGR2RGB)
+                    disp_frame = cv2.resize(hi_res_frame, (434, 244), interpolation=cv2.INTER_LINEAR)
+                    rgb_frame = cv2.cvtColor(disp_frame, cv2.COLOR_BGR2RGB)
 
                 frame_bytes = rgb_frame.tobytes()
- 
                 self.update_feed(frame_bytes, 434, 244, inf_count)
 
                 eltime = time.time()-sttime
@@ -1735,7 +1737,7 @@ class UlangSystemApp(MDApp):
                 traceback.print_exc()
 
     @mainthread
-    def update_feed(self, frame_bytes, width, height, total_count):
+    def update_feed(self, frame_bytes, width, height, total_count, *args):
         """@mainthread: Refresh camera_feed"""
         texture = Texture.create(size=(width, height), colorfmt='rgb')
         texture.blit_buffer(frame_bytes, colorfmt='rgb', bufferfmt='ubyte')
@@ -1745,8 +1747,9 @@ class UlangSystemApp(MDApp):
         cam_widget = self.root.ids.dashboard_screen.ids.camera_feed
         cam_widget.texture = texture
         cam_widget.canvas.ask_update()
-        
-        print(f"[INFO|COUNTING] Count: {total_count}")
+
+        if self.is_counting:
+            print(f"[INFO|COUNTING] Count: {total_count}")
 
     def stop_camera(self):
         """Cleans up memory when navigating away"""
@@ -1798,15 +1801,13 @@ class UlangSystemApp(MDApp):
                 ['nmcli', '-t', '-f', 'active,ssid,signal', 'dev', 'wifi'],
                 text=True
             )
-            # Parse the output line by line
             for line in result.split('\n'):
-                # Line format yes:My_Network_Name:85
                 if line.startswith('yes'):
                     parts = line.split(':')
                     return {
                         "connected": True, 
                         "ssid": parts[1], 
-                        "strength": int(parts[2]) # 0 to 100
+                        "strength": int(parts[2])
                     }
 
             return {"connected": False, "ssid": "Disconnected", "strength": 0}
@@ -1870,6 +1871,8 @@ class UlangSystemApp(MDApp):
         self.popup=Factory.ExportLogsDialog()
         self.popup.open()
 
+#=============================================================================================================================
+
     def activate_count(self, input_name_batch = "", input_name_op = "", *args):
         self.name_count_batch = input_name_batch
         self.name_operator = input_name_op
@@ -1884,7 +1887,7 @@ class UlangSystemApp(MDApp):
             self.led_panels.is_toggleable = False
             self.right_pane.current = "panel_count_active"
             self.btm_btn.current = "btn_count_active"
-            print(f"[INFO] Count started for: {self.name_count_batch}.\nOperated by: {self.name_operator}")
+            print(f"[INFO] Count started for: {self.name_count_batch}. Operator: {self.name_operator}")
 
         if not (self.name_count_batch and self.name_operator):
             self.show_snackbar(warning_mode=True, message="Batch detail entries are required.")
@@ -1995,7 +1998,6 @@ class UlangSystemApp(MDApp):
             
         else:
 #===========STATE 2: EXECUTING THE COUNT
-            self.is_counting = False
             simulated_count = random.randint(40, 300) #replace by inferred instances of pl 
 #-----------Update UI Widget
             self.current_active_widget.count = simulated_count
@@ -2004,6 +2006,7 @@ class UlangSystemApp(MDApp):
             self.total_count += simulated_count
             self.sub_batch_history[self.current_active_widget.batch_name] = simulated_count
             self.current_active_widget = None
+            self.is_counting = False
 
     def remove_sub_batch(self, widget_to_remove):
 #-------If we are deleting the active widget, reset the system state
@@ -2236,11 +2239,9 @@ class UlangSystemApp(MDApp):
 
     def config_scrn_brightness(self, instance, slider_value):
         """Adjust screen brightness via Kivy Slider. Set minimum to 10 and maximum to 255"""
-        # Ensure it's a clean integer
         brightness_level = int(slider_value)
         
         try:
-            # Auto-find the exact DSI display path on Bookworm
             backlight_paths = glob.glob('/sys/class/backlight/*/brightness')
             
             if backlight_paths:
