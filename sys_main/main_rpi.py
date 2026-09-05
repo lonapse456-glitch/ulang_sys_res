@@ -1603,7 +1603,7 @@ class UlangSystemApp(MDApp):
  
         if not wtrlvl=="--":
             #Calculate the water volume here, output in liters
-            wtrvol = random()
+            wtrvol = 3
         else:
             wtrvol="--"
         self.root.ids.dashboard_screen.ids.water_vol_label.text = f"{wtrvol} L"
