@@ -1603,7 +1603,7 @@ class UlangSystemApp(MDApp):
  
         if not wtrlvl=="--":
             #Calculate the water volume here, output in liters
-            wtrvol = 3
+            wtrvol = random()
         else:
             wtrvol="--"
         self.root.ids.dashboard_screen.ids.water_vol_label.text = f"{wtrvol} L"
@@ -1722,6 +1722,7 @@ class UlangSystemApp(MDApp):
                 else:
                     disp_frame = cv2.resize(hi_res_frame, (434, 244), interpolation=cv2.INTER_LINEAR)
                     rgb_frame = cv2.cvtColor(disp_frame, cv2.COLOR_BGR2RGB)
+                    inf_count = 0
 
                 frame_bytes = rgb_frame.tobytes()
                 self.update_feed(frame_bytes, 434, 244, inf_count)
