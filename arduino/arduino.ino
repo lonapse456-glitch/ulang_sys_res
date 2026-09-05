@@ -1,6 +1,8 @@
 #include <Wire.h>
 #include <Adafruit_MLX90614.h>
 #include <ArduinoJson.h>
+#include "TCS34725.h"
+#include "TB6612FNG_XCR.h"
 
 #define MEASURE_DELAY 25
 
@@ -16,9 +18,12 @@ const int pin_mtr_stby = 4;
 
 // OBJECTS
 Adafruit_MLX90614 mlx = Adafruit_MLX90614();
+TCS34725 tcs;
+TB6612FNG_XCR conveyor_mtr;
 
 void setup() {
   Serial.begin(115200);
+  Serial.println("Controller Initializing");
 
   pinMode(pin_relay_aerator, OUTPUT);
   pinMode(pin_relay_led, OUTPUT);
@@ -27,25 +32,33 @@ void setup() {
   pinMode(pin_mtr_ai2, OUTPUT);
   pinMode(pin_mtr_stby, OUTPUT);
   pinMode(pin_trig, OUTPUT);
-  pinMode(pin_echo, INPUT_PULLUP);
+  pinMode(pin_echo, INPUT);
+
+  tcs.integrationTime(33); // ms
+  tcs.gain(TCS34725::Gain::X01);
+
+  conveyor_mtr.attach(pin_mtr_pwma, pin_mtr_ai1, pin_mtr_ai2, "Conveyor");
+  conveyor_mtr.setStandbyPin(pin_mtr_stby);
 
   digitalWrite(pin_relay_aerator, LOW);
   digitalWrite(pin_relay_led, LOW);
   digitalWrite(pin_trig, LOW);
 
+  Serial.println("Controller Initialization Done!");
   delayMicroseconds(500);
 }
 
 void loop() {
   float wtrTemp;
   int wtrLvl = measureDistance();
-  int luxIntensity;
+  float luxIntensity;
+  float lightTemp;
+
+  StaticJsonDocument<200> doc;
 
   if (Serial.available() > 0) {
     // READ RECEIVED STRINGS VIA SERIAL
     String rpi_cmd = Serial.readStringUntil('\n');
-    
-    StaticJsonDocument<200> doc;
     DeserializationError error = deserializeJson(doc, rpi_cmd);
 
     if (!error) {
@@ -53,8 +66,10 @@ void loop() {
       String command = doc["command"];
       if (command == "aerator_on") {
         digitalWrite(pin_relay_aerator, HIGH);
+        conveyor_mtr.manual(1, 0, 255, 10000);
       } else if (command == "aerator_off") {
         digitalWrite(pin_relay_aerator, LOW);
+        conveyor_mtr.manual(0, 1, 255, 10000);
       }
       if (command == "led_on") {
         digitalWrite(pin_relay_led, HIGH);
@@ -64,18 +79,29 @@ void loop() {
     }
   }
 
-  StaticJsonDocument<200> outDoc;
-
   if (!mlx.begin()) {
-    outDoc["temp"] = "!!";
     while (1);
   } else {
     wtrTemp = mlx.readObjectTempC();
-    outDoc["temp"] = wtrTemp;
   }
+
+  if (tcs.available()) {
+    luxIntensity = tcs.lux();
+    lightTemp = tcs.colorTemperature();
+    Serial.println(luxIntensity);
+    Serial.println(lightTemp);
+  } else {
+    Serial.println("Light Sensor Unavailable!");
+  }
+
+  StaticJsonDocument<200> outDoc;
 
   //outDoc["light"] = currentLight;
   outDoc["level"] = wtrLvl;
+  outDoc["temp"] = wtrTemp;
+  outDoc["light"] = luxIntensity;
+  outDoc["light_temp"] = lightTemp;
+  Serial.println(wtrLvl);
   serializeJson(outDoc, Serial);
   Serial.println(); 
   

@@ -1,0 +1,116 @@
+train: Scanning D:\DATA\dataset_disorganized\labels... 641 images, 0 backgrounds, 22 corrupt: 100% ━━━━━━━━━━━━ 641/641 91.4it/s 7.0s
+train: D:\DATA\dataset_disorganized\images\0a526297-ulang_pl_set_04_img056.jpg: ignoring corrupt image/label: negative class labels or coordinate [-0.01653098]
+train: D:\DATA\dataset_disorganized\images\0b601b02-pl_vd_02_img020.jpg: ignoring corrupt image/label: negative class labels or coordinate [-0.0276978  -0.01963124]
+train: D:\DATA\dataset_disorganized\images\0fe0000e-ulang_pl_set_03_img022.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\1056050c-ulang_pl_set_03_img005.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\11373f0d-ulang_pl_set_04_img041.jpg: ignoring corrupt image/label: negative class labels or coordinate [-0.01478465]
+train: D:\DATA\dataset_disorganized\images\15926558-ulang_pl_set_03_img025.jpg: ignoring corrupt image/label: Label class 1 exceeds dataset class count 1. Possible class labels are 0-0
+train: D:\DATA\dataset_disorganized\images\177ee7ee-ulang_pl_set_03_img001.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\1f8f2d9f-ulang_pl_set_03_img009.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\25504b51-ulang_pl_set_02_img003.jpg: ignoring corrupt image/label: negative class labels or coordinate [-0.03596582]
+train: D:\DATA\dataset_disorganized\images\2654700d-ulang_pl_set_04_img063.jpg: ignoring corrupt image/label: negative class labels or coordinate [-0.01451446 -0.0131359 ]
+train: D:\DATA\dataset_disorganized\images\26f7705d-ulang_pl_set_03_img014.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\2b4766cd-ulang_pl_set_03_img017.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\2b7180ad-pl_vd_02_img008.jpg: ignoring corrupt image/label: negative class labels or coordinate [-0.01441221]
+train: D:\DATA\dataset_disorganized\images\2e8b63ac-ulang_pl_set_03_img030.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\3011445d-ulang_pl_set_04_img057.jpg: ignoring corrupt image/label: negative class labels or coordinate [-0.01918883]
+train: D:\DATA\dataset_disorganized\images\32d7f377-ulang_pl_set_04_img033.jpg: 1 duplicate labels removed
+train: D:\DATA\dataset_disorganized\images\36c75f9e-ulang_pl_set_03_img016.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\3ea0efb8-ulang_lrv_set01_img051.jpg: ignoring corrupt image/label: Label class 1 exceeds dataset class count 1. Possible class labels are 0-0
+train: D:\DATA\dataset_disorganized\images\4105edaf-ulang_pl_set_03_img008.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\4251bcb6-ulang_pl_set_02_img007.jpg: ignoring corrupt image/label: negative class labels or coordinate [-0.02777056]
+train: D:\DATA\dataset_disorganized\images\4780e3e9-ulang_pl_set_03_img007.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\47882e4c-ulang_pl_set_02_img001.jpg: ignoring corrupt image/label: negative class labels or coordinate [-0.02662359]
+train: D:\DATA\dataset_disorganized\images\4825aeaa-ulang_pl_set_03_img019.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\4b3cb96e-pl_vd_02_img027.jpg: ignoring corrupt image/label: negative class labels or coordinate [-0.02926069]
+train: D:\DATA\dataset_disorganized\images\52b637d9-pl_vd_02_img028.jpg: ignoring corrupt image/label: negative class labels or coordinate [-0.01741885]
+train: D:\DATA\dataset_disorganized\images\578f2403-ulang_pl_set_03_img029.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\57ae55f6-ulang_pl_set_03_img026.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\59db2aae-ulang_pl_set_03_img028.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\5a47a465-ulang_pl_set_03_img023.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\601dbb2a-ulang_pl_set_03_img018.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\605be624-ulang_pl_set_03_img027.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\63ae3041-ulang_pl_set_03_img010.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\693450f8-ulang_pl_set_03_img012.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\78e71dd8-ulang_pl_set_02_img025.jpg: ignoring corrupt image/label: negative class labels or coordinate [-0.01680381]
+train: D:\DATA\dataset_disorganized\images\7a89fba5-ulang_pl_set_03_img032.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\8477b42f-ulang_pl_set_03_img021.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\a5de2587-ulang_pl_set_03_img013.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\a62cdb44-pl_vd_02_img006.jpg: ignoring corrupt image/label: negative class labels or coordinate [-0.01642719]
+train: D:\DATA\dataset_disorganized\images\ac874cf7-ulang_lrv_set01_img046.jpg: ignoring corrupt image/label: Label class 1 exceeds dataset class count 1. Possible class labels are 0-0
+train: D:\DATA\dataset_disorganized\images\ad482c83-ulang_pl_set_02_img004.jpg: ignoring corrupt image/label: negative class labels or coordinate [-0.03397371]
+train: D:\DATA\dataset_disorganized\images\aedfc20f-pl_vd_03_img_00079.jpg: 1 duplicate labels removed
+train: D:\DATA\dataset_disorganized\images\b0ec3089-ulang_pl_set_03_img033.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\b2d51ea1-ulang_pl_set_03_img011.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\bb845f76-ulang_pl_set_03_img015.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\c4b183e4-ulang_pl_set_03_img024.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\c5f45ac0-ulang_pl_set_03_img003.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\d275cfbd-pl_vd_02_img010.jpg: ignoring corrupt image/label: negative class labels or coordinate [-0.01884488]
+train: D:\DATA\dataset_disorganized\images\d7c5042b-ulang_pl_set_03_img002.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\db0eeece-ulang_pl_set_03_img004.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\e0bb8926-ulang_pl_set_03_img031.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\e19a448b-ulang_pl_set_03_img006.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\e303bde1-ulang_pl_set_04_img064.jpg: ignoring corrupt image/label: negative class labels or coordinate [-0.01375307]
+train: D:\DATA\dataset_disorganized\images\e46f2701-ulang_pl_set_03_img020.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\ea306e95-pl_vd_02_img009.jpg: ignoring corrupt image/label: negative class labels or coordinate [-0.0130808]
+train: D:\DATA\dataset_disorganized\images\f48dbe8c-ulang_lrv_set01_img019.JPG: ignoring corrupt image/label: negative class labels or coordinate [-0.01536121]
+train: D:\DATA\dataset_disorganized\images\f627936b-pl_vd_02_img019.jpg: ignoring corrupt image/label: negative class labels or coordinate [-0.01197214]
+train: New cache created: D:\DATA\dataset_disorganized\labels.cache
+val: Fast image access  (ping: 0.10.0 ms, read: 245.1131.6 MB/s, size: 402.8 KB)
+val: Scanning D:\DATA\dataset_disorganized\labels.cache... 641 images, 0 backgrounds, 22 corrupt: 100% ━━━━━━━━━━━━ 641/641 92.7Mit/s 0.0s
+train: D:\DATA\dataset_disorganized\images\0a526297-ulang_pl_set_04_img056.jpg: ignoring corrupt image/label: negative class labels or coordinate [-0.01653098]
+train: D:\DATA\dataset_disorganized\images\0b601b02-pl_vd_02_img020.jpg: ignoring corrupt image/label: negative class labels or coordinate [-0.0276978  -0.01963124]
+train: D:\DATA\dataset_disorganized\images\0fe0000e-ulang_pl_set_03_img022.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\1056050c-ulang_pl_set_03_img005.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\11373f0d-ulang_pl_set_04_img041.jpg: ignoring corrupt image/label: negative class labels or coordinate [-0.01478465]
+train: D:\DATA\dataset_disorganized\images\15926558-ulang_pl_set_03_img025.jpg: ignoring corrupt image/label: Label class 1 exceeds dataset class count 1. Possible class labels are 0-0
+train: D:\DATA\dataset_disorganized\images\177ee7ee-ulang_pl_set_03_img001.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\1f8f2d9f-ulang_pl_set_03_img009.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\25504b51-ulang_pl_set_02_img003.jpg: ignoring corrupt image/label: negative class labels or coordinate [-0.03596582]
+train: D:\DATA\dataset_disorganized\images\2654700d-ulang_pl_set_04_img063.jpg: ignoring corrupt image/label: negative class labels or coordinate [-0.01451446 -0.0131359 ]
+train: D:\DATA\dataset_disorganized\images\26f7705d-ulang_pl_set_03_img014.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\2b4766cd-ulang_pl_set_03_img017.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\2b7180ad-pl_vd_02_img008.jpg: ignoring corrupt image/label: negative class labels or coordinate [-0.01441221]
+train: D:\DATA\dataset_disorganized\images\2e8b63ac-ulang_pl_set_03_img030.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\3011445d-ulang_pl_set_04_img057.jpg: ignoring corrupt image/label: negative class labels or coordinate [-0.01918883]
+train: D:\DATA\dataset_disorganized\images\32d7f377-ulang_pl_set_04_img033.jpg: 1 duplicate labels removed
+train: D:\DATA\dataset_disorganized\images\36c75f9e-ulang_pl_set_03_img016.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\3ea0efb8-ulang_lrv_set01_img051.jpg: ignoring corrupt image/label: Label class 1 exceeds dataset class count 1. Possible class labels are 0-0
+train: D:\DATA\dataset_disorganized\images\4105edaf-ulang_pl_set_03_img008.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\4251bcb6-ulang_pl_set_02_img007.jpg: ignoring corrupt image/label: negative class labels or coordinate [-0.02777056]
+train: D:\DATA\dataset_disorganized\images\4780e3e9-ulang_pl_set_03_img007.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\47882e4c-ulang_pl_set_02_img001.jpg: ignoring corrupt image/label: negative class labels or coordinate [-0.02662359]
+train: D:\DATA\dataset_disorganized\images\4825aeaa-ulang_pl_set_03_img019.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\4b3cb96e-pl_vd_02_img027.jpg: ignoring corrupt image/label: negative class labels or coordinate [-0.02926069]
+train: D:\DATA\dataset_disorganized\images\52b637d9-pl_vd_02_img028.jpg: ignoring corrupt image/label: negative class labels or coordinate [-0.01741885]
+train: D:\DATA\dataset_disorganized\images\578f2403-ulang_pl_set_03_img029.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\57ae55f6-ulang_pl_set_03_img026.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\59db2aae-ulang_pl_set_03_img028.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\5a47a465-ulang_pl_set_03_img023.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\601dbb2a-ulang_pl_set_03_img018.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\605be624-ulang_pl_set_03_img027.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\63ae3041-ulang_pl_set_03_img010.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\693450f8-ulang_pl_set_03_img012.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\78e71dd8-ulang_pl_set_02_img025.jpg: ignoring corrupt image/label: negative class labels or coordinate [-0.01680381]
+train: D:\DATA\dataset_disorganized\images\7a89fba5-ulang_pl_set_03_img032.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\8477b42f-ulang_pl_set_03_img021.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\a5de2587-ulang_pl_set_03_img013.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\a62cdb44-pl_vd_02_img006.jpg: ignoring corrupt image/label: negative class labels or coordinate [-0.01642719]
+train: D:\DATA\dataset_disorganized\images\ac874cf7-ulang_lrv_set01_img046.jpg: ignoring corrupt image/label: Label class 1 exceeds dataset class count 1. Possible class labels are 0-0
+train: D:\DATA\dataset_disorganized\images\ad482c83-ulang_pl_set_02_img004.jpg: ignoring corrupt image/label: negative class labels or coordinate [-0.03397371]
+train: D:\DATA\dataset_disorganized\images\aedfc20f-pl_vd_03_img_00079.jpg: 1 duplicate labels removed
+train: D:\DATA\dataset_disorganized\images\b0ec3089-ulang_pl_set_03_img033.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\b2d51ea1-ulang_pl_set_03_img011.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\bb845f76-ulang_pl_set_03_img015.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\c4b183e4-ulang_pl_set_03_img024.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\c5f45ac0-ulang_pl_set_03_img003.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\d275cfbd-pl_vd_02_img010.jpg: ignoring corrupt image/label: negative class labels or coordinate [-0.01884488]
+train: D:\DATA\dataset_disorganized\images\d7c5042b-ulang_pl_set_03_img002.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\db0eeece-ulang_pl_set_03_img004.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\e0bb8926-ulang_pl_set_03_img031.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\e19a448b-ulang_pl_set_03_img006.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\e303bde1-ulang_pl_set_04_img064.jpg: ignoring corrupt image/label: negative class labels or coordinate [-0.01375307]
+train: D:\DATA\dataset_disorganized\images\e46f2701-ulang_pl_set_03_img020.jpg: corrupt JPEG restored and saved
+train: D:\DATA\dataset_disorganized\images\ea306e95-pl_vd_02_img009.jpg: ignoring corrupt image/label: negative class labels or coordinate [-0.0130808]
+train: D:\DATA\dataset_disorganized\images\f48dbe8c-ulang_lrv_set01_img019.JPG: ignoring corrupt image/label: negative class labels or coordinate [-0.01536121]
+train: D:\DATA\dataset_disorganized\images\f627936b-pl_vd_02_img019.jpg: ignoring corrupt image/label: negative class labels or coordinate [-0.01197214]

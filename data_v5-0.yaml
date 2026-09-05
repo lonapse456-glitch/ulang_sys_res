@@ -1,0 +1,5 @@
+train: D:/DATA/dataset_disorganized/images
+val: D:/DATA/dataset_disorganized/images
+
+nc: 1
+names: ['postlarvae']
