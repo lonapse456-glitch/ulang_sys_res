@@ -13,7 +13,7 @@ const int pin_echo = 9;
 const int pin_trig = 10;
 const int pin_mtr_pwma = 5;
 const int pin_mtr_ai2 = 6;
-const int pin_mtr_ai1 = 7;
+const int pin_mtr_ai1 = 3;
 const int pin_mtr_stby = 4;
 
 // OBJECTS
