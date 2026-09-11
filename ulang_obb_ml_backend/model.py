@@ -97,7 +97,7 @@ class YOLOv8OBBModel(LabelStudioMLBase):
             
             predictions.append({
                 'result': result_boxes,
-                'model_version': 'ulangn-obb-v4-0'
+                'model_version': 'ulangn-obb-v5-0'
             })
             
         return predictions

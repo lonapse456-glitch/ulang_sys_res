@@ -1554,9 +1554,9 @@ class UlangSystemApp(MDApp):
             print(f"[WARNING] Cloud connection failed. Running offline. Error: {err}")
 
         try:
-            self.arduino = serial.Serial('/dev/ttyACM0', 115200, timeout=1)
+            self.arduino = serial.Serial('/dev/serial0', 115200, timeout=1)
             time.sleep(2)
-            print("[INFO] Arduino Active")
+            print("[INFO] Arduino Active via UART")
         except Exception as e:
             self.arduino = None
             print(f"[WARNING] Arduino Unavailable: {e}")
@@ -1610,15 +1610,23 @@ class UlangSystemApp(MDApp):
 
     def listen_to_ard(self):
         """
-        @bgthread: Checks the readings from Arduino MCU
+        @bgthread: Pings the controller for sensor readings
         """
         while True:
             if self.arduino:
+                # 1. PING: Ask the Arduino for the latest sensor readings
+                ping_cmd = json.dumps({"command": "get_sensors"}) + "\n"
+                self.arduino.write(ping_cmd.encode('utf-8'))
+                
+                # Give the microcontroller a fraction of a second to reply
+                time.sleep(0.1)
+                
+                # 2. PONG: Read the incoming response
                 if self.arduino.in_waiting > 0:
                     try:
                         raw_data = self.arduino.readline().decode('utf-8').strip()
                         sensor_data = json.loads(raw_data)
-                        print(f"[Sensors Updated] Temp: {sensor_data.get('temp')}°C, Light: {sensor_data.get('wtrlvl')}")
+                        print(f"[Sensors Updated] Temp: {sensor_data.get('temp')}°C, Lvl: {sensor_data.get('wtrlvl')}")
                         self.update_sensor_reads(sensor_data)
                         
                     except json.JSONDecodeError:
@@ -1626,7 +1634,9 @@ class UlangSystemApp(MDApp):
             else:
                 sensor_data = {"temp":"--", "wtrlvl":"--"}
                 self.update_sensor_reads(sensor_data)
-            time.sleep(0.05)
+            
+            # Polling delay dictates how fast the ping-pong cycle runs
+            time.sleep(1.0)
 
     def talk_to_ard(self, action):
         """
