@@ -1686,20 +1686,15 @@ class UlangSystemApp(MDApp):
         """@backgroundthread: Initializes capturing and loading AI model"""
         try:
             self.picam2 = Picamera2()
-            vd_config = self.picam2.create_video_configuration(
+
+            vd_config =self.picam2.create_video_configuration(
                 main={"size": (4608, 2592), "format": "RGB888"}
             )
             self.picam2.configure(vd_config)
             self.picam2.start_preview(Preview.NULL)
             self.picam2.set_controls({"AfMode": controls.AfModeEnum.Continuous})
             self.picam2.start()
-            
             self.model = YOLO("models/pre-trained/ulangn-obb_v3-1_ncnn_model")
-            
-            # --- Initialize Fuzzy Evaluator ---
-            self.fuzzy_sim = self.init_fuzzy()
-            self.prev_count = 0 
-            
             self._camera_ready()
             self._run_inf_loop()
 
@@ -1714,9 +1709,7 @@ class UlangSystemApp(MDApp):
         self.root.ids.dashboard_screen.ids.camfeed_pane.current = "camfeed_live_screen"
 
     def _run_inf_loop(self):
-        """@backgroundthread: Grabs camera live feed frames, runs inference, 
-        initializes fuzzy logic, and passes the output to UI when reliability 
-        score threshold is met."""
+        """@backgroundthread: Grabs camera live feed frames, runs inference, pass to UI"""
         targ_fps = 10
         targ_frame_time = 1/targ_fps
 
@@ -1730,57 +1723,24 @@ class UlangSystemApp(MDApp):
 
                     if inf_result[0].obb is not None:
                         inf_count = len(inf_result[0].obb)
-                        
-                        # --- 1. CRISP VARIABLE EXTRACTION ---
-                        # Mean Confidence
-                        confs = inf_result[0].obb.conf.cpu().numpy()
-                        c_mean = confs.mean() if len(confs) > 0 else 0.0
-                        
-                        # Temporal Variance (Percentage)
-                        v_temp = abs(inf_count - self.prev_count) / max(self.prev_count, 1)
-                        v_temp = min(v_temp, 1.0) # Cap at 100%
-
-                        # Clumping Index (Density Proxy)
-                        # Calculates the total area taken up by OBBs relative to frame size
-                        # High density mathematically correlates to severe clumping
-                        boxes = inf_result[0].obb.xywhr.cpu().numpy()
-                        total_box_area = sum([w * h for _, _, w, h, _ in boxes])
-                        c_index = min(total_box_area / (4608 * 2592), 1.0) 
-                        
-                        # --- 2. FUZZY EVALUATION ---
-                        self.fuzzy_sim.input['confidence'] = c_mean
-                        self.fuzzy_sim.input['clumping'] = c_index
-                        self.fuzzy_sim.input['variance'] = v_temp
-                        self.fuzzy_sim.compute()
-                        
-                        frame_reliability = self.fuzzy_sim.output['reliability']
-                        print(f"[FUZZY] Conf: {c_mean:.2f} | Var: {v_temp:.2f} | Rel: {frame_reliability:.2f}")
-
-                        # --- 3. LOCK THE COUNT ---
-                        if frame_reliability >= 0.85:
-                            # Safely hand the final count back to the Main UI Thread
-                            Clock.schedule_once(lambda dt, count=inf_count: self._lock_sub_batch(count))
-                            self.is_counting = False # Stop inference loop for this sub-batch
-
-                        self.prev_count = inf_count
-
                     else:
                         inf_count = 0
-                        self.prev_count = 0
 
                     inf_wframe = inf_result[0].plot(labels=False, line_width=2, conf=False)
+
                     disp_frame = cv2.resize(inf_wframe, (434, 244), interpolation=cv2.INTER_LINEAR)
                     rgb_frame = cv2.cvtColor(disp_frame, cv2.COLOR_BGR2RGB)
 
                 else:
                     disp_frame = cv2.resize(hi_res_frame, (434, 244), interpolation=cv2.INTER_LINEAR)
                     rgb_frame = cv2.cvtColor(disp_frame, cv2.COLOR_BGR2RGB)
+                    inf_count = 0
 
                 frame_bytes = rgb_frame.tobytes()
-                # Only pass inf_count to UI if we are actively scanning
-                self.update_feed(frame_bytes, 434, 244, inf_count if self.is_counting else 0)
+                self.update_feed(frame_bytes, 434, 244, inf_count)
 
                 eltime = time.time()-sttime
+                print(f"[INFO] Inference Loop Speed: {(eltime*1000):.2f}ms")
                 slptime = targ_frame_time-eltime
                 if slptime>0:
                     time.sleep(slptime)
@@ -2064,37 +2024,33 @@ class UlangSystemApp(MDApp):
         anim_out.bind(on_complete=lambda *args: Window.remove_widget(self.snackbar))
         anim_out.start(self.snackbar)
 
-    @mainthread
-    def _lock_sub_batch(self, locked_count):
-        """Called by the background fuzzy evaluator when an Excellent frame is found."""
-        if self.current_active_widget:
-            self.current_active_widget.count = locked_count
-            self.current_active_widget.is_active = False
-            self.total_count += locked_count
-            self.sub_batch_history[self.current_active_widget.batch_name] = locked_count
-            self.current_active_widget = None
-            
-            # Provide visual feedback to the operator
-            self.show_snackbar(message=f"Locked Count: {locked_count}", warning_mode=False)
-
     def count_on_click(self):
-        """Triggered when the operator taps +SUB-BATCH. The AI handles the rest."""
         if not self.is_counting:
-            # STATE 1: ADDING A SUB-BATCH
+#===========STATE 1: ADDING A SUB-BATCH
             self.is_counting = True
-            
-            # Reset prev_count so variance evaluates purely on this new sub-batch
-            self.prev_count = 0 
-            
+#-----------Increment the absolute counter
             self.total_batches_created += 1
             new_name = f"SUB-BATCH {self.total_batches_created}"
             new_widget = SubBatchItem(
                 batch_name=new_name,
                 is_active=True
             )
+#-----------Add to UI and Backend Data
             self.sub_batch_scrollview.add_widget(new_widget)
             self.sub_batch_history[new_name] = -1 
             self.current_active_widget = new_widget
+            
+        else:
+#===========STATE 2: EXECUTING THE COUNT
+            simulated_count = random.randint(40, 300) #replace by inferred instances of pl 
+#-----------Update UI Widget
+            self.current_active_widget.count = simulated_count
+            self.current_active_widget.is_active = False
+#-----------Update Backend Data
+            self.total_count += simulated_count
+            self.sub_batch_history[self.current_active_widget.batch_name] = simulated_count
+            self.current_active_widget = None
+            self.is_counting = False
 
     def remove_sub_batch(self, widget_to_remove):
 #-------If we are deleting the active widget, reset the system state
