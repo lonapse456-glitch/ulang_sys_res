@@ -1371,7 +1371,7 @@ ScreenManager:
         height: self.texture_size[1]
         font_size: 24
         halign: 'left'
-        text: f"[font=assets/sf_mono_reg.otf][color=#ffffff]MARGIN OF ERROR: [/font][/color][font=assets/sf_mono_reg.otf][color=#db3838]{root.log_margin_of_err:.2f}[/font][/color]"
+        text: f"[font=assets/sf_mono_reg.otf][color=#ffffff]RELIABILITY SCORE: [/font][/color][font=assets/sf_mono_reg.otf][color=#db3838]{root.log_margin_of_err:.2f}[/font][/color]"
 
 <SubBatchItem>
     orientation: "vertical"
@@ -1523,6 +1523,8 @@ class UlangSystemApp(MDApp):
     name_operator = ""
     total_batches_created = NumericProperty(0)
     total_count = NumericProperty(0)
+    reliability_score = NumericProperty(0.0)
+
     current_active_widget = ObjectProperty(None, allownone=True)
     empty_chamber = True
 
@@ -1761,6 +1763,7 @@ class UlangSystemApp(MDApp):
                             # Safely hand the final count back to the Main UI Thread
                             Clock.schedule_once(lambda dt, count=inf_count: self._lock_sub_batch(count))
                             self.is_counting = False # Stop inference loop for this sub-batch
+                            self.reliability_score = frame_reliability
 
                         self.prev_count = inf_count
 
@@ -1993,6 +1996,7 @@ class UlangSystemApp(MDApp):
             self.sub_batch_history.clear()
             self.total_count = 0
             self.total_batches_created = 0
+            self.reliability_score = 0.0
             self.name_count_batch = ""
             self.name_operator = ""
             self.payload.update({
@@ -2003,7 +2007,7 @@ class UlangSystemApp(MDApp):
                 "num_of_sbatch": None,
                 "counts_of_sbatch": None,
                 "model_version": "",
-                "accuracy": float(0)
+                "accuracy": float(0.0)
             })
 
         if self.sub_batch_history and abort:
@@ -2128,7 +2132,7 @@ class UlangSystemApp(MDApp):
             "num_of_sbatch": len(self.sub_batch_history),
             "counts_of_sbatch": self.sub_batch_history,
             "model_version": "ulang-obb-v2",
-            "accuracy": float(0)
+            "accuracy": self.reliability_score
         })
         cached_payload = copy.deepcopy(self.payload)
 
