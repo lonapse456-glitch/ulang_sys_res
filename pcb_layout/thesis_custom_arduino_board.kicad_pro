@@ -37,9 +37,9 @@
         "other_text_thickness": 0.15,
         "other_text_upright": false,
         "pads": {
-          "drill": 0.95,
-          "height": 1.95,
-          "width": 1.7
+          "drill": 0.8,
+          "height": 1.6,
+          "width": 1.6
         },
         "silk_line_width": 0.1,
         "silk_text_italic": false,
@@ -185,7 +185,7 @@
         },
         {
           "td_allow_use_two_tracks": true,
-          "td_curve_segcount": 0,
+          "td_curve_segcount": 1,
           "td_height_ratio": 1.0,
           "td_length_ratio": 0.5,
           "td_maxheight": 2.0,
@@ -231,7 +231,7 @@
           "drill": 0.0
         }
       ],
-      "zones_allow_external_fillets": false
+      "zones_allow_external_fillets": true
     },
     "ipc2581": {
       "dist": "",
@@ -523,7 +523,7 @@
         "pcb_color": "rgb(255, 173, 52)",
         "priority": 3,
         "schematic_color": "rgb(194, 0, 0)",
-        "track_width": 5.2832,
+        "track_width": 0.8,
         "via_diameter": 0.6,
         "wire_width": 10
       },
@@ -700,7 +700,7 @@
       "gencad": "",
       "idf": "",
       "netlist": "",
-      "plot": "",
+      "plot": "D:/ULANG SYSTEM RES/pcb_layout/fab-output/",
       "pos_files": "",
       "specctra_dsn": "",
       "step": "",
