@@ -628,6 +628,57 @@ ScreenManager:
                         on_release: app.wipe_local_logs(show_dialog=True)
 
                 MDCard:
+                    orientation: 'vertical'
+                    size_hint: 1, None
+                    height: 128
+                    padding: [19, 0, 19, 0]
+                    spacing: 12
+
+                    MDBoxLayout:
+                        orientation: 'horizontal'
+                        size_hint: 1, None
+                        height: 64
+
+                        MDLabel:
+                            text: "Reliability Threshold"
+                            halign: 'left'
+                            font_name: "assets/sf_txt_reg.ttf"
+                            font_size: 24
+                            theme_text_color: "Custom"
+                            text_color: 1, 1, 1, 1
+                            size_hint_x: 0.5
+
+                        MDLabel:
+                            id: rel_threshold_txt
+                            halign: 'right'
+                            font_name: "assets/sf_txt_reg.ttf"
+                            font_size: 24
+                            theme_text_color: "Custom"
+                            text_color: 1, 1, 1, 1
+                            size_hint_x: 0.5
+
+                    Slider:
+                        min: 153
+                        max: 255
+                        value: 204
+                        step: 1
+                        size_hint_x: 1
+                        value_track: True
+                        value_track_color: '#ffff00'
+                        cursor_size: 64, 34
+                        cursor_image: 'res/slider_cursor.png'
+                        background_width: 0
+                        on_value: app.config_rel_threshold(self, self.value)
+
+                        canvas.before:
+                            Color:
+                                rgba: 0.25, 0.25, 0.25, 1
+                            Line:
+                                width: 4 
+                                cap: 'round'
+                                points: [self.x + self.padding, self.center_y, self.right - self.padding, self.center_y]        
+
+                MDCard:
                     orientation: 'horizontal'
                     size_hint: 1, None
                     height: 64
@@ -1525,6 +1576,7 @@ class UlangSystemApp(MDApp):
     total_batches_created = NumericProperty(0)
     total_count = NumericProperty(0)
     reliability_score = ObjectProperty(0.0)
+    reliability_threshold = ObjectProperty()
 
     current_active_widget = ObjectProperty(None, allownone=True)
     empty_chamber = True
@@ -1765,7 +1817,7 @@ class UlangSystemApp(MDApp):
                         print(f"[FUZZY] Conf: {c_mean:.2f} | Var: {v_temp:.2f} | Rel: {frame_reliability:.2f}")
 
                         # --- 3. LOCK THE COUNT ---
-                        if frame_reliability >= 0.85:
+                        if frame_reliability >= self.reliability_threshold:
                             # Safely hand the final count back to the Main UI Thread
                             Clock.schedule_once(lambda dt, count=inf_count: self._lock_sub_batch(count))
                             self.is_counting = False # Stop inference loop for this sub-batch
@@ -1861,6 +1913,11 @@ class UlangSystemApp(MDApp):
 
         judge_ctrl = ctrl.ControlSystem([rule1, rule2, rule3, rule4, rule5])
         return ctrl.ControlSystemSimulation(judge_ctrl)
+
+    def config_rel_threshold(self, instance, slider_value):
+        """Adjust reliability score threshold."""
+        self.reliability_threshold = int(slider_value)/255
+        self.root.ids.settings_screen.ids.rel_threshold_txt.text = str(self.reliability_threshold)
 
 #===Wifi Configuration Commands
     def update_wifi_stat(self, dt=0):
