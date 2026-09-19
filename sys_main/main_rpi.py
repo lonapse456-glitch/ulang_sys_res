@@ -653,7 +653,7 @@ ScreenManager:
                             max: 255
                             value: 204
                             step: 1
-                            size_hint_x: 0.8
+                            size_hint_x: 0.85
                             value_track: True
                             value_track_color: '#ffff00'
                             cursor_size: 64, 34
@@ -671,12 +671,13 @@ ScreenManager:
 
                         MDLabel:
                             id: rel_threshold_txt
+                            text: f"{app.reliability_threshold*100}%"
                             halign: 'right'
                             font_name: "assets/sf_txt_reg.ttf"
                             font_size: 24
                             theme_text_color: "Custom"
                             text_color: 1, 1, 1, 1
-                            size_hint_x: 0.2
+                            size_hint_x: 0.15
                             pos_hint: {"center_y": .5}
 
                 MDCard:
@@ -1577,7 +1578,7 @@ class UlangSystemApp(MDApp):
     total_batches_created = NumericProperty(0)
     total_count = NumericProperty(0)
     reliability_score = ObjectProperty(0.0)
-    reliability_threshold = ObjectProperty()
+    reliability_threshold = ObjectProperty(0.8)
 
     current_active_widget = ObjectProperty(None, allownone=True)
     empty_chamber = True
