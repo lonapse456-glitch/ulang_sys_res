@@ -1844,11 +1844,17 @@ class UlangSystemApp(MDApp):
         reliability['excellent'] = fuzz.trapmf(reliability.universe, [0.8, 0.9, 1.0, 1.0])
 
         # 3. Custom Rules
-        rule1 = ctrl.Rule(confidence['high'] & clumping['sparse'] & variance['stable'], reliability['excellent'])
-        rule2 = ctrl.Rule(clumping['dense'] & confidence['acceptable'] & variance['stable'], reliability['moderate'])
-        rule3 = ctrl.Rule(variance['erratic'] | confidence['poor'], reliability['unacceptable'])
+        rule1 = ctrl.Rule(
+            confidence['high'] & variance['stable'] & (clumping['sparse'] | clumping['moderate']), 
+            reliability['excellent']
+        )
 
-        judge_ctrl = ctrl.ControlSystem([rule1, rule2, rule3])
+        rule2 = ctrl.Rule(confidence['acceptable'] & variance['stable'] & (clumping['sparse'] | clumping['moderate']), reliability['moderate'])
+        rule3 = ctrl.Rule(clumping['dense'] & (confidence['high'] | confidence['acceptable']) & variance['stable'], reliability['moderate']) 
+        rule4 = ctrl.Rule(variance['jittery'] & confidence['high'] & (clumping['sparse'] | clumping['moderate']), reliability['moderate'])
+        rule5 = ctrl.Rule(variance['erratic'] | confidence['poor'] | (clumping['dense'] & variance['jittery']), reliability['unacceptable'])
+
+        judge_ctrl = ctrl.ControlSystem([rule1, rule2, rule3, rule4, rule5])
         return ctrl.ControlSystemSimulation(judge_ctrl)
 
 #===Wifi Configuration Commands
