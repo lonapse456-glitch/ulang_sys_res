@@ -1756,7 +1756,12 @@ class UlangSystemApp(MDApp):
                         self.fuzzy_sim.input['variance'] = v_temp
                         self.fuzzy_sim.compute()
                         
-                        frame_reliability = self.fuzzy_sim.output['reliability']
+                        try:
+                            self.fuzzy_sim.compute()
+                            frame_reliability = self.fuzzy_sim.output['reliability']
+                        except KeyError:
+                            # Safeguard from KeyError
+                            frame_reliability = 0.0
                         print(f"[FUZZY] Conf: {c_mean:.2f} | Var: {v_temp:.2f} | Rel: {frame_reliability:.2f}")
 
                         # --- 3. LOCK THE COUNT ---
