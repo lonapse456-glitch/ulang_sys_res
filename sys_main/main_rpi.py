@@ -631,22 +631,43 @@ ScreenManager:
                     orientation: 'vertical'
                     size_hint: 1, None
                     height: 128
-                    padding: [19, 0, 19, 0]
-                    spacing: 12
+                    padding: [19, 0, 19, 10]
+
+                    MDLabel:
+                        text: "Reliability Threshold"
+                        halign: 'left'
+                        font_name: "assets/sf_txt_reg.ttf"
+                        font_size: 24
+                        theme_text_color: "Custom"
+                        text_color: 1, 1, 1, 1
+                        size_hint_x: 0.5
 
                     MDBoxLayout:
                         orientation: 'horizontal'
                         size_hint: 1, None
                         height: 64
+                        spacing: 12
 
-                        MDLabel:
-                            text: "Reliability Threshold"
-                            halign: 'left'
-                            font_name: "assets/sf_txt_reg.ttf"
-                            font_size: 24
-                            theme_text_color: "Custom"
-                            text_color: 1, 1, 1, 1
-                            size_hint_x: 0.5
+                        Slider:
+                            min: 153
+                            max: 255
+                            value: 204
+                            step: 1
+                            size_hint_x: 0.8
+                            value_track: True
+                            value_track_color: '#ffff00'
+                            cursor_size: 64, 34
+                            cursor_image: 'res/slider_cursor.png'
+                            background_width: 0
+                            on_value: app.config_rel_threshold(self, self.value)
+
+                            canvas.before:
+                                Color:
+                                    rgba: 0.25, 0.25, 0.25, 1
+                                Line:
+                                    width: 4 
+                                    cap: 'round'
+                                    points: [self.x + self.padding, self.center_y, self.right - self.padding, self.center_y]
 
                         MDLabel:
                             id: rel_threshold_txt
@@ -655,28 +676,8 @@ ScreenManager:
                             font_size: 24
                             theme_text_color: "Custom"
                             text_color: 1, 1, 1, 1
-                            size_hint_x: 0.5
-
-                    Slider:
-                        min: 153
-                        max: 255
-                        value: 204
-                        step: 1
-                        size_hint_x: 1
-                        value_track: True
-                        value_track_color: '#ffff00'
-                        cursor_size: 64, 34
-                        cursor_image: 'res/slider_cursor.png'
-                        background_width: 0
-                        on_value: app.config_rel_threshold(self, self.value)
-
-                        canvas.before:
-                            Color:
-                                rgba: 0.25, 0.25, 0.25, 1
-                            Line:
-                                width: 4 
-                                cap: 'round'
-                                points: [self.x + self.padding, self.center_y, self.right - self.padding, self.center_y]        
+                            size_hint_x: 0.2
+                            pos_hint: {"center_y": .5}
 
                 MDCard:
                     orientation: 'horizontal'
@@ -1917,7 +1918,8 @@ class UlangSystemApp(MDApp):
     def config_rel_threshold(self, instance, slider_value):
         """Adjust reliability score threshold."""
         self.reliability_threshold = int(slider_value)/255
-        self.root.ids.settings_screen.ids.rel_threshold_txt.text = str(self.reliability_threshold)
+        rel_percent = self.reliability_threshold*100
+        self.root.ids.settings_screen.ids.rel_threshold_txt.text = f"{rel_percent:.2f}%"
 
 #===Wifi Configuration Commands
     def update_wifi_stat(self, dt=0):
