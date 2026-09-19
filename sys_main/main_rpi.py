@@ -532,13 +532,14 @@ ScreenManager:
 
                     MDLabel:
                         id: txt_conn_stat_ssid
-                        text: "Connected to SSID"
                         halign: 'right'
                         font_name: "assets/sf_txt_reg.ttf"
                         font_size: 24
                         theme_text_color: "Custom"
                         text_color: 1, 1, 1, 0.5
                         size_hint_x: 1
+                        shorten: True
+                        shorten_from: 'right'
 
                     WiFiToggleSwitch:
                         id: toggle_wifi 
@@ -1523,7 +1524,7 @@ class UlangSystemApp(MDApp):
     name_operator = ""
     total_batches_created = NumericProperty(0)
     total_count = NumericProperty(0)
-    reliability_score = NumericProperty(0.0)
+    reliability_score = ObjectProperty(0.0)
 
     current_active_widget = ObjectProperty(None, allownone=True)
     empty_chamber = True
@@ -1996,7 +1997,7 @@ class UlangSystemApp(MDApp):
             self.sub_batch_history.clear()
             self.total_count = 0
             self.total_batches_created = 0
-            self.reliability_score = 0.0
+            self.reliability_score = 0
             self.name_count_batch = ""
             self.name_operator = ""
             self.payload.update({
