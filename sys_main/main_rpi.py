@@ -1697,7 +1697,7 @@ class UlangSystemApp(MDApp):
             self.picam2.set_controls({"AfMode": controls.AfModeEnum.Continuous})
             self.picam2.start()
             
-            self.model = YOLO("models/pre-trained/ulangn-obb_v3-1_ncnn_model")
+            self.model = YOLO("D:/ULANG SYSTEM RES/models/pre-trained/ulangn-obb-annotator_v5-0_ncnn_model")
             
             # --- Initialize Fuzzy Evaluator ---
             self.fuzzy_sim = self.init_fuzzy()
