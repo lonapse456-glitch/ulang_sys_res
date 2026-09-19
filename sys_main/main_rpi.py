@@ -1988,9 +1988,9 @@ class UlangSystemApp(MDApp):
 
     def config_rel_threshold(self, instance, slider_value):
         """Adjust reliability score threshold."""
-        self.reliability_threshold = int(slider_value)/255
+        self.reliability_threshold = int(slider_value)/100
         rel_percent = self.reliability_threshold*100
-        self.root.ids.settings_screen.ids.rel_threshold_txt.text = f"{rel_percent:.2f}%"
+        self.root.ids.settings_screen.ids.rel_threshold_txt.text = f"{rel_percent}%"
 
     def toggle_capture_inf(self, value):
         if value:
