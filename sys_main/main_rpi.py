@@ -646,12 +646,12 @@ ScreenManager:
                         orientation: 'horizontal'
                         size_hint: 1, None
                         height: 64
-                        spacing: 12
+                        spacing: 8
 
                         Slider:
-                            min: 153
-                            max: 255
-                            value: 204
+                            min: 60
+                            max: 100
+                            value: 80
                             step: 1
                             size_hint_x: 0.85
                             value_track: True
@@ -698,6 +698,28 @@ ScreenManager:
                         text_color: '#db3838'
                         size_hint: 1, None
                         height: 64
+
+                MDCard:
+                    orientation: 'horizontal'
+                    size_hint: 1, None
+                    height: 64
+                    padding: 12
+                    spacing: 12
+
+                    MDLabel:
+                        text: "Exit Program"
+                        halign: 'left'
+                        pos_hint: {"center_y": .5}
+                        font_name: "assets/sf_txt_reg.ttf"
+                        font_size: 24
+                        size_hint: 1, None
+                        height: 64
+                        size_hint_x: 1
+
+                    ToggleSwitch:
+                        on_release: app.toggle_capture_inf(self.active)
+                        pos_hint: {"center_y": .5}
+
 
 # --------------------------------------------------LOGS PAGE-------------------------------------------------------
 <LogsScreen>:
@@ -1343,6 +1365,26 @@ ScreenManager:
             size: self.height - dp(4), self.height - dp(4)
             radius: [(self.height - dp(4)) / 2]
 
+<ToggleSwitch>:
+    # Set a default fixed size for the switch
+    size_hint: None, None
+    size: dp(60), dp(30)
+    
+    canvas:
+        Color:
+            rgba: (0.2, 0.8, 0.4, 1) if self.active else (0.3, 0.3, 0.3, 1)
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [self.height / 2]
+
+        Color:
+            rgba: (1, 1, 1, 1)
+        RoundedRectangle:
+            pos: self.x + self.knob_pos, self.y + dp(2)
+            size: self.height - dp(4), self.height - dp(4)
+            radius: [(self.height - dp(4)) / 2]
+
 <BatchLogItem>
     orientation: 'vertical'
     padding: 19
@@ -1556,6 +1598,8 @@ class UlangSystemApp(MDApp):
     wifi_stat = ['disconnected', '1', '2', '3', '4']
     wifi_strength = NumericProperty(0)
 
+    capture_inf = BooleanProperty(False)
+
 #===PLACEHOLDERS
     dialog = None
     snackbar = None
@@ -1753,7 +1797,7 @@ class UlangSystemApp(MDApp):
             
             self.model = YOLO("models/pre-trained/ulangn-obb-annotator_v5-0_ncnn_model")
             
-            # --- Initialize Fuzzy Evaluator ---
+            #---Initialize Fuzzy Evaluator---
             self.fuzzy_sim = self.init_fuzzy()
             self.prev_count = 0 
             
@@ -1820,6 +1864,33 @@ class UlangSystemApp(MDApp):
 
                         # --- 3. LOCK THE COUNT ---
                         if frame_reliability >= self.reliability_threshold:
+                            if self.capture_inf:
+                                # 1. Create a directory and timestamp for the export
+                                save_dir = "locked_frames_log"
+                                os.makedirs(save_dir, exist_ok=True)
+                                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                                base_path = os.path.join(save_dir, f"batch_{timestamp}")
+                                
+                                # 2. Save the RAW Image
+                                # The camera captures in RGB888, but OpenCV's imwrite requires BGR
+                                bgr_frame = cv2.cvtColor(hi_res_frame, cv2.COLOR_RGB2BGR)
+                                cv2.imwrite(f"{base_path}.jpg", bgr_frame)
+                                
+                                # 3. Save the YOLO-OBB annotations (.txt)
+                                with open(f"{base_path}.txt", "w") as f:
+                                    # Extract classes and pre-normalized corners (0.0 to 1.0 scale)
+                                    classes = inf_result[0].obb.cls.cpu().numpy()
+                                    norm_corners = inf_result[0].obb.xyxyxyxyn.cpu().numpy()
+                                    
+                                    for i in range(inf_count):
+                                        cls_id = int(classes[i])
+                                        c = norm_corners[i] # Extracts the 4 [x,y] points for the current box
+                                        
+                                        # Format: class_id x1 y1 x2 y2 x3 y3 x4 y4
+                                        f.write(f"{cls_id} {c[0][0]:.6f} {c[0][1]:.6f} {c[1][0]:.6f} {c[1][1]:.6f} {c[2][0]:.6f} {c[2][1]:.6f} {c[3][0]:.6f} {c[3][1]:.6f}\n")
+                                
+                                print(f"[LOG] Saved locked frame and OBB data to {base_path}")
+
                             # Safely hand the final count back to the Main UI Thread
                             Clock.schedule_once(lambda dt, count=inf_count: self._lock_sub_batch(count))
                             self.is_counting = False # Stop inference loop for this sub-batch
@@ -1921,6 +1992,12 @@ class UlangSystemApp(MDApp):
         self.reliability_threshold = int(slider_value)/255
         rel_percent = self.reliability_threshold*100
         self.root.ids.settings_screen.ids.rel_threshold_txt.text = f"{rel_percent:.2f}%"
+
+    def toggle_capture_inf(self, value):
+        if value:
+            self.toggle_capture_inf = False
+        else: 
+            self.toggle_capture_inf = True
 
 #===Wifi Configuration Commands
     def update_wifi_stat(self, dt=0):
@@ -2578,6 +2655,21 @@ class WiFiToggleSwitch(ButtonBehavior, Widget):
         #DEBUG
         print(f"[DEBUG] Wifi state on initialization: {'ON' if is_on else 'OFF'}")
         self._initializing = False
+
+class ToggleSwitch(ButtonBehavior, Widget):
+    active = BooleanProperty(False)
+    knob_pos = NumericProperty(dp(2)) 
+
+    def on_release(self):
+            self.active = not self.active
+    
+    def on_active(self, instance, value):
+        if value:
+            target_x = self.width - self.height + dp(2)
+        else:
+            target_x = dp(2)
+        anim = Animation(knob_pos=target_x, duration=0.2, t='out_quad')
+        anim.start(self)
 
 class SubBatchItem(MDBoxLayout):
     batch_name = StringProperty("")
