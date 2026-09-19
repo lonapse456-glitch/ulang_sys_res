@@ -686,28 +686,9 @@ ScreenManager:
                     height: 64
                     padding: 12
                     spacing: 12
-                    on_release: app.exit_program()
 
                     MDLabel:
-                        text: "Exit Program"
-                        halign: 'center'
-                        pos_hint: {"center_y": .5}
-                        font_name: "assets/sf_txt_reg.ttf"
-                        font_size: 24
-                        theme_text_color: "Custom"
-                        text_color: '#db3838'
-                        size_hint: 1, None
-                        height: 64
-
-                MDCard:
-                    orientation: 'horizontal'
-                    size_hint: 1, None
-                    height: 64
-                    padding: 12
-                    spacing: 12
-
-                    MDLabel:
-                        text: "Exit Program"
+                        text: "Capture Inference Result"
                         halign: 'left'
                         pos_hint: {"center_y": .5}
                         font_name: "assets/sf_txt_reg.ttf"
@@ -720,6 +701,24 @@ ScreenManager:
                         on_release: app.toggle_capture_inf(self.active)
                         pos_hint: {"center_y": .5}
 
+                MDCard:
+                    orientation: 'horizontal'
+                    size_hint: 1, None
+                    height: 64
+                    padding: 12
+                    spacing: 12
+                    on_release: app.exit_program()
+
+                    MDLabel:
+                        text: "Exit Program"
+                        halign: 'center'
+                        pos_hint: {"center_y": .5}
+                        font_name: "assets/sf_txt_reg.ttf"
+                        font_size: 24
+                        theme_text_color: "Custom"
+                        text_color: '#db3838'
+                        size_hint: 1, None
+                        height: 64
 
 # --------------------------------------------------LOGS PAGE-------------------------------------------------------
 <LogsScreen>:
@@ -1995,9 +1994,9 @@ class UlangSystemApp(MDApp):
 
     def toggle_capture_inf(self, value):
         if value:
-            self.toggle_capture_inf = False
+            self.capture_inf = False
         else: 
-            self.toggle_capture_inf = True
+            self.capture_inf = True
 
 #===Wifi Configuration Commands
     def update_wifi_stat(self, dt=0):
