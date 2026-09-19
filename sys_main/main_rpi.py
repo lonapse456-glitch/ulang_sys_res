@@ -631,7 +631,7 @@ ScreenManager:
                     orientation: 'vertical'
                     size_hint: 1, None
                     height: 128
-                    padding: [19, 0, 19, 10]
+                    padding: [19, 12, 19, 8]
 
                     MDLabel:
                         text: "Reliability Threshold"
