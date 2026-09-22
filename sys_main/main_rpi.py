@@ -375,12 +375,12 @@ ScreenManager:
                                     size_hint: 1,1
 
                                 DebounceBtn:
-                                    text: "COUNT" if app.is_counting else "+SUB-BATCH"
+                                    text: "COUNTING..." if app.is_counting else "COUNT"
                                     size_hint: 1, None
                                     height: 56
                                     font_size: 24
                                     font_name: "assets/sf_txt_bold.ttf"
-                                    background_normal: "res/btn_pill_blue_l.png"
+                                    background_normal: "res/btn_pill_green_l_down.png" if app.is_counting else "res/btn_pill_blue_l.png" 
                                     background_down: "res/btn_pill_blue_l_down.png"
                                     on_release:
                                         app.count_on_click() if self._can_press else None
