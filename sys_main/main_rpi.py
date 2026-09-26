@@ -1656,7 +1656,7 @@ class UlangSystemApp(MDApp):
             print(f"[WARNING] Cloud connection failed. Running offline. Error: {err}")
 
         try:
-            self.arduino = serial.Serial('/dev/serial0', 115200, timeout=1)
+            self.arduino = serial.Serial('/dev/ttyUSB0', 115200, timeout=1)
             time.sleep(2)
             print("[INFO] Arduino Active via UART")
         except Exception as e:
