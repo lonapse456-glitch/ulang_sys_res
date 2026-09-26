@@ -2117,8 +2117,10 @@ class UlangSystemApp(MDApp):
             print('[INFO] Counting Process Activated')
             self.popup.dismiss()
             self.aerator.is_active = False
+            self.talk_to_ard("aerator_off")
             self.aerator.is_toggleable = False
             self.led_panels.is_active = True
+            self.talk_to_ard("led_on")
             self.led_panels.is_toggleable = False
             self.right_pane.current = "panel_count_active"
             self.btm_btn.current = "btn_count_active"
