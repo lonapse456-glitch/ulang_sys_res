@@ -1706,7 +1706,7 @@ class UlangSystemApp(MDApp):
  
         if not wtrlvl=="--":
             #Calculate the water volume here, output in liters
-            wtrvol = (34 * 19 * float(wtrvol))/1000
+            wtrvol = (34 * 19 * float(wtrlvl))/1000
         else:
             wtrvol="--"
         self.root.ids.dashboard_screen.ids.water_vol_label.text = f"{wtrvol:.2f} L"
