@@ -1622,6 +1622,7 @@ class UlangSystemApp(MDApp):
     total_count = NumericProperty(0)
     reliability_score = ObjectProperty(0.0)
     reliability_threshold = ObjectProperty(0.8)
+    reliability_scores = []
 
     current_active_widget = ObjectProperty(None, allownone=True)
     empty_chamber = True
@@ -1705,10 +1706,10 @@ class UlangSystemApp(MDApp):
  
         if not wtrlvl=="--":
             #Calculate the water volume here, output in liters
-            wtrvol = 3
+            wtrvol = (34 * 19 * float(wtrvol))/1000
         else:
             wtrvol="--"
-        self.root.ids.dashboard_screen.ids.water_vol_label.text = f"{wtrvol} L"
+        self.root.ids.dashboard_screen.ids.water_vol_label.text = f"{wtrvol:.2f} L"
 
     def listen_to_ard(self):
         """
@@ -1791,7 +1792,7 @@ class UlangSystemApp(MDApp):
             )
             self.picam2.configure(vd_config)
             self.picam2.start_preview(Preview.NULL)
-            self.picam2.set_controls({"AfMode": controls.AfModeEnum.Continuous})
+            self.picam2.set_controls({"AfMode": controls.AfModeEnum.Manual, "LensPosition": 1.8})
             self.picam2.start()
             
             self.model = YOLO("models/pre-trained/ulangn-obb-annotator_v5-0_ncnn_model")
@@ -1894,6 +1895,7 @@ class UlangSystemApp(MDApp):
                             Clock.schedule_once(lambda dt, count=inf_count: self._lock_sub_batch(count))
                             self.is_counting = False # Stop inference loop for this sub-batch
                             self.reliability_score = frame_reliability
+                            self.reliability_scores.append(self.reliability_score)
 
                         self.prev_count = inf_count
 
@@ -2116,8 +2118,9 @@ class UlangSystemApp(MDApp):
             self.count_active = True
             print('[INFO] Counting Process Activated')
             self.popup.dismiss()
-            self.aerator.is_active = False
-            self.talk_to_ard("aerator_off")
+            if self.aerator.is_active:
+                self.talk_to_ard("aerator_off")
+                self.aerator.is_active = False
             self.aerator.is_toggleable = False
             self.led_panels.is_active = True
             self.talk_to_ard("led_on")
@@ -2159,6 +2162,7 @@ class UlangSystemApp(MDApp):
                 "model_version": "",
                 "accuracy": float(0.0)
             })
+            self.reliability_scores.clear()
 
         if self.sub_batch_history and abort:
             dialog = SystemDialog(
@@ -2282,7 +2286,7 @@ class UlangSystemApp(MDApp):
             "num_of_sbatch": len(self.sub_batch_history),
             "counts_of_sbatch": self.sub_batch_history,
             "model_version": "ulang-obb-v2",
-            "accuracy": self.reliability_score
+            "accuracy": sum(self.reliability_scores)/len(self.reliability_scores)
         })
         cached_payload = copy.deepcopy(self.payload)
 
