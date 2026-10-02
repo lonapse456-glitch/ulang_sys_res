@@ -9,7 +9,7 @@ class YOLOv8OBBModel(LabelStudioMLBase):
         super(YOLOv8OBBModel, self).__init__(**kwargs)
         
         # Load your specific YOLOv8 OBB model
-        self.model = YOLO('ulangn-obb-annotator_v5-0.pt') 
+        self.model = YOLO('ulangn-obb-annotator_v6-0.pt') 
         
         # Parse the Label Studio UI configuration
         self.from_name = None
@@ -97,7 +97,7 @@ class YOLOv8OBBModel(LabelStudioMLBase):
             
             predictions.append({
                 'result': result_boxes,
-                'model_version': 'ulangn-obb-v5-0'
+                'model_version': 'ulangn-obb-annotator-v6-0'
             })
             
         return predictions

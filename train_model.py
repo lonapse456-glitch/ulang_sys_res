@@ -8,16 +8,22 @@ print("GPU Name:", torch.cuda.get_device_name(0) if torch.cuda.is_available() el
 if __name__ == '__main__':
     
     # 2. Load the model
-    model = YOLO('yolov8n-obb.pt') # Or whichever base model you are using
+    model = YOLO('ulangn-obb-annotator_v5-0.pt') # Or whichever base model you are using
     
     # 3. Run the training command 
     # (Note: device=0 will correctly use your GPU as discussed earlier)
     results = model.train(
-        data='data_v5-0.yaml', 
-        epochs=200, 
+        data='data_v6-0.yaml', 
+        epochs=100, 
         imgsz=640, 
         batch=8, 
-        name='ulangn_obb_v5-0',
+        name='ulangn_obb_v6-0_annotator',
+        optimizer='AdamW',
+        lr0=0.001,
+        cos_lr=True,
+        warmup_epochs = 4.0,
+        freeze=10,
         device=0,
-        workers=0
+        workers=0,
+        project = 'annotator_v6-0'
     )
