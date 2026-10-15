@@ -34,6 +34,7 @@ Config.set('kivy', 'keyboard_mode', 'systemandmulti')
 Config.set('graphics', 'fullscreen', 'auto')
 Config.set('graphics', 'resizable', False)
 
+from kivy.utils import get_color_from_hex
 from kivymd.app import MDApp
 from kivy.lang import Builder
 from kivy.core.window import Window
@@ -56,7 +57,6 @@ from kivy.uix.widget import Widget
 from kivy.uix.behaviors import ButtonBehavior
 
 # HARDWARE GPIO SETUP
-
 from picamera2 import Picamera2, Preview
 from libcamera import controls
 
@@ -697,7 +697,7 @@ ScreenManager:
                         padding: [0, 12, 0, 12]
 
                         MDLabel:
-                            text: "Capture Inference Result"
+                            text: "Capture Result"
                             halign: 'left'
                             pos_hint: {"center_y": .5}
                             font_name: "assets/sf_txt_reg.ttf"
@@ -730,14 +730,13 @@ ScreenManager:
 
                         MDLabel:
                             id: txt_cam_res
+                            text: f"{app.def_cam_res} at {app.cam_res[app.def_cam_res][2]} fps"
                             halign: 'right'
                             font_name: "assets/sf_txt_reg.ttf"
                             font_size: 24
                             theme_text_color: "Custom"
                             text_color: 1, 1, 1, 0.5
                             size_hint_x: 0.4
-                            shorten: True
-                            shorten_from: 'right'
 
                 MDCard:
                     orientation: 'horizontal'
@@ -1292,6 +1291,133 @@ ScreenManager:
                 background_down: "res/btn_pill_blue_l_down.png"
                 on_release: root.execute_proceed(root.ids.input_email.text, root.input_timerange)
 
+<CamResDialog>
+    width: 500
+    height: 380
+    size_hint: None, None
+    background: ''
+    background_color: 0, 0, 0, 0
+    separator_height: 0
+    title: ""
+    command_on_proceed: app.config_cam_res
+    auto_dismiss: True
+
+    MDBoxLayout:
+        orientation: 'vertical'
+        size_hint: 1, None
+        height: 460
+        spacing: 28
+        padding: 12
+
+        canvas.before:
+            Color:
+                rgba: 1, 1, 1, 1 # Ensure the image renders at full brightness
+            BorderImage:
+                source: 'res/bg_dialog.png'
+                pos: self.pos
+                size: self.size
+                border: [35, 35, 35, 35]
+
+        MDBoxLayout:
+            orientation: 'vertical'
+            size_hint: 1, 1
+            spacing: 12
+            padding: [15, 10, 15, 8]
+
+            MDLabel:
+                text: "Change Camera Resolution"
+                font_name: "assets/sf_txt_bold.ttf"
+                font_size: 24
+                text_color: 1, 1, 1, 1
+                size_hint_x: 1
+                halign: 'left'
+
+            MDLabel:
+                text: "Higher resolution results to lower frame rate but gives you higher quality images."
+                font_name: "assets/sf_txt_reg.ttf"
+                font_size: 20
+                text_color: 1, 1, 1, 1
+                size_hint_x: 1
+                halign: 'left'
+
+            MDCard:
+                id: opt_1
+                orientation: 'vertical'
+                size_hint: 1, None
+                height: 48
+                padding: [12, 0, 12, 0]
+                radius: [24]
+                on_release: root.select(self.id)
+                
+                MDLabel:
+                    text: "4K at 10fps"
+                    font_name: "assets/sf_txt_reg.ttf"
+                    font_size: 24
+                    text_color: 1, 1, 1, 1
+                    size_hint_x: 1
+                    halign: 'center'
+
+            MDCard:
+                id: opt_2
+                orientation: 'vertical'
+                size_hint: 1, None
+                height: 48
+                padding: [12, 0, 12, 0]
+                radius: [24]
+                on_release: root.select(self.id)
+                
+                MDLabel:
+                    text: "2K at 15fps"
+                    font_name: "assets/sf_txt_reg.ttf"
+                    font_size: 24
+                    text_color: 1, 1, 1, 1
+                    size_hint_x: 1
+                    halign: 'center'
+
+            MDCard:
+                id: opt_3
+                orientation: 'vertical'
+                size_hint: 1, None
+                height: 48
+                padding: [12, 0, 12, 0]
+                radius: [24]
+                on_release: root.select(self.id)
+                
+                MDLabel:
+                    text: "1080p at 20fps"
+                    font_name: "assets/sf_txt_reg.ttf"
+                    font_size: 24
+                    text_color: 1, 1, 1, 1
+                    size_hint_x: 1
+                    halign: 'left'
+
+        MDBoxLayout:
+            orientation: 'horizontal'
+            size_hint: 1, None
+            spacing: 12
+            height: 64
+
+            Button:
+                text: "CANCEL"
+                size_hint: 1, None
+                height: 56
+                font_size: 24
+                font_name: "assets/sf_txt_bold.ttf"
+                background_normal: "res/btn_pill_gray_l.png"
+                background_down: "res/btn_pill_gray_l_down.png"
+                on_release:
+                    root.dismiss()
+
+            Button:
+                text: "SAVE"
+                size_hint: 1, None
+                height: 56
+                font_size: 24
+                font_name: "assets/sf_txt_bold.ttf"
+                background_normal: "res/btn_pill_blue_l.png"
+                background_down: "res/btn_pill_blue_l_down.png"
+                on_release: root.execute_proceed(root.selected_opt)
+
 <SystemDialog>
     width: 500
     height: dialog_container.height
@@ -1674,13 +1800,14 @@ class UlangSystemApp(MDApp):
     reliability_score = ObjectProperty(0.0)
     reliability_threshold = ObjectProperty(0.8)
     reliability_scores = []
+
     water_vol = NumericProperty(0.0)
     water_vol_array = []
     water_temp = NumericProperty(0.0)
     water_temp_array = []
-
     count_timer = NumericProperty(0.0)
     count_timer_array = []
+    batch_uuid = StringProperty("")
 
     current_active_widget = ObjectProperty(None, allownone=True)
     empty_chamber = True
@@ -1689,10 +1816,17 @@ class UlangSystemApp(MDApp):
         "red":'#db3838',
         "blue":'#0078ff',
         "greed":'#38db5c',
-        "yellow":'#ccba00'
+        "yellow":'#ccba00',
+        "dark_gray":'#2e2e2e'
     }
 
-    #SUPABASE CLIENT
+    def_cam_res = OptionProperty("4K", options=["4K", "2K", "1080p"])
+    cam_res = {
+        "4K" : [4608, 2592, 10],
+        "2K" : [2304, 1296, 15],
+        "1080p" : [1920, 1080, 20]} #Values are in [W, H, fps] format
+
+    # SUPABASE CLIENT
     SUPABASE_API_URL = 'https://nltmvrjxasslpqbdyamg.supabase.co'
     SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sdG12cmp4YXNzbHBxYmR5YW1nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2MjcwNzUsImV4cCI6MjA5OTIwMzA3NX0.LCwGdbW5DVKSjl8Qql65LjQQgjOYMkhre7y3q94Eo68'
 
@@ -1789,14 +1923,14 @@ class UlangSystemApp(MDApp):
         """
         while True:
             if self.arduino:
-                # 1. PING: Ask the Arduino for the latest sensor readings
+                # PING: Ask the Arduino for the latest sensor readings
                 ping_cmd = json.dumps({"command": "get_sensors"}) + "\n"
                 self.arduino.write(ping_cmd.encode('utf-8'))
                 
                 # Give the microcontroller a fraction of a second to reply
                 time.sleep(0.1)
                 
-                # 2. PONG: Read the incoming response
+                # PONG: Read the incoming response
                 if self.arduino.in_waiting > 0:
                     try:
                         raw_data = self.arduino.readline().decode('utf-8').strip()
@@ -1860,7 +1994,7 @@ class UlangSystemApp(MDApp):
         try:
             self.picam2 = Picamera2()
             vd_config = self.picam2.create_video_configuration(
-                main={"size": (4608, 2592), "format": "RGB888"}
+                main={"size": (self.cam_res[self.def_cam_res][0], self.cam_res[self.def_cam_res][1]), "format": "RGB888"}
             )
             self.picam2.configure(vd_config)
             self.picam2.start_preview(Preview.NULL)
@@ -1890,7 +2024,8 @@ class UlangSystemApp(MDApp):
         """@backgroundthread: Grabs camera live feed frames, runs inference, 
         initializes fuzzy logic, and passes the output to UI when reliability 
         score threshold is met."""
-        targ_fps = 10
+
+        targ_fps = self.cam_res[self.def_cam_res][2]
         targ_frame_time = 1/targ_fps
 
         while True:
@@ -1904,7 +2039,7 @@ class UlangSystemApp(MDApp):
                     if inf_result[0].obb is not None:
                         inf_count = len(inf_result[0].obb)
                         
-                        # --- 1. CRISP VARIABLE EXTRACTION ---
+                        # Crisp Values Extraction
                         # Mean Confidence
                         confs = inf_result[0].obb.conf.cpu().numpy()
                         c_mean = confs.mean() if len(confs) > 0 else 0.0
@@ -1939,23 +2074,21 @@ class UlangSystemApp(MDApp):
                             frame_reliability = 0.0
                         print(f"[FUZZY] Conf: {c_mean:.2f} | Clump: {c_index:.2f} | Var: {v_temp:.2f} | Rel: {frame_reliability:.2f}")
 
-                        # --- 3. LOCK THE COUNT ---
+                        # Count locking mechanism
                         if frame_reliability >= self.reliability_threshold:
                             if self.capture_inf:
-                                # 1. Create a directory and timestamp for the export
-                                save_dir = "locked_frames_log"
+                                # directory for the export
+                                save_dir = f"res_captured/{self.batch_uuid}"
                                 os.makedirs(save_dir, exist_ok=True)
-                                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                                base_path = os.path.join(save_dir, f"batch_{timestamp}")
+                                base_path = os.path.join(save_dir, f"{self.batch_uuid}_SB{self.total_batches_created}")
                                 
-                                # 2. Save the RAW Image
+                                # RAW Image
                                 # The camera captures in RGB888, but OpenCV's imwrite requires BGR
-                                bgr_frame = cv2.cvtColor(hi_res_frame, cv2.COLOR_RGB2BGR)
-                                cv2.imwrite(f"{base_path}.jpg", bgr_frame)
+                                # bgr_frame = cv2.cvtColor(hi_res_frame, cv2.COLOR_RGB2BGR)
+                                cv2.imwrite(f"{base_path}.jpg", hi_res_frame)
                                 
-                                # 3. Save the YOLO-OBB annotations (.txt)
+                                # YOLO-OBB annotations (.txt)
                                 with open(f"{base_path}.txt", "w") as f:
-                                    # Extract classes and pre-normalized corners (0.0 to 1.0 scale)
                                     classes = inf_result[0].obb.cls.cpu().numpy()
                                     norm_corners = inf_result[0].obb.xyxyxyxyn.cpu().numpy()
                                     
@@ -1966,7 +2099,7 @@ class UlangSystemApp(MDApp):
                                         # Format: class_id x1 y1 x2 y2 x3 y3 x4 y4
                                         f.write(f"{cls_id} {c[0][0]:.6f} {c[0][1]:.6f} {c[1][0]:.6f} {c[1][1]:.6f} {c[2][0]:.6f} {c[2][1]:.6f} {c[3][0]:.6f} {c[3][1]:.6f}\n")
                                 
-                                print(f"[LOG] Saved locked frame and OBB data to {base_path}")
+                                print(f"[LOG] Saved captured results to {base_path}")
 
                             # Safely hand the final count back to the Main UI Thread
                             Clock.schedule_once(lambda dt, count=inf_count: self._lock_sub_batch(count))
@@ -1989,12 +2122,14 @@ class UlangSystemApp(MDApp):
                     rgb_frame = cv2.cvtColor(disp_frame, cv2.COLOR_BGR2RGB)
 
                 frame_bytes = rgb_frame.tobytes()
+
                 # Only pass inf_count to UI if we are actively scanning
                 self.update_feed(frame_bytes, 434, 244, inf_count if self.is_counting else 0)
 
-                eltime = time.time()-sttime
-                self.count_timer+=eltime
-                slptime = targ_frame_time-eltime
+                eltime = time.time() - sttime
+                self.count_timer += eltime
+                slptime = targ_frame_time - eltime
+
                 if slptime>0:
                     time.sleep(slptime)
 
@@ -2213,6 +2348,7 @@ class UlangSystemApp(MDApp):
         def execute_activation():
             self.count_active = True
             print('[INFO] Counting Process Activated')
+            self.batch_uuid = str(uuid.uuid4())
             self.popup.dismiss()
             if self.aerator.is_active:
                 self.talk_to_ard("aerator_off")
@@ -2391,9 +2527,8 @@ class UlangSystemApp(MDApp):
 #=======================================================Database Functions=============================================================
     #dev: checked, it: 01
     def save_batch_log(self):
-        new_loguuid = str(uuid.uuid4())
         self.payload.update({
-            "local_id": new_loguuid,
+            "local_id": self.batch_uuid,
             "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f+00"), #Format to ISO-8601 / PostgreSQL timestamptz
             "batch_id": self.name_count_batch,
             "op_name": self.name_operator,
@@ -2702,6 +2837,10 @@ class UlangSystemApp(MDApp):
                 Clock.schedule_once(lambda dt: self.show_snackbar(warning_mode=True, message="Failed to send email"))
 
         threading.Thread(target=_export_worker, daemon=True).start()
+
+    def config_cam_res(self, opt):
+        self.def_cam_res = opt
+
 #=====================================================Graphics====================================================
 
 class PillToggleButton(Button):
@@ -2844,6 +2983,36 @@ class ExportLogsDialog(Popup):
             self.command_on_proceed(email, timerange)
         self.dismiss()
 
+class CamResDialog(Popup):
+    default_opt = ObjectProperty(None, allownone=True)
+    selected_opt = OptionProperty(default_opt, options=["4K", "2K", "1080p"])
+    command_on_proceed = ObjectProperty(None, allownone=True)
+    palette = ObjectProperty(None, allownone=True)
+
+    def select(self, id):
+        if id == 'opt_1':
+            self.selected_opt = "4K"
+            self.ids.opt_1.md_bg_color = get_color_from_hex(self.palette["blue"])
+            self.ids.opt_2.md_bg_color = get_color_from_hex(self.palette["dark_gray"])
+            self.ids.opt_3.md_bg_color = get_color_from_hex(self.palette["dark_gray"])
+
+        elif id == 'opt_2':
+            self.selected_opt = "2K"
+            self.ids.opt_1.md_bg_color = get_color_from_hex(self.palette["dark_gray"])
+            self.ids.opt_2.md_bg_color = get_color_from_hex(self.palette["blue"])
+            self.ids.opt_3.md_bg_color = get_color_from_hex(self.palette["dark_gray"])
+
+        else:
+            self.selected_opt = "1080p"
+            self.ids.opt_1.md_bg_color = get_color_from_hex(self.palette["dark_gray"])
+            self.ids.opt_2.md_bg_color = get_color_from_hex(self.palette["dark_gray"])
+            self.ids.opt_3.md_bg_color = get_color_from_hex(self.palette["blue"])
+
+    def execute_proceed(self, selected_opt):
+        if self.command_on_proceed and callable(self.command_on_proceed): 
+            self.command_on_proceed(selected_opt)
+        self.dismiss()
+
 class Snackbar(MDBoxLayout):
     warning_mode = BooleanProperty(False)
 
@@ -2880,6 +3049,15 @@ class DebounceBtn(Button):
 
 class ClickableMDLabel(ButtonBehavior, MDLabel):
     pass
+
+class Color():
+    palette = {
+    "red":'#db3838',
+    "blue":'#0078ff',
+    "greed":'#38db5c',
+    "yellow":'#ccba00',
+    "dark_gray":'#2e2e2e'
+}
 
 if __name__ == '__main__':
     UlangSystemApp().run()
