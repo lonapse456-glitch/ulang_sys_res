@@ -1827,7 +1827,7 @@ class UlangSystemApp(MDApp):
             
             try:
                 if self.is_counting:
-                    inf_result = self.model.predict(hi_res_frame, conf=0.50, verbose=False)
+                    inf_result = self.model.predict(hi_res_frame, conf=0.35, verbose=False)
 
                     if inf_result[0].obb is not None:
                         inf_count = len(inf_result[0].obb)
