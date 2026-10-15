@@ -599,7 +599,7 @@ ScreenManager:
                         font_name: "assets/sf_txt_reg.ttf"
                         font_size: 24
                         theme_text_color: "Custom"
-                        text_color: '#008ade'
+                        text_color: app.color_palette["blue"]
                         size_hint: 1, None
                         height: 64
                         on_release: app.sync_db_logs_thread(show_snackbar = True)
@@ -612,7 +612,7 @@ ScreenManager:
                         font_name: "assets/sf_txt_reg.ttf"
                         font_size: 24
                         theme_text_color: "Custom"
-                        text_color: '#008ade'
+                        text_color: app.color_palette["blue"]
                         size_hint: 1, None
                         height: 64
                         on_release: 
@@ -626,7 +626,7 @@ ScreenManager:
                         font_name: "assets/sf_txt_reg.ttf"
                         font_size: 24
                         theme_text_color: "Custom"
-                        text_color: '#db3838'
+                        text_color: app.color_palette["red"]
                         size_hint: 1, None
                         height: 64
                         on_release: app.wipe_local_logs(show_dialog=True)
@@ -638,7 +638,7 @@ ScreenManager:
                     padding: [19, 12, 19, 8]
 
                     MDLabel:
-                        text: "Reliability Threshold"
+                        text: "Minimum Prediction Score"
                         halign: 'left'
                         font_name: "assets/sf_txt_reg.ttf"
                         font_size: 24
@@ -653,9 +653,9 @@ ScreenManager:
                         spacing: 8
 
                         Slider:
-                            min: 60
+                            min: 70
                             max: 100
-                            value: 80
+                            value: 85
                             step: 1
                             size_hint_x: 0.85
                             value_track: True
@@ -685,25 +685,59 @@ ScreenManager:
                             pos_hint: {"center_y": .5}
 
                 MDCard:
-                    orientation: 'horizontal'
+                    orientation: 'vertical'
                     size_hint: 1, None
-                    height: 64
-                    padding: 12
-                    spacing: 12
+                    height: self.minimum_height
+                    padding: [19, 0, 19, 0]
 
-                    MDLabel:
-                        text: "Capture Inference Result"
-                        halign: 'left'
-                        pos_hint: {"center_y": .5}
-                        font_name: "assets/sf_txt_reg.ttf"
-                        font_size: 24
+                    MDBoxLayout:
+                        orientation: 'horizontal'
                         size_hint: 1, None
                         height: 64
-                        size_hint_x: 1
+                        padding: [0, 12, 0, 12]
 
-                    ToggleSwitch:
-                        on_release: app.toggle_capture_inf(self.active)
-                        pos_hint: {"center_y": .5}
+                        MDLabel:
+                            text: "Capture Inference Result"
+                            halign: 'left'
+                            pos_hint: {"center_y": .5}
+                            font_name: "assets/sf_txt_reg.ttf"
+                            font_size: 24
+                            size_hint: 1, None
+                            height: 64
+                            size_hint_x: 1
+
+                        ToggleSwitch:
+                            on_release: app.toggle_capture_inf(self.active)
+                            pos_hint: {"center_y": .5}
+
+                    MDSeparator:
+
+                    MDBoxLayout:
+                        orientation: 'horizontal'
+                        size_hint: 1, None
+                        height: 64
+                        padding: [0, 12, 0, 12]
+
+                        MDLabel:
+                            text: "Camera Resolution"
+                            halign: 'left'
+                            pos_hint: {"center_y": .5}
+                            font_name: "assets/sf_txt_reg.ttf"
+                            font_size: 24
+                            size_hint: 1, None
+                            height: 64
+                            size_hint_x: 0.6
+
+                        MDLabel:
+                            id: txt_cam_res
+                            halign: 'right'
+                            font_name: "assets/sf_txt_reg.ttf"
+                            font_size: 24
+                            theme_text_color: "Custom"
+                            text_color: 1, 1, 1, 0.5
+                            size_hint_x: 0.4
+                            shorten: True
+                            shorten_from: 'right'
 
                 MDCard:
                     orientation: 'horizontal'
@@ -720,7 +754,7 @@ ScreenManager:
                         font_name: "assets/sf_txt_reg.ttf"
                         font_size: 24
                         theme_text_color: "Custom"
-                        text_color: '#db3838'
+                        text_color: app.color_palette["red"]
                         size_hint: 1, None
                         height: 64
 
@@ -1448,7 +1482,7 @@ ScreenManager:
         height: self.texture_size[1]
         font_size: 24
         halign: 'left'
-        text: f"[font=assets/sf_mono_reg.otf][color=#ffffff]OPERATOR: [/font][/color][font=assets/sf_mono_reg.otf][color=#008ade]{root.log_name_op}[/font][/color]"
+        text: f"[font=assets/sf_mono_reg.otf][color=#ffffff]OPERATOR: [/font][/color][font=assets/sf_mono_reg.otf][color=#0078ff]{root.log_name_op}[/font][/color]"
 
     MDLabel:
         markup: True
@@ -1457,7 +1491,7 @@ ScreenManager:
         height: self.texture_size[1]
         font_size: 24
         halign: 'left'
-        text: f"[font=assets/sf_mono_reg.otf][color=#ffffff]PL COUNT: [/font][/color][font=assets/sf_mono_reg.otf][color=#008ade]{root.log_pl_count}[/font][/color]"
+        text: f"[font=assets/sf_mono_reg.otf][color=#ffffff]PL COUNT: [/font][/color][font=assets/sf_mono_reg.otf][color=#0078ff]{root.log_pl_count}[/font][/color]"
 
     MDLabel:
         markup: True
@@ -1466,7 +1500,7 @@ ScreenManager:
         height: self.texture_size[1]
         font_size: 24
         halign: 'left'
-        text: f"[font=assets/sf_mono_reg.otf][color=#ffffff]SUB-BATCHES: [/font][/color][font=assets/sf_mono_reg.otf][color=#008ade]{root.log_num_sbatches}[/font][/color]"    
+        text: f"[font=assets/sf_mono_reg.otf][color=#ffffff]SUB-BATCHES: [/font][/color][font=assets/sf_mono_reg.otf][color=#0078ff]{root.log_num_sbatches}[/font][/color]"    
 
     MDLabel:
         markup:True
@@ -1650,6 +1684,13 @@ class UlangSystemApp(MDApp):
 
     current_active_widget = ObjectProperty(None, allownone=True)
     empty_chamber = True
+
+    color_palette = {
+        "red":'#db3838',
+        "blue":'#0078ff',
+        "greed":'#38db5c',
+        "yellow":'#ccba00'
+    }
 
     #SUPABASE CLIENT
     SUPABASE_API_URL = 'https://nltmvrjxasslpqbdyamg.supabase.co'
