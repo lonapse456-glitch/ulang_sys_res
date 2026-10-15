@@ -25,6 +25,8 @@ from ultralytics import YOLO
 import numpy as np
 import skfuzzy as fuzz
 from skfuzzy import control as ctrl
+from shapely.geometry import Polygon
+from shapely.ops import unary_union
 
 #Kivy Configurations
 from kivy.config import Config
@@ -1871,13 +1873,18 @@ class UlangSystemApp(MDApp):
                         v_temp = min(v_temp, 1.0) # Cap at 100%
 
                         # Clumping Index (Density Proxy)
-                        # Calculates the total area taken up by OBBs relative to frame size
-                        # High density mathematically correlates to severe clumping
-                        boxes = inf_result[0].obb.xywhr.cpu().numpy()
-                        total_box_area = sum([w * h for _, _, w, h, _ in boxes])
-                        c_index = min(total_box_area / (4608 * 2592), 1.0) 
+                        c_index = 0.0
+                        if inf_count > 1:
+                            # Extract normalized corner points (xyxyxyxyn)
+                            corners = inf_result[0].obb.xyxyxyxyn.cpu().numpy()
+                            pred_polys = [Polygon(c) for c in corners]
+                            
+                            area_total = sum(p.area for p in pred_polys)
+                            if area_total > 0:
+                                area_union = unary_union(pred_polys).area
+                                c_index = max(0.0, min(1.0 - (area_union / area_total), 1.0)) 
                         
-                        # --- 2. FUZZY EVALUATION ---
+                        # Fuzzy Evaluation
                         self.fuzzy_sim.input['confidence'] = c_mean
                         self.fuzzy_sim.input['clumping'] = c_index
                         self.fuzzy_sim.input['variance'] = v_temp
@@ -1889,7 +1896,7 @@ class UlangSystemApp(MDApp):
                         except KeyError:
                             # Safeguard from KeyError
                             frame_reliability = 0.0
-                        print(f"[FUZZY] Conf: {c_mean:.2f} | Var: {v_temp:.2f} | Rel: {frame_reliability:.2f}")
+                        print(f"[FUZZY] Conf: {c_mean:.2f} | Clump: {c_index:.2f} | Var: {v_temp:.2f} | Rel: {frame_reliability:.2f}")
 
                         # --- 3. LOCK THE COUNT ---
                         if frame_reliability >= self.reliability_threshold:
@@ -1987,33 +1994,51 @@ class UlangSystemApp(MDApp):
         variance = ctrl.Antecedent(np.arange(0, 1.01, 0.01), 'variance')
         reliability = ctrl.Consequent(np.arange(0, 1.01, 0.01), 'reliability')
 
-        # 2. Define Membership Functions 
-        confidence['poor'] = fuzz.trapmf(confidence.universe, [0, 0, 0.55, 0.7])
-        confidence['acceptable'] = fuzz.trimf(confidence.universe, [0.6, 0.75, 0.9])
-        confidence['high'] = fuzz.trapmf(confidence.universe, [0.8, 0.9, 1.0, 1.0])
-
+        # Fuzzy MFs
+        confidence['poor'] = fuzz.trapmf(confidence.universe, [0, 0, 0.77, 0.80])
+        confidence['acceptable'] = fuzz.trimf(confidence.universe, [0.78, 0.81, 0.84])
+        confidence['high'] = fuzz.trapmf(confidence.universe, [0.82, 0.84, 1.0, 1.0])
+    
+        #Membership function for Clumping
         clumping['sparse'] = fuzz.trapmf(clumping.universe, [0, 0, 0.1, 0.2])
-        clumping['moderate'] = fuzz.trimf(clumping.universe, [0.15, 0.3, 0.5])
-        clumping['dense'] = fuzz.trapmf(clumping.universe, [0.4, 0.6, 1.0, 1.0])
-
-        variance['stable'] = fuzz.trapmf(variance.universe, [0, 0, 0.02, 0.05])
-        variance['jittery'] = fuzz.trimf(variance.universe, [0.03, 0.08, 0.15])
-        variance['erratic'] = fuzz.trapmf(variance.universe, [0.10, 0.20, 1.0, 1.0])
-
+        clumping['moderate'] = fuzz.trimf(clumping.universe, [0.015, 0.06, 0.12])
+        clumping['dense'] = fuzz.trapmf(clumping.universe, [0.1, 0.15, 1.0, 1.0])
+    
+        #Membership function for Temporal Variance
+        variance['stable'] = fuzz.trapmf(variance.universe, [0, 0, 0.05, 0.07])
+        variance['jittery'] = fuzz.trimf(variance.universe, [0.05, 0.07, 0.10])
+        variance['erratic'] = fuzz.trapmf(variance.universe, [0.08, 0.10, 1.0, 1.0])
+    
         reliability['unacceptable'] = fuzz.trapmf(reliability.universe, [0, 0, 0.4, 0.6])
-        reliability['moderate'] = fuzz.trimf(reliability.universe, [0.5, 0.7, 0.85])
-        reliability['excellent'] = fuzz.trapmf(reliability.universe, [0.8, 0.9, 1.0, 1.0])
+        reliability['acceptable'] = fuzz.trimf(reliability.universe, [0.55, 0.7, 0.85])
+        reliability['excellent'] = fuzz.trapmf(reliability.universe, [0.75, 0.85, 1.0, 1.0])
 
-        # 3. Custom Rules
+        # Conditions for 'excellent' reliability
         rule1 = ctrl.Rule(
-            confidence['high'] & variance['stable'] & (clumping['sparse'] | clumping['moderate']), 
-            reliability['excellent']
-        )
-
-        rule2 = ctrl.Rule(confidence['acceptable'] & variance['stable'] & (clumping['sparse'] | clumping['moderate']), reliability['moderate'])
-        rule3 = ctrl.Rule(clumping['dense'] & (confidence['high'] | confidence['acceptable']) & variance['stable'], reliability['moderate']) 
-        rule4 = ctrl.Rule(variance['jittery'] & confidence['high'] & (clumping['sparse'] | clumping['moderate']), reliability['moderate'])
-        rule5 = ctrl.Rule(variance['erratic'] | confidence['poor'] | (clumping['dense'] & variance['jittery']), reliability['unacceptable'])
+                        (confidence['high'] | confidence['acceptable']) & variance['stable'] & (clumping['sparse'] | clumping['moderate']), 
+                        reliability['excellent']
+                    )
+        
+        #Conditions for 'acceptable' reliability
+        rule2 = ctrl.Rule(
+                    (confidence['high'] | confidence['acceptable']) & variance['jittery'] & (clumping['sparse'] | clumping['moderate']), 
+                    reliability['acceptable']
+                )
+        rule3 = ctrl.Rule(
+                    (confidence['high'] | confidence['acceptable']) & variance['stable'] & clumping['dense'], 
+                    reliability['acceptable']
+                )
+        
+        #Conditions for 'unacceptable' reliability
+        rule4 = ctrl.Rule(
+                    (confidence['acceptable'] | confidence['poor']) & (variance["jittery"] | variance['erratic']) & (clumping['moderate'] | clumping['dense']),
+                    reliability['unacceptable']
+                )
+    
+        rule5 = ctrl.Rule(
+                    confidence['poor'] | variance['erratic'], 
+                    reliability['unacceptable']
+                )
 
         judge_ctrl = ctrl.ControlSystem([rule1, rule2, rule3, rule4, rule5])
         return ctrl.ControlSystemSimulation(judge_ctrl)
