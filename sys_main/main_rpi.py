@@ -26,6 +26,7 @@ import numpy as np
 import skfuzzy as fuzz
 from skfuzzy import control as ctrl
 
+#Kivy Configurations
 from kivy.config import Config
 Config.set('kivy', 'keyboard_mode', 'systemandmulti')
 Config.set('graphics', 'fullscreen', 'auto')
@@ -51,10 +52,9 @@ from kivy.animation import Animation
 from datetime import datetime, timedelta
 from kivy.uix.widget import Widget
 from kivy.uix.behaviors import ButtonBehavior
-import random #temporary
-# ---------------------------------------------------------
-# HARDWARE GPIO SETUP (Fail-safe for Windows/Mac testing)
-# ---------------------------------------------------------
+
+# HARDWARE GPIO SETUP
+
 from picamera2 import Picamera2, Preview
 from libcamera import controls
 
@@ -269,7 +269,7 @@ ScreenManager:
 
                                 MDLabel:
                                     id: water_vol_label
-                                    text: "2.0 L"
+                                    text: "--"
                                     theme_text_color: "Custom"
                                     text_color: 0.2, 0.8, 0.2, 1  # Green
                                     font_name: "assets/sf_mono_bold.otf"
@@ -1599,21 +1599,26 @@ class UlangSystemApp(MDApp):
 
     capture_inf = BooleanProperty(False)
 
-#===PLACEHOLDERS
+    model = 'models/pre-trained/ulangn-obb-annotator_v5-0_ncnn_model'
+
+    #PLACEHOLDERS
     dialog = None
     snackbar = None
 
     sub_batch_history = {}
     payload = {
-        "log_uuid": None, #Auto-generated
+        "local_id": None, #Auto-generated
         "timestamp": None,
         "batch_id": None,
         "op_name": None,
-        "total_pl_count": None,
-        "num_of_sbatch": None,
-        "counts_of_sbatch": None,
+        "count_total_pl": None,
+        "num_sbatch": None,
+        "count_per_sbatch": None,
         "model_version": None,
-        "accuracy": None
+        "rel": None,
+        "ave_temp": None,
+        "ave_approx_density": None,
+        "time_elapsed": None
     }
 
     name_count_batch = ""
@@ -1623,11 +1628,18 @@ class UlangSystemApp(MDApp):
     reliability_score = ObjectProperty(0.0)
     reliability_threshold = ObjectProperty(0.8)
     reliability_scores = []
+    water_vol = NumericProperty(0.0)
+    water_vol_array = []
+    water_temp = NumericProperty(0.0)
+    water_temp_array = []
+
+    count_timer = NumericProperty(0.0)
+    count_timer_array = []
 
     current_active_widget = ObjectProperty(None, allownone=True)
     empty_chamber = True
 
-#===SUPABASE CLIENT
+    #SUPABASE CLIENT
     SUPABASE_API_URL = 'https://nltmvrjxasslpqbdyamg.supabase.co'
     SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sdG12cmp4YXNzbHBxYmR5YW1nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2MjcwNzUsImV4cCI6MjA5OTIwMzA3NX0.LCwGdbW5DVKSjl8Qql65LjQQgjOYMkhre7y3q94Eo68'
 
@@ -1701,12 +1713,19 @@ class UlangSystemApp(MDApp):
         """@mainthread: Updates the screen with the JSON data"""
         # Because we used on_start, we know for a fact these IDs exist!
         wtrlvl = data.get('wtrlvl')
-        self.root.ids.dashboard_screen.ids.water_temp_label.text = f"{data.get('temp')} °C"
+        wtrtemp = data.get('temp')
+        self.root.ids.dashboard_screen.ids.water_temp_label.text = f"{wtrtemp} °C"
         self.root.ids.dashboard_screen.ids.water_lvl_label.text = f"{wtrlvl} cm"
+
+        if not wtrtemp=='--' and self.count_active:
+            self.water_temp = wtrtemp
+            self.water_temp_array.append(wtrtemp)
  
         if not wtrlvl=="--":
             #Calculate the water volume here, output in liters
             wtrvol = (34 * 19 * float(wtrlvl))/1000
+            self.water_vol = wtrvol
+            self.water_vol_array.append(wtrvol)
         else:
             wtrvol="--"
         self.root.ids.dashboard_screen.ids.water_vol_label.text = f"{wtrvol:.2f} L"
@@ -1795,7 +1814,7 @@ class UlangSystemApp(MDApp):
             self.picam2.set_controls({"AfMode": controls.AfModeEnum.Manual, "LensPosition": 1.8})
             self.picam2.start()
             
-            self.model = YOLO("models/pre-trained/ulangn-obb-annotator_v5-0_ncnn_model")
+            self.model = YOLO(self.model)
             
             #---Initialize Fuzzy Evaluator---
             self.fuzzy_sim = self.init_fuzzy()
@@ -1916,6 +1935,7 @@ class UlangSystemApp(MDApp):
                 self.update_feed(frame_bytes, 434, 244, inf_count if self.is_counting else 0)
 
                 eltime = time.time()-sttime
+                self.count_timer+=eltime
                 slptime = targ_frame_time-eltime
                 if slptime>0:
                     time.sleep(slptime)
@@ -2134,6 +2154,7 @@ class UlangSystemApp(MDApp):
         else:
             execute_activation()
 
+    #dev: checked, it: 01
     def deactivate_count(self, abort = False, *args):
         def execute_deactivation():
             self.count_active = False
@@ -2153,16 +2174,26 @@ class UlangSystemApp(MDApp):
             self.name_count_batch = ""
             self.name_operator = ""
             self.payload.update({
+                "local_id": None, #Auto-generated
                 "timestamp": None,
                 "batch_id": None,
                 "op_name": None,
-                "total_pl_count": None,
-                "num_of_sbatch": None,
-                "counts_of_sbatch": None,
-                "model_version": "",
-                "accuracy": float(0.0)
+                "count_total_pl": None,
+                "num_sbatch": None,
+                "count_per_sbatch": None,
+                "model_version": None,
+                "rel": None,
+                "ave_temp": None,
+                "ave_approx_density": None,
+                "time_elapsed":None
             })
             self.reliability_scores.clear()
+            self.water_vol = 0
+            self.water_vol_array = []
+            self.water_temp = 0
+            self.water_temp_array = []
+            self.count_timer = 0
+            self.count_timer_array = []
 
         if self.sub_batch_history and abort:
             dialog = SystemDialog(
@@ -2222,10 +2253,15 @@ class UlangSystemApp(MDApp):
         anim_out.bind(on_complete=lambda *args: Window.remove_widget(self.snackbar))
         anim_out.start(self.snackbar)
 
+    #dev: checked, it: 01
     @mainthread
     def _lock_sub_batch(self, locked_count):
         """Called by the background fuzzy evaluator when an Excellent frame is found."""
         if self.current_active_widget:
+            #Append time elapsed and reset timer
+            self.count_timer_array.append(self.count_timer)
+            self.count_timer = 0
+
             self.current_active_widget.count = locked_count
             self.current_active_widget.is_active = False
             self.total_count += locked_count
@@ -2235,6 +2271,7 @@ class UlangSystemApp(MDApp):
             # Provide visual feedback to the operator
             self.show_snackbar(message=f"Locked Count: {locked_count}", warning_mode=False)
 
+    #dev: checked, it: 01
     def count_on_click(self):
         """Triggered when the operator taps +SUB-BATCH. The AI handles the rest."""
         if not self.is_counting:
@@ -2266,6 +2303,7 @@ class UlangSystemApp(MDApp):
                 del self.sub_batch_history[widget_to_remove.batch_name]
             self.sub_batch_scrollview.remove_widget(widget_to_remove)
             print(f"[INFO] Removed {widget_to_remove.batch_name}. Current Backend Data:", self.sub_batch_history)
+
 #-------Show a confirmation dialog
         dialog = SystemDialog(
             dialog_title = "Remove Sub-batch",
@@ -2275,24 +2313,29 @@ class UlangSystemApp(MDApp):
         dialog.open()
 
 #=======================================================Database Functions=============================================================
+    #dev: checked, it: 01
     def save_batch_log(self):
         new_loguuid = str(uuid.uuid4())
         self.payload.update({
-            "log_uuid": new_loguuid,
-            "timestamp": datetime.now().strftime("%b %d, %Y %I:%M %p"),
+            "local_id": new_loguuid,
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f+00"), #Format to ISO-8601 / PostgreSQL timestamptz
             "batch_id": self.name_count_batch,
             "op_name": self.name_operator,
-            "total_pl_count": self.total_count,
-            "num_of_sbatch": len(self.sub_batch_history),
-            "counts_of_sbatch": self.sub_batch_history,
-            "model_version": "ulang-obb-v2",
-            "accuracy": sum(self.reliability_scores)/len(self.reliability_scores)
+            "count_total_pl": self.total_count,
+            "num_sbatch": len(self.sub_batch_history),
+            "count_per_sbatch": self.sub_batch_history,
+            "model_version": self.model,
+            "rel": sum(self.reliability_scores)/len(self.reliability_scores),
+            "ave_temp": sum(self.water_temp_array)/len(self.water_temp_array),
+            "ave_approx_density": self.total_count/(sum(self.water_vol_array)/len(self.water_temp_array)),
+            "time_elapsed": sum(self.count_timer_array)
         })
         cached_payload = copy.deepcopy(self.payload)
 
+        #dev: checked, it: 01
         def push_data():
             try:
-                self.db_client.table("batch_count_history_logs").insert(cached_payload).execute()
+                self.db_client.table("system_logs").insert(cached_payload).execute()
                 print("[INFO] Log Saved to Database:")
 
                 for key, value in cached_payload.items():
@@ -2306,12 +2349,13 @@ class UlangSystemApp(MDApp):
                 save_to_local()
                 Clock.schedule_once(lambda dt: self.show_snackbar(warning_mode=True, message=f"Failed to push log on cloud, log is saved locally"))
 
+        #dev: checked, it: 01
         def save_to_local():
             try:
                 folder_name = "pending_sync"
                 os.makedirs(folder_name, exist_ok=True) 
 
-                filename = f"{cached_payload['log_uuid']}.json"
+                filename = f"{cached_payload['local_id']}.json"
                 filepath = os.path.join(folder_name, filename)
 
                 with open(filepath, "w") as json_file:
@@ -2327,6 +2371,7 @@ class UlangSystemApp(MDApp):
         else:    
             save_to_local()
 
+    #dev: checked, it: 01
     def wipe_local_logs(self, show_dialog: bool = False, *args):
         db_directory = "pending_sync/"
 
@@ -2364,7 +2409,7 @@ class UlangSystemApp(MDApp):
 
         # LOAD CLOUD (OR LOCAL HISTORY) LOGS
         try:
-            response = self.db_client.table("batch_count_history_logs").select("*").order("timestamp", desc=True).limit(50).execute()
+            response = self.db_client.table("system_logs").select("*").order("timestamp", desc=True).limit(1000).execute()
             
             for cloud_log in response.data:
                 cloud_log["log_loc"] = "cloud"
@@ -2386,7 +2431,7 @@ class UlangSystemApp(MDApp):
                         if sync_succeed:
                             try:
                                 # Push to Supabase
-                                self.db_client.table("batch_count_history_logs").insert(log_data).execute()
+                                self.db_client.table("system_logs").insert(log_data).execute()
                                 print(f"[DEBUG] Successfully synced {filename} to Cloud!")
                                 
                                 # Delete the local file once uploaded
@@ -2409,7 +2454,7 @@ class UlangSystemApp(MDApp):
         # SORT THE MERGED LIST BY TIMESTAMP
         try:
             master_log_list.sort(
-                key=lambda x: datetime.strptime(x["timestamp"], "%b %d, %Y %I:%M %p"), 
+                key=lambda x: datetime.strptime(x["timestamp"], "%Y-%m-%d %H:%M:%S.%f+00"), 
                 reverse=True
             )
         except Exception as e:
@@ -2419,14 +2464,15 @@ class UlangSystemApp(MDApp):
         rv_data = []
         for log in master_log_list:
             rv_data.append({
-                "log_uuid": str(log.get("log_uuid", "NULL")),
+                "log_uuid": str(log.get("local_id", "NULL")),
                 "log_id_batch": str(log.get("batch_id", "UNKNOWN")),
                 "log_timestamp": str(log.get("timestamp", "No Date")),
                 "log_name_op": str(log.get("op_name", "Unknown Operator")),
-                "log_pl_count": int(log.get("total_pl_count", 0)),
-                "log_num_sbatches": int(log.get("num_of_sbatch", 0)),
-                "log_margin_of_err": float(log.get("accuracy", 0.0)),
-                "log_loc": str(log.get("log_loc", "UNKNOWN"))
+                "log_pl_count": int(log.get("count_total_pl", 0)),
+                "log_num_sbatches": int(log.get("num_sbatch", 0)),
+                "log_margin_of_err": float(log.get("rel", 0.0)),
+                "log_loc": str(log.get("log_loc", "UNKNOWN")),
+                "log_time_elapsed": float(log.get("time_elapsed", 0.0))
             })
 
         Clock.schedule_once(lambda dt: self.update_rv(rv_data))
@@ -2443,8 +2489,8 @@ class UlangSystemApp(MDApp):
     def del_log_entry(self, target_uuid:str="", show_dialog:bool=True, **args):
         def del_from_db():
             try:
-                self.db_client.table("batch_count_history_logs").delete().eq("log_uuid", target_uuid).execute()
-                rv.data = [item for item in rv.data if item.get('log_uuid') != target_uuid]
+                self.db_client.table("system_logs").delete().eq("local_id", target_uuid).execute()
+                rv.data = [item for item in rv.data if item.get('local_id') != target_uuid]
                 print(f"[INFO] {target_uuid} is successfully removed from database")
                 self.show_snackbar(message="Successfully removed from Database", warning_mode=False)
             except Exception as e:
@@ -2457,7 +2503,7 @@ class UlangSystemApp(MDApp):
                 file_path = f"pending_sync/{target_uuid}.json" 
                 if os.path.exists(file_path):
                     os.remove(file_path)
-                    rv.data = [item for item in rv.data if item.get('log_uuid') != target_uuid]
+                    rv.data = [item for item in rv.data if item.get('local_id') != target_uuid]
                     print(f"[INFO] {file_path} is successfully removed from local logs")
                     self.show_snackbar(message="Successfully removed from Local Logs", warning_mode=False)
             except Exception as e:
@@ -2465,7 +2511,7 @@ class UlangSystemApp(MDApp):
                 self.show_snackbar(message="Failed to remove from Local Logs", warning_mode=True)
 
         rv = self.root.ids.logs_screen.ids.logs_recycle_view
-        target_item = next((item for item in rv.data if item.get('log_uuid') == target_uuid), None)
+        target_item = next((item for item in rv.data if item.get('local_id') == target_uuid), None)
 
         if not target_item:
             print("[ERROR] Could not find the target log in the RecycleView.")
@@ -2514,14 +2560,14 @@ class UlangSystemApp(MDApp):
             """Fetches batch logs within the given specific time window."""
             try:
                 if all_time:
-                    response = self.db_client.table("batch_count_history_logs") \
+                    response = self.db_client.table("system_logs") \
                         .select("*").execute()
                 else:
-                    time_format = "%b %d, %Y %I:%M %p"
+                    time_format = "%Y-%m-%d %H:%M:%S.%f+00"
                     end_time = time.now()
                     start_time = end_time - timedelta(days_window)
                     print(f"[INFO] Fetching Logs from {end_time.strf(time_format)}")
-                    response = self.db_client.table("batch_count_history_logs") \
+                    response = self.db_client.table("system_logs") \
                         .select("*") \
                         .gte("timestamp", start_time.strf(time_format)) \
                         .lte("timestamp", end_time.strf(time_format)) \
@@ -2733,6 +2779,7 @@ class BatchLogItem(MDCard):
     log_pl_count = NumericProperty(0)
     log_num_sbatches = NumericProperty(0)
     log_margin_of_err = NumericProperty(0.0)
+    log_time_elapsed = NumericProperty(0.0)
 
 # Custom Button for Count/+Sub-batch to avoid double-clicking issue on touchscreen
 class DebounceBtn(Button):
