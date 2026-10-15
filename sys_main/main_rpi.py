@@ -76,6 +76,8 @@ ScreenManager:
     LogsScreen:
         id: logs_screen
         db_client: app.db_client
+    FullScreen: 
+        id: full_screen
 # ---------------------------------------------------DASHBOARD PAGE-------------------------------------------------------
 <DashboardScreen>:
     name: "dashboard"
@@ -797,6 +799,11 @@ ScreenManager:
                 orientation: 'vertical'
                 spacing: dp(15)
                 padding: dp(20)
+
+# ---------------------------------------------------FULL SCREEN---------------------------------------------------------
+<FullScreen>:
+    name: "full_view"
+
 # --------------------------------------------------CUSTOM CLASSES-------------------------------------------------------
 <Snackbar>:
     id: snackbar
@@ -1583,6 +1590,9 @@ class SettingsScreen(Screen):
     pass
 
 class LogsScreen(Screen):
+    pass
+
+class FullScreen(Screen):
     pass
 
 class UlangSystemApp(MDApp):

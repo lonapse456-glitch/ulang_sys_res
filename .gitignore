@@ -1,6 +1,10 @@
 raspberry_pi_setup.txt
 data_v2-0.yaml
 data_v1-0.yaml
+data_v3-0.yaml
+data_v4-0.yaml
+data_v5-0.yaml
+data_v6-0.yaml
 ulang_sys_env/
 training/
 scripts/
@@ -17,3 +21,13 @@ label_studio_ml_backend/
 frame_debug/
 __pycache__/
 yozzy_src/
+pcb_layout/components.back
+pcb_layout/fp-info-cache
+pcb_layout/fp-lib-table
+pcb_layout/sym-lib-table
+pcb_layout/thesis_custom_arduino_board-backups
+pcb_layout/prints
+label_studio_ml_backend/
+arduino/
+opencv_yolo_inference_study/
+yolo26n.pt
