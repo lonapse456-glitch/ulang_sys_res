@@ -1226,7 +1226,7 @@ ScreenManager:
                 halign: 'left'
 
             MDLabel:
-                text: "Logs are exported in csv format via email. Enter the email address and pick the range of log date you want to export."
+                text: "Logs are exported in csv format. Enter email address and pick range of to export."
                 font_name: "assets/sf_txt_reg.ttf"
                 font_size: 20
                 text_color: 1, 1, 1, 1
@@ -1272,7 +1272,7 @@ ScreenManager:
                         text: "Last Week"
                         halign: 'center'
                         font_name: "assets/sf_txt_reg.ttf"
-                        font_size: 24
+                        font_size: 20
                         size_hint: 1, None
                         height: 48
                         on_release: root.set_timerange("opt_1")
