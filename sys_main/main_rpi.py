@@ -1953,7 +1953,7 @@ class UlangSystemApp(MDApp):
             self.water_vol = wtrvol
             self.water_vol_array.append(wtrvol)
             self.root.ids.dashboard_screen.ids.water_vol_label.text = f"{wtrvol:.2f} L"
-            
+
         else:
             wtrvol="--"
             self.root.ids.dashboard_screen.ids.water_vol_label.text = wtrvol
@@ -2380,6 +2380,9 @@ class UlangSystemApp(MDApp):
         self.popup=Factory.ExportLogsDialog()
         self.popup.open()
 
+    def show_cam_res_dialog(self, *args):
+        self.popup=Factory.CamResDialog()
+        self.popup.open()
 #=============================================================================================================================
 
     def activate_count(self, input_name_batch = "", input_name_op = "", *args):
