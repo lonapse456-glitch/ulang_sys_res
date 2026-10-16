@@ -240,11 +240,11 @@ ScreenManager:
                         height: 70
                         padding: 10
                         radius: 18
-                        spacing: 10
+                        spacing: 3
                         elevation: 0
                         theme_bg_color: "Custom"
                         md_bg_color: 0.3, 0.3, 0.3, 0.45
-                        pos_hint: {"x":0.05, "y":0.03}
+                        pos_hint: {"x":0.02, "y":0.03}
 
 
                         MDLabel:
@@ -253,7 +253,6 @@ ScreenManager:
                             font_size: 20
                             halign: "left"
                             theme_text_color: "Custom"
-                            adaptive_height: True
 
                         MDLabel:
                             id: dashboard_count
@@ -271,7 +270,7 @@ ScreenManager:
                         width: 36
                         background_normal: "res/btn_pill_gray_s.png"
                         background_down: "res/btn_pill_gray_s_down.png"
-                        pos_hint: {"right":0.95, "y":0.03}
+                        pos_hint: {"right":0.98, "y":0.03}
         
             # RIGHT PANE: Data & Controls
             MDBoxLayout:
@@ -1420,10 +1419,7 @@ ScreenManager:
                 text_color: 1, 1, 1, 1
                 size_hint_x: 1
                 halign: 'left'
-
-            Widget:
-                size_hint_x: 1
-                height: 3
+                height: self.texture_size[1]
 
             MDCard:
                 id: opt_1
