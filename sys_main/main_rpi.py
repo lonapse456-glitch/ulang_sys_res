@@ -2207,7 +2207,7 @@ class UlangSystemApp(MDApp):
         cam_widget.texture = texture
         cam_widget.canvas.ask_update()
 
-        predict_count_txt = self.root.dashboard_screen.camfeed_count
+        predict_count_txt = self.root.ids.dashboard_screen.ids.camfeed_count
         predict_count_txt.text = total_count if total_count>0 else "--"
 
         if self.is_counting:
