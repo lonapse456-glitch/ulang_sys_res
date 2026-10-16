@@ -1884,7 +1884,7 @@ class UlangSystemApp(MDApp):
 
     # SUPABASE CLIENT
     SUPABASE_API_URL = 'https://nltmvrjxasslpqbdyamg.supabase.co'
-    SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sdG12cmp4YXNzbHBxYmR5YW1nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2MjcwNzUsImV4cCI6MjA5OTIwMzA3NX0.LCwGdbW5DVKSjl8Qql65LjQQgjOYMkhre7y3q94Eo68'
+    SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sdG12cmp4YXNzbHBxYmR5YW1nIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MzYyNzA3NSwiZXhwIjoyMDk5MjAzMDc1fQ.u3AtVGmKXwP9r9JfvfpVrvcRdZZ7ujskrE5tFM1ZdoU'
 
     def build(self):
         self.theme_cls.theme_style = "Dark"
