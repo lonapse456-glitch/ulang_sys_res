@@ -1378,12 +1378,16 @@ ScreenManager:
                 size_hint_x: 1
                 halign: 'left'
 
+            Widget:
+                size_hint_x: 1
+                height: 12
+
             MDCard:
                 id: opt_1
                 orientation: 'vertical'
                 size_hint: 1, None
-                height: 60
-                padding: [12, 12, 12, 0]
+                height: 48
+                padding: [12, 0, 12, 0]
                 radius: [24]
                 on_release: root.select("opt_1")
                 
@@ -3038,7 +3042,14 @@ class CamResDialog(Popup):
     palette = ObjectProperty(None, allownone=True)
 
     def on_pre_open(self):
-        self.select(self.default_opt)
+        if self.default_opt == "4K":
+            opt = "opt_1"
+        elif self.default_opt == "2K":
+            opt = "opt_2"
+        else:
+            opt = "opt_3"
+
+        self.select(opt)
 
     def select(self, id):
         if id == 'opt_1':
