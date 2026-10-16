@@ -235,7 +235,9 @@ ScreenManager:
 
                     MDCard:
                         orientation: "vertical"
-                        size: 135, 70
+                        size_hint: None, None
+                        width: 135
+                        height: 70
                         padding: 10
                         radius: 18
                         spacing: 10
@@ -264,7 +266,9 @@ ScreenManager:
                             text_color: app.color_palette["dark_blue"]
 
                     Button:
-                        size: 36, 36
+                        size_hint: None, None
+                        height: 36
+                        width: 36
                         background_normal: "res/btn_pill_gray_s.png"
                         background_down: "res/btn_pill_gray_s_down.png"
                         pos_hint: {"right":0.95, "y":0.03}
