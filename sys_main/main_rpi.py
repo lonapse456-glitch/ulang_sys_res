@@ -1261,7 +1261,7 @@ ScreenManager:
                 spacing: 12
 
                 MDCard:
-                id: opt_1
+                    id: opt_1
                     orientation: 'horizontal'
                     size_hint: 1, None
                     spacing: 19
@@ -1269,7 +1269,6 @@ ScreenManager:
                     radius: [24]
 
                     ClickableMDLabel:
-                        id: opt_1
                         text: "Last Week"
                         halign: 'center'
                         font_name: "assets/sf_txt_reg.ttf"
@@ -1287,7 +1286,6 @@ ScreenManager:
                     radius: [24]
 
                     ClickableMDLabel:
-                        id: opt_2
                         text: "Last Month"
                         halign: 'center'
                         font_name: "assets/sf_txt_reg.ttf"
@@ -1305,7 +1303,6 @@ ScreenManager:
                     radius: [24]
 
                     ClickableMDLabel:
-                        id: opt_3
                         text: "All time"
                         halign: 'center'
                         font_name: "assets/sf_txt_reg.ttf"
