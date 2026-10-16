@@ -1329,7 +1329,7 @@ ScreenManager:
 
 <CamResDialog>
     width: 500
-    height: 380
+    height: 400
     size_hint: None, None
     background: ''
     background_color: 0, 0, 0, 0
@@ -1338,11 +1338,13 @@ ScreenManager:
     command_on_proceed: app.config_cam_res
     auto_dismiss: False
     palette: app.color_palette
+    default_opt: app.def_cam_res
+
 
     MDBoxLayout:
         orientation: 'vertical'
         size_hint: 1, None
-        height: 380
+        height: 400
         spacing: 19
         padding: 12
 
@@ -1384,7 +1386,7 @@ ScreenManager:
                 height: 48
                 padding: [12, 0, 12, 0]
                 radius: [24]
-                on_release: root.select(self.id)
+                on_release: root.select("opt_1")
                 
                 MDLabel:
                     text: "4K at 10fps"
@@ -1401,7 +1403,7 @@ ScreenManager:
                 height: 48
                 padding: [12, 0, 12, 0]
                 radius: [24]
-                on_release: root.select(self.id)
+                on_release: root.select("opt_2")
                 
                 MDLabel:
                     text: "2K at 15fps"
@@ -1418,7 +1420,7 @@ ScreenManager:
                 height: 48
                 padding: [12, 0, 12, 0]
                 radius: [24]
-                on_release: root.select(self.id)
+                on_release: root.select("opt_3")
                 
                 MDLabel:
                     text: "1080p at 20fps"
@@ -1426,7 +1428,7 @@ ScreenManager:
                     font_size: 24
                     text_color: 1, 1, 1, 1
                     size_hint_x: 1
-                    halign: 'left'
+                    halign: 'center'
 
         MDBoxLayout:
             orientation: 'horizontal'
