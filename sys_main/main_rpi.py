@@ -236,7 +236,7 @@ ScreenManager:
                     MDCard:
                         orientation: "vertical"
                         size_hint: None, None
-                        width: 135
+                        width: 140
                         height: 70
                         padding: 10
                         radius: 18
@@ -253,9 +253,10 @@ ScreenManager:
                             font_size: 20
                             halign: "left"
                             theme_text_color: "Custom"
+                            text_color: 1, 1, 1, 1
 
                         MDLabel:
-                            id: dashboard_count
+                            id: camfeed_count
                             text: "--"
                             font_name: "assets/sf_txt_bold.ttf"
                             font_size: 32
@@ -1184,7 +1185,7 @@ ScreenManager:
 
 <ExportLogsDialog>
     width: 500
-    height: 460
+    height: 380
     size_hint: None, None
     background: ''
     background_color: 0, 0, 0, 0
@@ -1192,11 +1193,12 @@ ScreenManager:
     title: ""
     command_on_proceed: app.export_logs
     auto_dismiss: False
+    palette: app.color_palette
 
     MDBoxLayout:
         orientation: 'vertical'
         size_hint: 1, None
-        height: 460
+        height: 380
         spacing: 28
         padding: 12
 
@@ -1234,7 +1236,7 @@ ScreenManager:
         MDBoxLayout:
             orientation: 'vertical'
             size_hint: 1, None
-            height: 204
+            height: 72
             spacing: 12
 
             TextInput:
@@ -1251,91 +1253,61 @@ ScreenManager:
                 font_size: 24
                 foreground_color: 1, 1, 1, 1
 
-            MDCard:
-                orientation: 'vertical'
+            MDBoxLayout:
+                orientation: 'horizontal'
                 size_hint: 1, None
                 height: self.minimum_height
                 padding: [12, 0, 12, 0]
-                radius: [9,9,9,9]
+                spacing: 12
 
-                MDBoxLayout:
+                MDCard:
+                id: opt_1
                     orientation: 'horizontal'
                     size_hint: 1, None
                     spacing: 19
                     height: 48
-
-                    Image:
-                        id: check_1
-                        size_hint: None, None
-                        source: 'res/ic_check_s.png'
-                        width: 20
-                        height: 20
-                        allow_stretch: True
-                        keep_ratio: True
-                        pos_hint: {"center_y": .5}
+                    radius: [24]
 
                     ClickableMDLabel:
                         id: opt_1
-                        text: "Last 7 days"
-                        halign: 'left'
+                        text: "Last Week"
+                        halign: 'center'
                         font_name: "assets/sf_txt_reg.ttf"
-                        font_size: 20
+                        font_size: 24
                         size_hint: 1, None
                         height: 48
                         on_release: root.set_timerange("opt_1")
 
-                MDSeparator:
-                    padding: [30, 0, 0, 0]
-
-                MDBoxLayout:
+                MDCard:
+                    id: opt_2
                     orientation: 'horizontal'
                     size_hint: 1, None
                     spacing: 19
                     height: 48
-
-                    Image:
-                        id: check_2
-                        size_hint: None, None
-                        source: 'res/ic_check_s.png'
-                        width: 20
-                        height: 20
-                        allow_stretch: True
-                        keep_ratio: True
-                        pos_hint: {"center_y": .5}
+                    radius: [24]
 
                     ClickableMDLabel:
                         id: opt_2
-                        text: "Last 30 days"
-                        halign: 'left'
+                        text: "Last Month"
+                        halign: 'center'
                         font_name: "assets/sf_txt_reg.ttf"
                         font_size: 20
                         size_hint: 1, None
                         height: 48
                         on_release: root.set_timerange("opt_2")
 
-                MDSeparator:
-                    padding: [30, 0, 0, 0]
-
-                MDBoxLayout:
+                MDCard:
+                    id: opt_3
                     orientation: 'horizontal'
                     size_hint: 1, None
-                    height: 48
                     spacing: 19
-
-                    Image:
-                        id: check_3
-                        size_hint: None, None
-                        source: 'res/ic_check_s.png'
-                        width: 20
-                        height: 20
-                        allow_stretch: True
-                        keep_ratio: True
-                        pos_hint: {"center_y": .5}
+                    height: 48
+                    radius: [24]
 
                     ClickableMDLabel:
                         id: opt_3
                         text: "All time"
-                        halign: 'left'
+                        halign: 'center'
                         font_name: "assets/sf_txt_reg.ttf"
                         font_size: 20
                         size_hint: 1, None
@@ -2238,6 +2210,9 @@ class UlangSystemApp(MDApp):
         cam_widget.texture = texture
         cam_widget.canvas.ask_update()
 
+        predict_count_txt = self.root.dashboard_screen.camfeed_count
+        predict_count_txt.text = total_count if total_count>0 else "--"
+
         if self.is_counting:
             print(f"[INFO|COUNTING] Count: {total_count}")
 
@@ -2628,9 +2603,9 @@ class UlangSystemApp(MDApp):
             "num_sbatch": len(self.sub_batch_history),
             "count_per_sbatch": self.sub_batch_history,
             "model_version": self.model,
-            "rel": sum(self.reliability_scores)/len(self.reliability_scores),
-            "ave_temp": sum(self.water_temp_array)/len(self.water_temp_array),
-            "ave_approx_density": self.total_count/(sum(self.water_vol_array)/len(self.water_temp_array)),
+            "rel": sum(self.reliability_scores)/max(len(self.reliability_scores),1),
+            "ave_temp": sum(self.water_temp_array)/max(len(self.water_temp_array),1),
+            "ave_approx_density": self.total_count/max((sum(self.water_vol_array)/max(len(self.water_temp_array),1)),1),
             "time_elapsed": sum(self.count_timer_array)
         })
         cached_payload = copy.deepcopy(self.payload)
@@ -3048,27 +3023,27 @@ class SystemDialog(Popup):
 class ExportLogsDialog(Popup):
     input_timerange = OptionProperty("all_time", options=["last_7", "last_30", "all_time"])
     command_on_proceed = ObjectProperty(None, allownone=True)
+    palette = ObjectProperty(None, allownone=True)
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def on_pre_open(self):
         self.set_timerange("all_time")
 
     def set_timerange(self, id):
         if id == 'opt_1':
             self.input_timerange = "last_7"
-            self.ids.check_1.opacity = 1
-            self.ids.check_2.opacity = 0
-            self.ids.check_3.opacity = 0
+            self.ids.opt_1.md_bg_color = get_color_from_hex(self.palette["blue"])
+            self.ids.opt_2.md_bg_color = get_color_from_hex(self.palette["dark gray"])
+            self.ids.opt_3.md_bg_color = get_color_from_hex(self.palette["dark gray"])
         elif id == 'opt_2':
             self.input_timerange = "last_30"
-            self.ids.check_1.opacity = 0
-            self.ids.check_2.opacity = 1
-            self.ids.check_3.opacity = 0
+            self.ids.opt_1.md_bg_color = get_color_from_hex(self.palette["dark gray"])
+            self.ids.opt_2.md_bg_color = get_color_from_hex(self.palette["blue"])
+            self.ids.opt_3.md_bg_color = get_color_from_hex(self.palette["dark gray"])
         else:
             self.input_timerange = "all_time"
-            self.ids.check_1.opacity = 0
-            self.ids.check_2.opacity = 0
-            self.ids.check_3.opacity = 1
+            self.ids.opt_1.md_bg_color = get_color_from_hex(self.palette["dark gray"])
+            self.ids.opt_2.md_bg_color = get_color_from_hex(self.palette["dark gray"])
+            self.ids.opt_3.md_bg_color = get_color_from_hex(self.palette["blue"])
 
     def execute_proceed(self, email, timerange):
         if self.command_on_proceed and callable(self.command_on_proceed): 
