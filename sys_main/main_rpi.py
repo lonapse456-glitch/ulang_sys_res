@@ -3029,17 +3029,17 @@ class ExportLogsDialog(Popup):
         if id == 'opt_1':
             self.input_timerange = "last_7"
             self.ids.opt_1.md_bg_color = get_color_from_hex(self.palette["blue"])
-            self.ids.opt_2.md_bg_color = get_color_from_hex(self.palette["dark gray"])
-            self.ids.opt_3.md_bg_color = get_color_from_hex(self.palette["dark gray"])
+            self.ids.opt_2.md_bg_color = get_color_from_hex(self.palette["dark_gray"])
+            self.ids.opt_3.md_bg_color = get_color_from_hex(self.palette["dark_gray"])
         elif id == 'opt_2':
             self.input_timerange = "last_30"
-            self.ids.opt_1.md_bg_color = get_color_from_hex(self.palette["dark gray"])
+            self.ids.opt_1.md_bg_color = get_color_from_hex(self.palette["dark_gray"])
             self.ids.opt_2.md_bg_color = get_color_from_hex(self.palette["blue"])
-            self.ids.opt_3.md_bg_color = get_color_from_hex(self.palette["dark gray"])
+            self.ids.opt_3.md_bg_color = get_color_from_hex(self.palette["dark_gray"])
         else:
             self.input_timerange = "all_time"
-            self.ids.opt_1.md_bg_color = get_color_from_hex(self.palette["dark gray"])
-            self.ids.opt_2.md_bg_color = get_color_from_hex(self.palette["dark gray"])
+            self.ids.opt_1.md_bg_color = get_color_from_hex(self.palette["dark_gray"])
+            self.ids.opt_2.md_bg_color = get_color_from_hex(self.palette["dark_gray"])
             self.ids.opt_3.md_bg_color = get_color_from_hex(self.palette["blue"])
 
     def execute_proceed(self, email, timerange):
