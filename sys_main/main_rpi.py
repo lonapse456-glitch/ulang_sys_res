@@ -195,7 +195,41 @@ ScreenManager:
                         MDLabel:
                             text: "Empty Chamber Detected"
                             halign: "center"
-                    
+
+                    MDScreen:
+                        name: "camfeed_alert_screen"
+
+                        MDBoxLayout:
+                            orientation: 'vertical'
+                            adaptive_height: True
+                            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+                            spacing: 16
+
+                            Image:
+                                id: ic_alert
+                                height: 96
+                                width: 96
+                                allow_stretch: True
+                                keep_ratio: True
+
+                            MDLabel:
+                                id: txt_alert_title
+                                text: "Warning!"
+                                font_name: "assets/sf_txt_reg.ttf"
+                                font_size: 24
+                                halign: "center"
+                                theme_text_color: "Custom"
+                                adaptive_height: True
+
+                            MDLabel:
+                                id: txt_alert_message
+                                text: "Warning!"
+                                font_name: "assets/sf_txt_reg.ttf"
+                                font_size: 24
+                                halign: "center"
+                                theme_text_color: "Custom"
+                                adaptive_height: True
+        
             # RIGHT PANE: Data & Controls
             MDBoxLayout:
                 orientation: 'vertical'
@@ -1826,6 +1860,11 @@ class UlangSystemApp(MDApp):
         "2K" : [2304, 1296, 15],
         "1080p" : [1920, 1080, 20]} #Values are in [W, H, fps] format
 
+    timeout_scan = NumericProperty(10)
+
+    alert_temp = BooleanProperty(False)
+    alert_wtrlevel = BooleanProperty(False)
+
     # SUPABASE CLIENT
     SUPABASE_API_URL = 'https://nltmvrjxasslpqbdyamg.supabase.co'
     SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sdG12cmp4YXNzbHBxYmR5YW1nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2MjcwNzUsImV4cCI6MjA5OTIwMzA3NX0.LCwGdbW5DVKSjl8Qql65LjQQgjOYMkhre7y3q94Eo68'
@@ -1913,9 +1952,11 @@ class UlangSystemApp(MDApp):
             wtrvol = (34 * 19 * float(wtrlvl))/1000
             self.water_vol = wtrvol
             self.water_vol_array.append(wtrvol)
+            self.root.ids.dashboard_screen.ids.water_vol_label.text = f"{wtrvol:.2f} L"
+            
         else:
             wtrvol="--"
-        self.root.ids.dashboard_screen.ids.water_vol_label.text = f"{wtrvol:.2f} L"
+            self.root.ids.dashboard_screen.ids.water_vol_label.text = wtrvol
 
     def listen_to_ard(self):
         """
@@ -3049,15 +3090,6 @@ class DebounceBtn(Button):
 
 class ClickableMDLabel(ButtonBehavior, MDLabel):
     pass
-
-class Color():
-    palette = {
-    "red":'#db3838',
-    "blue":'#0078ff',
-    "greed":'#38db5c',
-    "yellow":'#ccba00',
-    "dark_gray":'#2e2e2e'
-}
 
 if __name__ == '__main__':
     UlangSystemApp().run()
