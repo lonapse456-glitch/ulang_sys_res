@@ -1337,12 +1337,13 @@ ScreenManager:
     title: ""
     command_on_proceed: app.config_cam_res
     auto_dismiss: False
+    palette: app.color_palette
 
     MDBoxLayout:
         orientation: 'vertical'
         size_hint: 1, None
         height: 380
-        spacing: 28
+        spacing: 19
         padding: 12
 
         canvas.before:
