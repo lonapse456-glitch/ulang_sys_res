@@ -1329,7 +1329,7 @@ ScreenManager:
 
 <CamResDialog>
     width: 500
-    height: 400
+    height: 390
     size_hint: None, None
     background: ''
     background_color: 0, 0, 0, 0
@@ -1339,7 +1339,6 @@ ScreenManager:
     auto_dismiss: False
     palette: app.color_palette
     default_opt: app.def_cam_res
-
 
     MDBoxLayout:
         orientation: 'vertical'
@@ -1383,8 +1382,8 @@ ScreenManager:
                 id: opt_1
                 orientation: 'vertical'
                 size_hint: 1, None
-                height: 48
-                padding: [12, 0, 12, 0]
+                height: 60
+                padding: [12, 12, 12, 0]
                 radius: [24]
                 on_release: root.select("opt_1")
                 
@@ -3037,6 +3036,9 @@ class CamResDialog(Popup):
     selected_opt = OptionProperty(default_opt, options=["4K", "2K", "1080p"])
     command_on_proceed = ObjectProperty(None, allownone=True)
     palette = ObjectProperty(None, allownone=True)
+
+    def on_pre_open(self):
+        self.select(self.default_opt)
 
     def select(self, id):
         if id == 'opt_1':
