@@ -752,7 +752,7 @@ ScreenManager:
                         height: 64
                         padding: [0, 12, 0, 12]
 
-                        MDLabel:
+                        ClickableMDLabel:
                             text: "Camera Resolution"
                             halign: 'left'
                             pos_hint: {"center_y": .5}
@@ -761,8 +761,9 @@ ScreenManager:
                             size_hint: 1, None
                             height: 64
                             size_hint_x: 0.6
+                            on_release: app.show_cam_res_dialog()
 
-                        MDLabel:
+                        ClickableMDLabel:
                             id: txt_cam_res
                             text: f"{app.def_cam_res} at {app.cam_res[app.def_cam_res][2]} fps"
                             halign: 'right'
@@ -771,6 +772,7 @@ ScreenManager:
                             theme_text_color: "Custom"
                             text_color: 1, 1, 1, 0.5
                             size_hint_x: 0.4
+                            on_release: app.show_cam_res_dialog()
 
                 MDCard:
                     orientation: 'horizontal'
@@ -1334,12 +1336,12 @@ ScreenManager:
     separator_height: 0
     title: ""
     command_on_proceed: app.config_cam_res
-    auto_dismiss: True
+    auto_dismiss: False
 
     MDBoxLayout:
         orientation: 'vertical'
         size_hint: 1, None
-        height: 460
+        height: 380
         spacing: 28
         padding: 12
 
@@ -2377,11 +2379,11 @@ class UlangSystemApp(MDApp):
         self.popup.open()
 
     def show_export_dialog(self, *args):
-        self.popup=Factory.ExportLogsDialog()
+        self.popup = Factory.ExportLogsDialog()
         self.popup.open()
 
     def show_cam_res_dialog(self, *args):
-        self.popup=Factory.CamResDialog()
+        self.popup = Factory.CamResDialog()
         self.popup.open()
 #=============================================================================================================================
 
