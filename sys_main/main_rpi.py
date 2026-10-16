@@ -2009,14 +2009,18 @@ class UlangSystemApp(MDApp):
         """
         Triggered by the Main UI Thread when a technician taps a Kivy button.
         """
-        command_dict = {"command": action}
-        
-        # Convert Python dictionary to JSON string and add the newline delimiter
-        json_string = json.dumps(command_dict) + "\n"
-        
-        # Send it down the USB wire
-        self.arduino.write(json_string.encode('utf-8'))
-        print(f"Sent command to Arduino: {action}")
+        try:
+            command_dict = {"command": action}
+            
+            # Convert Python dictionary to JSON string and add the newline delimiter
+            json_string = json.dumps(command_dict) + "\n"
+            
+            # Send it down the USB wire
+            self.arduino.write(json_string.encode('utf-8'))
+            print(f"Sent command to Arduino: {action}")
+
+        except:
+            self.show_snackbar(message="Warning: Crontroller board is unavailable", warning_mode=True)
 
     def exit_program(self):
         print("[INFO] System shutting down...")
