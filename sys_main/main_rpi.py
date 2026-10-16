@@ -1821,7 +1821,7 @@ class UlangSystemApp(MDApp):
 
     capture_inf = BooleanProperty(False)
 
-    model = 'models/pre-trained/ulangn-obb-annotator_v5-0_ncnn_model'
+    model_path = 'models/pre-trained/ulangn-obb-annotator_v5-0_ncnn_model'
 
     #PLACEHOLDERS
     dialog = None
@@ -2063,7 +2063,7 @@ class UlangSystemApp(MDApp):
             self.picam2.set_controls({"AfMode": controls.AfModeEnum.Manual, "LensPosition": 1.8})
             self.picam2.start()
             
-            self.model = YOLO(self.model)
+            self.model = YOLO(self.model_path)
             
             #---Initialize Fuzzy Evaluator---
             self.fuzzy_sim = self.init_fuzzy()
@@ -2603,7 +2603,7 @@ class UlangSystemApp(MDApp):
             "count_total_pl": self.total_count,
             "num_sbatch": len(self.sub_batch_history),
             "count_per_sbatch": self.sub_batch_history,
-            "model_version": self.model,
+            "model_version": self.model_path,
             "rel": sum(self.reliability_scores)/max(len(self.reliability_scores),1),
             "ave_temp": sum(self.water_temp_array)/max(len(self.water_temp_array),1),
             "ave_approx_density": self.total_count/max((sum(self.water_vol_array)/max(len(self.water_temp_array),1)),1),
