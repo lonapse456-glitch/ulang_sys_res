@@ -153,82 +153,121 @@ ScreenManager:
                 md_bg_color: 0, 0, 0, 1
                 radius: [12, 12, 12, 12]
 
-                ScreenManager:
-                    id: camfeed_pane
-                    transition: app.get_fade_transition()
-                    
-                    MDScreen:
-                        name: "camfeed_loading_screen"
+                RelativeLayout:
+                    size_hint: 1, 1
 
-                        MDBoxLayout:
-                            orientation: 'vertical'
-                            adaptive_height: True
-                            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
-                            spacing: 16
-                            
-                            MDSpinner:
-                                size_hint: None, None
-                                size: dp(26), dp(26)
-                                pos_hint: {'center_x': .5}
-                                active: True
-                                
-                            MDLabel:
-                                text: "Camera Loading..."
-                                font_name: "assets/sf_txt_reg.ttf"
-                                font_size: 24
-                                halign: "center"
-                                theme_text_color: "Secondary"
+                    ScreenManager:
+                        id: camfeed_pane
+                        transition: app.get_fade_transition()
+                        
+                        MDScreen:
+                            name: "camfeed_loading_screen"
+
+                            MDBoxLayout:
+                                orientation: 'vertical'
                                 adaptive_height: True
+                                pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+                                spacing: 16
+                                
+                                MDSpinner:
+                                    size_hint: None, None
+                                    size: dp(26), dp(26)
+                                    pos_hint: {'center_x': .5}
+                                    active: True
+                                    
+                                MDLabel:
+                                    text: "Camera Loading..."
+                                    font_name: "assets/sf_txt_reg.ttf"
+                                    font_size: 24
+                                    halign: "center"
+                                    theme_text_color: "Secondary"
+                                    adaptive_height: True
 
-                    MDScreen:
-                        name: "camfeed_live_screen"
-
-                        Image:
-                            id: camera_feed
-                            size_hint: 1, 1
-                            allow_stretch: True
-                            keep_ratio: True
-
-                    MDScreen: 
-                        name: "camfeed_null_screen"
-
-                        MDLabel:
-                            text: "Empty Chamber Detected"
-                            halign: "center"
-
-                    MDScreen:
-                        name: "camfeed_alert_screen"
-
-                        MDBoxLayout:
-                            orientation: 'vertical'
-                            adaptive_height: True
-                            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
-                            spacing: 16
+                        MDScreen:
+                            name: "camfeed_live_screen"
 
                             Image:
-                                id: ic_alert
-                                height: 96
-                                width: 96
+                                id: camera_feed
+                                size_hint: 1, 1
                                 allow_stretch: True
                                 keep_ratio: True
 
-                            MDLabel:
-                                id: txt_alert_title
-                                text: "Warning!"
-                                font_name: "assets/sf_txt_reg.ttf"
-                                font_size: 24
-                                halign: "center"
-                                theme_text_color: "Custom"
-                                adaptive_height: True
+                        MDScreen: 
+                            name: "camfeed_null_screen"
 
                             MDLabel:
-                                id: txt_alert_message
-                                text: "Warning!"
-                                font_name: "assets/sf_txt_reg.ttf"
-                                font_size: 24
+                                text: "Empty Chamber Detected"
                                 halign: "center"
-                                theme_text_color: "Custom"
+
+                        MDScreen:
+                            name: "camfeed_alert_screen"
+
+                            MDBoxLayout:
+                                orientation: 'vertical'
                                 adaptive_height: True
+                                pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+                                spacing: 16
+
+                                Image:
+                                    id: ic_alert
+                                    height: 96
+                                    width: 96
+                                    allow_stretch: True
+                                    keep_ratio: True
+
+                                MDLabel:
+                                    id: txt_alert_title
+                                    text: "Warning!"
+                                    font_name: "assets/sf_txt_reg.ttf"
+                                    font_size: 24
+                                    halign: "center"
+                                    theme_text_color: "Custom"
+                                    adaptive_height: True
+
+                                MDLabel:
+                                    id: txt_alert_message
+                                    text: "Warning!"
+                                    font_name: "assets/sf_txt_reg.ttf"
+                                    font_size: 24
+                                    halign: "center"
+                                    theme_text_color: "Custom"
+                                    adaptive_height: True
+
+                    MDCard:
+                        orientation: "vertical"
+                        size: 135, 70
+                        padding: 10
+                        radius: 18
+                        spacing: 10
+                        elevation: 0
+                        theme_bg_color: "Custom"
+                        md_bg_color: 0.3, 0.3, 0.3, 0.45
+                        pos_hint: {"x":0.05, "y":0.03}
+
+
+                        MDLabel:
+                            text: "PREDICTED:"
+                            font_name: "assets/sf_txt_reg.ttf"
+                            font_size: 20
+                            halign: "left"
+                            theme_text_color: "Custom"
+                            adaptive_height: True
+
+                        MDLabel:
+                            id: dashboard_count
+                            text: "--"
+                            font_name: "assets/sf_txt_bold.ttf"
+                            font_size: 32
+                            halign: "left"
+                            theme_text_color: "Custom"
+                            adaptive_height: True
+                            text_color: app.color_palette["dark_blue"]
+
+                    Button:
+                        size: 36, 36
+                        background_normal: "res/btn_pill_gray_s.png"
+                        background_down: "res/btn_pill_gray_s_down.png"
+                        pos_hint: {"right":0.95, "y":0.03}
         
             # RIGHT PANE: Data & Controls
             MDBoxLayout:
@@ -1380,7 +1419,7 @@ ScreenManager:
 
             Widget:
                 size_hint_x: 1
-                height: 12
+                height: 3
 
             MDCard:
                 id: opt_1
@@ -1859,7 +1898,8 @@ class UlangSystemApp(MDApp):
         "blue":'#0078ff',
         "greed":'#38db5c',
         "yellow":'#ccba00',
-        "dark_gray":'#2e2e2e'
+        "dark_gray":'#2e2e2e',
+        "dark_blue":'#0000a2'
     }
 
     def_cam_res = OptionProperty("4K", options=["4K", "2K", "1080p"])
