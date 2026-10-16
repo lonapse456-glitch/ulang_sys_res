@@ -2020,7 +2020,7 @@ class UlangSystemApp(MDApp):
             print(f"Sent command to Arduino: {action}")
 
         except:
-            self.show_snackbar(message="Warning: Crontroller board is unavailable", warning_mode=True)
+            self.show_snackbar(message="Warning: Crontroller is unavailable", warning_mode=True)
 
     def exit_program(self):
         print("[INFO] System shutting down...")
@@ -2212,7 +2212,7 @@ class UlangSystemApp(MDApp):
         cam_widget.canvas.ask_update()
 
         predict_count_txt = self.root.ids.dashboard_screen.ids.camfeed_count
-        predict_count_txt.text = total_count if total_count>0 else "--"
+        predict_count_txt.text = str(total_count) if total_count>0 else "--"
 
         if self.is_counting:
             print(f"[INFO|COUNTING] Count: {total_count}")
