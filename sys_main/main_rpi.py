@@ -7,6 +7,7 @@ import uuid
 import subprocess
 import glob
 import time
+from datetime import datetime, timedelta
 
 import serial
 
@@ -25,6 +26,7 @@ from ultralytics import YOLO
 import numpy as np
 import skfuzzy as fuzz
 from skfuzzy import control as ctrl
+
 from shapely.geometry import Polygon
 from shapely.ops import unary_union
 
@@ -52,7 +54,6 @@ from kivy.metrics import dp
 from kivy.uix.button import Button
 from kivy.uix.popup import Popup
 from kivy.animation import Animation
-from datetime import datetime, timedelta
 from kivy.uix.widget import Widget
 from kivy.uix.behaviors import ButtonBehavior
 
@@ -65,9 +66,10 @@ try:
     GPIO_AVAILABLE = True
 except ImportError:
     GPIO_AVAILABLE = False
-    print("Warning: gpiozero not found. Physical GPIO buttons disabled (Running on Laptop).")
+    print("[Warning] gpiozero not found. Physical GPIO buttons disabled (Running on Laptop).")
     
 Window.size = (800, 480)
+Window.clearcolor = (0.4, 0.4, 0.4, 1)
 
 INTERFACE = '''
 ScreenManager:
@@ -80,6 +82,7 @@ ScreenManager:
         db_client: app.db_client
     FullScreen: 
         id: full_screen
+
 # ---------------------------------------------------DASHBOARD PAGE-------------------------------------------------------
 <DashboardScreen>:
     name: "dashboard"
@@ -243,9 +246,8 @@ ScreenManager:
                         spacing: 3
                         elevation: 0
                         theme_bg_color: "Custom"
-                        md_bg_color: 0.3, 0.3, 0.3, 0.45
+                        md_bg_color: 0.4, 0.4, 0.4, 0.6
                         pos_hint: {"x":0.02, "y":0.03}
-
 
                         MDLabel:
                             text: "PREDICTED:"
@@ -381,7 +383,7 @@ ScreenManager:
                                     markup: True
                                     text: "[font=assets/sf_txt_bold.ttf][size=24]OPERATING[/font][/size]\\n[size=20][font=assets/sf_txt_reg.ttf]AERATOR[/font][/size]" if self.is_active else "[font=assets/sf_txt_bold.ttf][size=24]IDLE[/font][/size]\\n[size=20][font=assets/sf_txt_reg.ttf]AERATOR[/font][/size]"
                                     halign: 'center'
-                                    color_on: '#0078ff'
+                                    color_on: app.color_palette["blue"]
                                     color_off: 0, 0.47, 1, 0.2
                                     line_height: 0.9
                                     cmd_on: lambda *args: app.talk_to_ard("aerator_on")
@@ -394,7 +396,7 @@ ScreenManager:
                                     markup: True
                                     text: "[font=assets/sf_txt_bold.ttf][size=24]ON[/font][/size]\\n[size=20][font=assets/sf_txt_reg.ttf]LED PANELS[/font][/size]" if self.is_active else "[font=assets/sf_txt_bold.ttf][size=24]OFF[/font][/size]\\n[size=20][font=assets/sf_txt_reg.ttf]LED PANELS[/font][/size]"
                                     halign: 'center'
-                                    color_on: 'ccba00'
+                                    color_on: app.color_palette["yellow"]
                                     color_off: 0.8, 0.73, 0, 0.2
                                     line_height: 0.9
                                     cmd_on: lambda *args: app.talk_to_ard("led_on")
@@ -1402,7 +1404,7 @@ ScreenManager:
                 MDLabel:
                     text: "4K at 10fps"
                     font_name: "assets/sf_txt_reg.ttf"
-                    font_size: 24
+                    font_size: 20
                     text_color: 1, 1, 1, 1
                     size_hint_x: 1
                     halign: 'center'
@@ -1419,7 +1421,7 @@ ScreenManager:
                 MDLabel:
                     text: "2K at 15fps"
                     font_name: "assets/sf_txt_reg.ttf"
-                    font_size: 24
+                    font_size: 20
                     text_color: 1, 1, 1, 1
                     size_hint_x: 1
                     halign: 'center'
@@ -1436,7 +1438,7 @@ ScreenManager:
                 MDLabel:
                     text: "1080p at 20fps"
                     font_name: "assets/sf_txt_reg.ttf"
-                    font_size: 24
+                    font_size: 20
                     text_color: 1, 1, 1, 1
                     size_hint_x: 1
                     halign: 'center'
@@ -1808,10 +1810,11 @@ class FullScreen(Screen):
     pass
 
 class UlangSystemApp(MDApp):
-#===STATUS
+    # SYSTEM STATUS
     count_active = BooleanProperty(False) # For switching UI interface mode
     is_counting = BooleanProperty(False) # Inference active state
     is_cam_initializing = BooleanProperty(False)
+    empty_chamber = True
 
     # Connectivity Status
     is_online = BooleanProperty(False)
@@ -1819,30 +1822,33 @@ class UlangSystemApp(MDApp):
     wifi_stat = ['disconnected', '1', '2', '3', '4']
     wifi_strength = NumericProperty(0)
 
-    capture_inf = BooleanProperty(False)
-
+    # YOLO model path
     model_path = 'models/pre-trained/ulangn-obb-annotator_v5-0_ncnn_model'
 
-    #PLACEHOLDERS
+    # UI Elements
     dialog = None
     snackbar = None
+    current_active_widget = ObjectProperty(None, allownone=True)
+    color_palette = {
+        "red":'#db3838',
+        "blue":'#0078ff',
+        "greed":'#38db5c',
+        "yellow":'#ccba00',
+        "dark_gray":'#2e2e2e',
+        "dark_blue":'#0000a2'
+        }
 
+    # Settings
+    capture_inf = BooleanProperty(False)
+    timeout_scan = NumericProperty(10)
+    def_cam_res = OptionProperty("4K", options=["4K", "2K", "1080p"])
+    cam_res = {
+        "4K" : [4608, 2592, 10],
+        "2K" : [2304, 1296, 15],
+        "1080p" : [1920, 1080, 20] } # Values are in [W, H, fps] format
+
+    # Placeholders
     sub_batch_history = {}
-    payload = {
-        "local_id": None, #Auto-generated
-        "timestamp": None,
-        "batch_id": None,
-        "op_name": None,
-        "count_total_pl": None,
-        "num_sbatch": None,
-        "count_per_sbatch": None,
-        "model_version": None,
-        "rel": None,
-        "ave_temp": None,
-        "ave_approx_density": None,
-        "time_elapsed": None
-    }
-
     name_count_batch = ""
     name_operator = ""
     total_batches_created = NumericProperty(0)
@@ -1850,7 +1856,6 @@ class UlangSystemApp(MDApp):
     reliability_score = ObjectProperty(0.0)
     reliability_threshold = ObjectProperty(0.8)
     reliability_scores = []
-
     water_vol = NumericProperty(0.0)
     water_vol_array = []
     water_temp = NumericProperty(0.0)
@@ -1859,30 +1864,22 @@ class UlangSystemApp(MDApp):
     count_timer_array = []
     batch_uuid = StringProperty("")
 
-    current_active_widget = ObjectProperty(None, allownone=True)
-    empty_chamber = True
+    payload = {
+            "local_id": None, #Auto-generated uuid
+            "timestamp": None,
+            "batch_id": None,
+            "op_name": None,
+            "count_total_pl": None,
+            "num_sbatch": None,
+            "count_per_sbatch": None,
+            "model_version": None,
+            "rel": None,
+            "ave_temp": None,
+            "ave_approx_density": None,
+            "time_elapsed": None
+        }
 
-    color_palette = {
-        "red":'#db3838',
-        "blue":'#0078ff',
-        "greed":'#38db5c',
-        "yellow":'#ccba00',
-        "dark_gray":'#2e2e2e',
-        "dark_blue":'#0000a2'
-    }
-
-    def_cam_res = OptionProperty("4K", options=["4K", "2K", "1080p"])
-    cam_res = {
-        "4K" : [4608, 2592, 10],
-        "2K" : [2304, 1296, 15],
-        "1080p" : [1920, 1080, 20]} #Values are in [W, H, fps] format
-
-    timeout_scan = NumericProperty(10)
-
-    alert_temp = BooleanProperty(False)
-    alert_wtrlevel = BooleanProperty(False)
-
-    # SUPABASE CLIENT
+    # Online Database: Supabase Client
     SUPABASE_API_URL = 'https://nltmvrjxasslpqbdyamg.supabase.co'
     SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sdG12cmp4YXNzbHBxYmR5YW1nIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MzYyNzA3NSwiZXhwIjoyMDk5MjAzMDc1fQ.u3AtVGmKXwP9r9JfvfpVrvcRdZZ7ujskrE5tFM1ZdoU'
 
@@ -1915,6 +1912,7 @@ class UlangSystemApp(MDApp):
             self.arduino = serial.Serial('/dev/ttyUSB0', 115200, timeout=1)
             time.sleep(2)
             print("[INFO] Arduino Active via UART")
+
         except Exception as e:
             self.arduino = None
             print(f"[WARNING] Arduino Unavailable: {e}")
@@ -1923,7 +1921,7 @@ class UlangSystemApp(MDApp):
         return Builder.load_string(INTERFACE)
 
     def on_start(self):
-        """Called automatically after the app builds. We set up GPIO here."""
+        """Called automatically after the app builds."""
         self.right_pane = self.root.ids.dashboard_screen.ids.data_pane_sm
         self.right_pane.current = "panel_count_inactive"
         self.btm_btn = self.root.ids.dashboard_screen.ids.btm_btn_container
@@ -1940,32 +1938,33 @@ class UlangSystemApp(MDApp):
             self.btn_settings.when_pressed = lambda: Clock.schedule_once(self.go_to_settings)
 
             self.btn_home = HardwareButton(27)
-            self.btn_home.when_pressed = lambda: Clock.schedule_once(self.hboard)
+            self.btn_home.when_pressed = lambda: Clock.schedule_once(self.go_to_dashboard)
 
             self.btn_start = HardwareButton(22)
             self.btn_start.when_pressed = lambda: Clock.schedule_once(self.start_batch_count)
 
-        #Initialize camera
+        # Initialize camera
         self.start_camera_loading()
+
+        # Initialize Raspi-Arduino Listener
         listener = threading.Thread(target=self.listen_to_ard, daemon=True)
         listener.start()
 
-#===Arduino-Raspi Communication Protocol
+    # Arduino-Raspi Communication Protocol
     @mainthread
     def update_sensor_reads(self, data):
-        """@mainthread: Updates the screen with the JSON data"""
-        # Because we used on_start, we know for a fact these IDs exist!
+        """@mainthread: Updates the screen with the JSON data from the Arduino"""
         wtrlvl = data.get('wtrlvl')
         wtrtemp = data.get('temp')
         self.root.ids.dashboard_screen.ids.water_temp_label.text = f"{wtrtemp} °C"
         self.root.ids.dashboard_screen.ids.water_lvl_label.text = f"{wtrlvl} cm"
 
         if not wtrtemp=='--' and self.count_active:
-            self.water_temp = wtrtemp
+            self.water_temp = float(wtrtemp)
             self.water_temp_array.append(wtrtemp)
  
         if not wtrlvl=="--":
-            #Calculate the water volume here, output in liters
+            #Calculate the water volume here, output in liters (L)
             wtrvol = (34 * 19 * float(wtrlvl))/1000
             self.water_vol = wtrvol
             self.water_vol_array.append(wtrvol)
@@ -1973,7 +1972,7 @@ class UlangSystemApp(MDApp):
 
         else:
             wtrvol="--"
-            self.root.ids.dashboard_screen.ids.water_vol_label.text = wtrvol
+            self.root.ids.dashboard_screen.ids.water_vol_label.text = f"{wtrvol} L"
 
     def listen_to_ard(self):
         """
@@ -1981,20 +1980,20 @@ class UlangSystemApp(MDApp):
         """
         while True:
             if self.arduino:
-                # PING: Ask the Arduino for the latest sensor readings
+                # Ping the Arduino for the latest sensor readings
                 ping_cmd = json.dumps({"command": "get_sensors"}) + "\n"
                 self.arduino.write(ping_cmd.encode('utf-8'))
                 
-                # Give the microcontroller a fraction of a second to reply
+                # MCU response wait
                 time.sleep(0.1)
                 
-                # PONG: Read the incoming response
+                # Read the incoming response
                 if self.arduino.in_waiting > 0:
                     try:
                         raw_data = self.arduino.readline().decode('utf-8').strip()
                         sensor_data = json.loads(raw_data)
-                        print(f"[Sensors Updated] Temp: {sensor_data.get('temp')}°C, Lvl: {sensor_data.get('wtrlvl')}")
                         self.update_sensor_reads(sensor_data)
+                        print(f"[Sensors Updated] Temp: {sensor_data.get('temp')}°C, Lvl: {sensor_data.get('wtrlvl')}")
                         
                     except json.JSONDecodeError:
                         print("Failed to decode JSON from Arduino.")
@@ -2021,6 +2020,7 @@ class UlangSystemApp(MDApp):
 
         except:
             self.show_snackbar(message="Warning: Crontroller is unavailable", warning_mode=True)
+            print("[Error] Arduino is not responding")
 
     def exit_program(self):
         print("[INFO] System shutting down...")
@@ -2042,7 +2042,7 @@ class UlangSystemApp(MDApp):
     def get_fade_transition(self):
         return FadeTransition(duration=0.1)
 
-#===Camera and Image Processing and AI Inference
+    # Camera and Image Processing and AI Inference Pipeline
     def start_camera_loading(self):
         """1. Resets the UI and spawns the background worker."""
         if hasattr(self, 'picam2') or self.is_cam_initializing:
@@ -2065,7 +2065,7 @@ class UlangSystemApp(MDApp):
             
             self.model = YOLO(self.model_path)
             
-            #---Initialize Fuzzy Evaluator---
+            # Initialize Fuzzy Evaluation
             self.fuzzy_sim = self.init_fuzzy()
             self.prev_count = 0 
             
@@ -2131,6 +2131,7 @@ class UlangSystemApp(MDApp):
                         try:
                             self.fuzzy_sim.compute()
                             frame_reliability = self.fuzzy_sim.output['reliability']
+
                         except KeyError:
                             # Safeguard from KeyError
                             frame_reliability = 0.0
@@ -2177,22 +2178,20 @@ class UlangSystemApp(MDApp):
 
                     inf_wframe = inf_result[0].plot(labels=False, line_width=2, conf=False)
                     disp_frame = cv2.resize(inf_wframe, (434, 244), interpolation=cv2.INTER_LINEAR)
-                    rgb_frame = cv2.cvtColor(disp_frame, cv2.COLOR_BGR2RGB)
 
                 else:
                     disp_frame = cv2.resize(hi_res_frame, (434, 244), interpolation=cv2.INTER_LINEAR)
-                    rgb_frame = cv2.cvtColor(disp_frame, cv2.COLOR_BGR2RGB)
 
+                rgb_frame = cv2.cvtColor(disp_frame, cv2.COLOR_BGR2RGB)
                 frame_bytes = rgb_frame.tobytes()
 
-                # Only pass inf_count to UI if we are actively scanning
                 self.update_feed(frame_bytes, 434, 244, inf_count if self.is_counting else 0)
 
                 eltime = time.time() - sttime
                 self.count_timer += eltime
                 slptime = targ_frame_time - eltime
 
-                if slptime>0:
+                if slptime > 0:
                     time.sleep(slptime)
 
             except Exception as e:
@@ -2240,16 +2239,17 @@ class UlangSystemApp(MDApp):
         confidence['acceptable'] = fuzz.trimf(confidence.universe, [0.78, 0.81, 0.84])
         confidence['high'] = fuzz.trapmf(confidence.universe, [0.82, 0.84, 1.0, 1.0])
     
-        #Membership function for Clumping
+        # MFs for Clumping
         clumping['sparse'] = fuzz.trapmf(clumping.universe, [0, 0, 0.1, 0.2])
         clumping['moderate'] = fuzz.trimf(clumping.universe, [0.015, 0.06, 0.12])
         clumping['dense'] = fuzz.trapmf(clumping.universe, [0.1, 0.15, 1.0, 1.0])
     
-        #Membership function for Temporal Variance
+        # MFs for Temporal Variance
         variance['stable'] = fuzz.trapmf(variance.universe, [0, 0, 0.05, 0.07])
         variance['jittery'] = fuzz.trimf(variance.universe, [0.05, 0.07, 0.10])
         variance['erratic'] = fuzz.trapmf(variance.universe, [0.08, 0.10, 1.0, 1.0])
-    
+
+        # Output MFs
         reliability['unacceptable'] = fuzz.trapmf(reliability.universe, [0, 0, 0.4, 0.6])
         reliability['acceptable'] = fuzz.trimf(reliability.universe, [0.55, 0.7, 0.85])
         reliability['excellent'] = fuzz.trapmf(reliability.universe, [0.75, 0.85, 1.0, 1.0])
@@ -2296,7 +2296,7 @@ class UlangSystemApp(MDApp):
         else: 
             self.capture_inf = True
 
-#===Wifi Configuration Commands
+    # Wifi Configuration Commands
     def update_wifi_stat(self, dt=0):
         wifi_text_widget = self.root.ids.settings_screen.ids.txt_conn_stat_ssid
 
@@ -2362,7 +2362,7 @@ class UlangSystemApp(MDApp):
         self.wifi_on = not value
         self.update_wifi_stat()
 
-#==================================================SCREEN NAVIGATION FUNCTIONS===============================================
+    #==================================================SCREEN NAVIGATION FUNCTIONS===============================================
  
     def go_to_settings(self, *args):
         if self.root.current != "settings":
@@ -2385,7 +2385,7 @@ class UlangSystemApp(MDApp):
 
         self.start_camera_loading()
 
-#============================================================================================================================
+    #============================================================================================================================
 
     def start_batch_count(self, *args):
         if self.root.current == "dashboard":
@@ -2407,7 +2407,8 @@ class UlangSystemApp(MDApp):
     def show_cam_res_dialog(self, *args):
         self.popup = Factory.CamResDialog()
         self.popup.open()
-#=============================================================================================================================
+
+    # =============================================================================================================================
 
     def activate_count(self, input_name_batch = "", input_name_op = "", *args):
         self.name_count_batch = input_name_batch
@@ -2434,27 +2435,37 @@ class UlangSystemApp(MDApp):
         else:
             execute_activation()
 
-    #dev: checked, it: 01
+    # dev: checked, it: 01
     def deactivate_count(self, abort = False, *args):
         def execute_deactivation():
             self.count_active = False
             print('[INFO] Counting Process Deactivated')
-#-----------Reset Status
+            
+            # Reset Status
             self.aerator.is_toggleable = True
             self.led_panels.is_toggleable = True
-#-----------Reset Containers
+            
+            # Reset Containers
             self.right_pane.current = "panel_count_inactive"
             self.btm_btn.current = "btn_count_inactive"
             self.sub_batch_scrollview.clear_widgets()
-#-----------Clear Placeholders and Payload
+            
+            # Clear Placeholders and Payload
             self.sub_batch_history.clear()
             self.total_count = 0
             self.total_batches_created = 0
             self.reliability_score = 0
             self.name_count_batch = ""
             self.name_operator = ""
+            self.reliability_scores.clear()
+            self.water_vol = 0
+            self.water_vol_array = []
+            self.water_temp = 0
+            self.water_temp_array = []
+            self.count_timer = 0
+            self.count_timer_array = []
             self.payload.update({
-                "local_id": None, #Auto-generated
+                "local_id": None,
                 "timestamp": None,
                 "batch_id": None,
                 "op_name": None,
@@ -2467,13 +2478,6 @@ class UlangSystemApp(MDApp):
                 "ave_approx_density": None,
                 "time_elapsed":None
             })
-            self.reliability_scores.clear()
-            self.water_vol = 0
-            self.water_vol_array = []
-            self.water_temp = 0
-            self.water_temp_array = []
-            self.count_timer = 0
-            self.count_timer_array = []
 
         if self.sub_batch_history and abort:
             dialog = SystemDialog(
@@ -2508,6 +2512,7 @@ class UlangSystemApp(MDApp):
 
         if self.snackbar.parent:
             self.snackbar.parent.remove_widget(self.snackbar)
+
         Window.add_widget(self.snackbar)
         self.snackbar.ids.toast_text.text = message
         Animation.cancel_all(self.snackbar)
@@ -2529,11 +2534,12 @@ class UlangSystemApp(MDApp):
             duration=0.3, 
             t="in_quad"
         )
-#-------Completely remove it from the Window memory when done
+
+        # Completely remove it from the Window memory when done
         anim_out.bind(on_complete=lambda *args: Window.remove_widget(self.snackbar))
         anim_out.start(self.snackbar)
 
-    #dev: checked, it: 01
+    # dev: checked, it: 01
     @mainthread
     def _lock_sub_batch(self, locked_count):
         """Called by the background fuzzy evaluator when an Excellent frame is found."""
@@ -2549,7 +2555,7 @@ class UlangSystemApp(MDApp):
             self.current_active_widget = None
             
             # Provide visual feedback to the operator
-            self.show_snackbar(message=f"Locked Count: {locked_count}", warning_mode=False)
+            self.show_snackbar(message=f"PL Count: {locked_count}", warning_mode=False)
 
     #dev: checked, it: 01
     def count_on_click(self):
@@ -2572,7 +2578,7 @@ class UlangSystemApp(MDApp):
             self.current_active_widget = new_widget
 
     def remove_sub_batch(self, widget_to_remove):
-#-------If we are deleting the active widget, reset the system state
+        # Reset the system state if we are deleting the active widget
         def execute_deletion():
             if widget_to_remove.is_active:
                 self.is_counting = False
@@ -2584,7 +2590,7 @@ class UlangSystemApp(MDApp):
             self.sub_batch_scrollview.remove_widget(widget_to_remove)
             print(f"[INFO] Removed {widget_to_remove.batch_name}. Current Backend Data:", self.sub_batch_history)
 
-#-------Show a confirmation dialog
+        # Show a confirmation dialog
         dialog = SystemDialog(
             dialog_title = "Remove Sub-batch",
             dialog_msg = "Are you sure you want to remove this Sub-batch? This process cannot be undone.", 
@@ -2597,7 +2603,7 @@ class UlangSystemApp(MDApp):
     def save_batch_log(self):
         self.payload.update({
             "local_id": self.batch_uuid,
-            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f+00"), #Format to ISO-8601 / PostgreSQL timestamptz
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f+00"), # Format to ISO-8601 / PostgreSQL timestamptz
             "batch_id": self.name_count_batch,
             "op_name": self.name_operator,
             "count_total_pl": self.total_count,
@@ -2772,6 +2778,7 @@ class UlangSystemApp(MDApp):
                 rv.data = [item for item in rv.data if item.get('local_id') != target_uuid]
                 print(f"[INFO] {target_uuid} is successfully removed from database")
                 self.show_snackbar(message="Successfully removed from Database", warning_mode=False)
+
             except Exception as e:
                 print(f"[DEBUG] Cloud delete failed (offline?): {e}")
                 self.show_snackbar(message="Failed to remove from Database", warning_mode=True)
@@ -2785,6 +2792,7 @@ class UlangSystemApp(MDApp):
                     rv.data = [item for item in rv.data if item.get('local_id') != target_uuid]
                     print(f"[INFO] {file_path} is successfully removed from local logs")
                     self.show_snackbar(message="Successfully removed from Local Logs", warning_mode=False)
+
             except Exception as e:
                 print(f"[DEBUG] Local delete failed: {e}")
                 self.show_snackbar(message="Failed to remove from Local Logs", warning_mode=True)

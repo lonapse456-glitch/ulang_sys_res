@@ -52,9 +52,12 @@ except ImportError:
     print("Warning: gpiozero not found. Physical GPIO buttons disabled (Running on Laptop).")'''
 GPIO_AVAILABLE=False
 Window.size = (800, 480)
+Window.clearcolor = (0.6, 0.6, 0.6, 1)
 
 INTERFACE = '''
 ScreenManager:
+    md_bg_color: 0.6, 0.6, 0.6, 1
+
     DashboardScreen:
         id: dashboard_screen
     SettingsScreen:
@@ -65,7 +68,7 @@ ScreenManager:
 # ---------------------------------------------------DASHBOARD PAGE-------------------------------------------------------
 <DashboardScreen>:
     name: "dashboard"
-    md_bg_color: 0, 0, 0, 1 
+    md_bg_color: 0.6, 0.6, 0.6, 1 
 
     MDBoxLayout:
         orientation: 'vertical'
@@ -1200,12 +1203,16 @@ ScreenManager:
                 height: self.texture_size[1]
                 halign: 'left'
                     
-        MDIconButton:
-            icon: "res/ic_erase_itm_s.png"
-            theme_text_color: "Custom"
+        Button:
+            markup: True
+            size_hint: None, None
+            font_size: 20
+            text: "[image=res/ic_erase_itm_s.png]"
+            background_normal: ""
+            background_down: ""
+            height: 30
+            width: 30
             on_release: app.remove_sub_batch(root)
-            height: 16
-            width: 16
 
     MDSeparator:
 '''
