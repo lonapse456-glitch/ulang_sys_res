@@ -30,6 +30,7 @@ from kivymd.uix.screen import MDScreen
 from kivy.uix.screenmanager import ScreenManager, Screen, FadeTransition
 from kivy.uix.floatlayout import FloatLayout
 from kivymd.uix.boxlayout import MDBoxLayout
+from kivy.uix.boxlayout import BoxLayout
 from kivymd.uix.card import MDCard
 from kivymd.uix.label import MDLabel
 from kivy.metrics import dp
@@ -439,18 +440,13 @@ ScreenManager:
             height: 36
             spacing: 12
 
-            Button:
+            SysIconButton:
                 id: btn_bck_dashboard
                 text: "Dashboard"
-                font_name: "assets/sf_txt_reg.ttf"
-                font_size: 18
+                icon: "res/ic_back.png"
                 background_normal: "res/btn_pill_gray_s.png"
                 background_down: "res/btn_pill_gray_s_down.png"
-                size_hint_x: None
-                width: self.texture_size[0] + 24
-                height: self.texture_size[1]
-                on_release: 
-                    app.go_to_dashboard()
+                on_release: app.go_to_dashboard()
 
             MDLabel:
                 text: "Settings"
@@ -641,19 +637,13 @@ ScreenManager:
             height: 36
             spacing: 12
 
-            Button:
-                id: logs_btn_bck_dashboard
-                markup: True
-                text: "[image=res/ic_back.png][/image] Dashboard"
-                font_name: "assets/sf_txt_reg.ttf"
-                font_size: 18
+            SysIconButton:
+                id: btn_bck_dashboard
+                text: "Dashboard"
+                icon: "res/ic_back.png"
                 background_normal: "res/btn_pill_gray_s.png"
                 background_down: "res/btn_pill_gray_s_down.png"
-                size_hint_x: None
-                width: self.texture_size[0] + 24
-                height: self.texture_size[1]
-                on_release: 
-                    app.go_to_dashboard()
+                on_release: app.go_to_dashboard()
 
             MDLabel:
                 text: "Logs"
@@ -677,16 +667,12 @@ ScreenManager:
                 keep_ratio: 
                 pos_hint: {"center_y": .5}
 
-            Button:
+            SysIconButton:
                 id: logs_btn_bck_dashboard
+                icon: "res/ic_sync.png"
                 text: "Sync Logs"
-                font_name: "assets/sf_txt_reg.ttf"
-                font_size: 18
                 background_normal: "res/btn_pill_gray_s.png"
                 background_down: "res/btn_pill_gray_s_down.png"
-                size_hint_x: None
-                width: self.texture_size[0] + 24
-                height: self.texture_size[1]
                 on_release: app.sync_db_logs_thread(show_snackbar = True)
 
         RecycleView:
@@ -728,7 +714,7 @@ ScreenManager:
     Image:
         id: toast_icon
         size_hint: None, None
-        source: 'res/ic_warn_s.png' if root.warning_mode else 'res/ic_info_s.png'
+        source: 'res/ic_warning_s.png' if root.warning_mode else 'res/ic_info_s.png'
         width: 26
         height: 26
         allow_stretch: True
@@ -1109,18 +1095,11 @@ ScreenManager:
             text: root.log_timestamp
             halign: 'left'
 
-        Button:
-            id: btn_bck_dashboard
-            text: "DELETE"
-            font_name: "assets/sf_txt_reg.ttf"
-            font_size: 18
+        SysIconButton:
+            icon: "res/ic_trash_s.png"
             background_normal: "res/btn_pill_gray_s.png"
             background_down: "res/btn_pill_gray_s_down.png"
-            size_hint_x: None
-            width: self.texture_size[0] + 24
-            height: self.texture_size[1]
             on_release: app.del_log_entry(target_uuid=root.log_uuid, show_dialog=True)
-
     MDLabel:
         markup: True
         size_hint_x: 1
@@ -1215,6 +1194,51 @@ ScreenManager:
             on_release: app.remove_sub_batch(root)
 
     MDSeparator:
+
+<SysIconButton>:
+    orientation: 'horizontal'
+    size_hint_x: None
+    height: 36
+    width: content_box.width + 5 if self.text else content_box.width
+
+    background_normal: "res/btn_pill_gray_s.png"
+    background_down: "res/btn_pill_gray_s_down.png"
+    
+    canvas.before:
+        Color:
+            rgba: 1, 1, 1, 1
+        BorderImage:
+            pos: self.pos
+            size: self.size
+            source: root.background_down if self.state == 'down' else root.background_normal
+            border: [18, 18, 18, 18]
+
+    BoxLayout:
+        id: content_box
+        orientation: 'horizontal'
+        size_hint_x: None
+        width: self.minimum_width
+        spacing: 5 if root.text else 0
+        pos_hint: {"center_x": 0.5}
+        padding: [6, 0, 6, 0]
+
+        Image:
+            source: root.icon
+            size_hint: None, None
+            size: 24, 24
+            pos_hint: {'center_y': 0.5}
+            allow_stretch: False
+
+        Label:
+            id: label_id
+            text: root.text
+            font_size: 20
+            font_name: "assets/sf_txt_reg.ttf"
+            halign: 'left'
+            valign: 'center'
+            size_hint_x: None
+            text_size: None, self.height
+            width: self.texture_size[0]
 '''
 def config_conn_wifi(ssid, password):
     try:
@@ -2073,6 +2097,12 @@ class DebounceBtn(Button):
 
 class ClickableMDLabel(ButtonBehavior, MDLabel):
     pass
+
+class SysIconButton(ButtonBehavior, BoxLayout):
+    text = StringProperty("")
+    icon = StringProperty("")
+    background_normal = StringProperty("")
+    background_down = StringProperty("")
 
 if __name__ == '__main__':
     UlangSystemApp().run()

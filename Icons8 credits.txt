@@ -13,3 +13,5 @@ Icons8 credits
 <a target="_blank" href="https://icons8.com/icon/DWp2BGf88ZZb/info">Info</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
 
 <a target="_blank" href="https://icons8.com/icon/jEcZlBEszuKr/error">Warning</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+
+<a target="_blank" href="https://icons8.com/icon/G3ke6AwujrRv/trash">Delete</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
