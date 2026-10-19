@@ -264,7 +264,7 @@ ScreenManager:
                         size_hint: None, None
                         height: 36
                         padding: 10
-                        pos_hint: {"x":0.92, "top":0.97}
+                        pos_hint: {"x":0.02, "top":0.97}
 
                         canvas.before:
                             Color:
@@ -282,6 +282,41 @@ ScreenManager:
                             halign: "left"
                             theme_text_color: "Custom"
                             text_color: 1, 1, 1, 1
+
+                    MDBoxLayout:
+                        orientation: "vertical"
+                        size_hint: None, None
+                        height: 36
+                        padding: 10
+                        pos_hint: {"x":0.02, "y":0.03}
+
+                        canvas.before:
+                            Color:
+                                rgba: 1, 1, 1, 1 # Ensure the image renders at full brightness
+                            BorderImage:
+                                source: 'res/btn_pill_gray_s.png'
+                                pos: self.pos
+                                size: self.size
+                                border: [18, 18, 18, 18]
+
+                        MDLabel:
+                            text: "PREDICTED:"
+                            font_name: "assets/sf_txt_reg.ttf"
+                            font_size: 20
+                            halign: "left"
+                            theme_text_color: "Custom"
+                            text_color: 1, 1, 1, 1
+
+                        MDLabel:
+                            id: camfeed_count
+                            text: "--"
+                            font_name: "assets/sf_txt_bold.ttf"
+                            font_size: 32
+                            halign: "left"
+                            theme_text_color: "Custom"
+                            adaptive_height: True
+                            text_color: app.color_palette["dark_blue"]
+                        
 
                     SysIconButton:
                         icon: "res/ic_expand_s.png"
