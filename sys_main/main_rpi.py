@@ -3278,6 +3278,7 @@ class UlangSystemApp(MDApp):
         if ((self.water_temp > self.max_temp) or (self.water_temp < self.min_temp)) or (self.water_vol > self.max_load):
             self.active_alert = True
             self.critical_temp = True
+            self.stop_camera()
             print("[WARNING] Critical Water Temperature")
 
             if self.water_vol > self.max_load:
