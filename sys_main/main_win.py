@@ -27,9 +27,10 @@ from kivy.factory import Factory
 from kivy.graphics.texture import Texture
 from kivy.properties import BooleanProperty, ColorProperty, StringProperty, NumericProperty, ObjectProperty, OptionProperty
 from kivymd.uix.screen import MDScreen
-from kivy.uix.screenmanager import ScreenManager, Screen, FadeTransition
+from kivy.uix.screenmanager import ScreenManager, Screen, FadeTransition, SlideTransition
 from kivy.uix.floatlayout import FloatLayout
 from kivymd.uix.boxlayout import MDBoxLayout
+from kivy.uix.boxlayout import BoxLayout
 from kivymd.uix.card import MDCard
 from kivymd.uix.label import MDLabel
 from kivy.metrics import dp
@@ -39,6 +40,7 @@ from kivy.animation import Animation
 from datetime import datetime
 from kivy.uix.widget import Widget
 from kivy.uix.behaviors import ButtonBehavior
+from kivy.uix.image import Image
 import random #temporary
 # ---------------------------------------------------------
 # HARDWARE GPIO SETUP (Fail-safe for Windows/Mac testing)
@@ -52,9 +54,12 @@ except ImportError:
     print("Warning: gpiozero not found. Physical GPIO buttons disabled (Running on Laptop).")'''
 GPIO_AVAILABLE=False
 Window.size = (800, 480)
+Window.clearcolor = (0.6, 0.6, 0.6, 1)
 
 INTERFACE = '''
 ScreenManager:
+    md_bg_color: 0.6, 0.6, 0.6, 1
+
     DashboardScreen:
         id: dashboard_screen
     SettingsScreen:
@@ -65,7 +70,7 @@ ScreenManager:
 # ---------------------------------------------------DASHBOARD PAGE-------------------------------------------------------
 <DashboardScreen>:
     name: "dashboard"
-    md_bg_color: 0, 0, 0, 1 
+    md_bg_color: 0.6, 0.6, 0.6, 1 
 
     MDBoxLayout:
         orientation: 'vertical'
@@ -134,49 +139,150 @@ ScreenManager:
                 size_hint_x: 0.6
                 md_bg_color: 0, 0, 0, 1
                 radius: [12, 12, 12, 12]
+                line_color: '#505050'
+                line_width: 0.5
 
-                ScreenManager:
-                    id: camfeed_pane
-                    transition: app.get_fade_transition()
-                    
-                    MDScreen:
-                        name: "camfeed_loading_screen"
+                RelativeLayout:
+                    size_hint: 1, 1
 
-                        MDBoxLayout:
-                            orientation: 'vertical'
-                            adaptive_height: True
-                            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
-                            spacing: 16
-                            
-                            MDSpinner:
-                                size_hint: None, None
-                                size: dp(26), dp(26)
-                                pos_hint: {'center_x': .5}
-                                active: True
-                                
-                            MDLabel:
-                                text: "Camera Loading..."
-                                font_name: "assets/sf_txt_reg.ttf"
-                                font_size: 24
-                                halign: "center"
-                                theme_text_color: "Secondary"
+                    ScreenManager:
+                        id: camfeed_pane
+                        transition: app.get_fade_transition()
+                        
+                        MDScreen:
+                            name: "camfeed_loading_screen"
+
+                            MDBoxLayout:
+                                orientation: 'vertical'
                                 adaptive_height: True
+                                pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+                                spacing: 16
+                                
+                                Image:
+                                    size_hint: None, None
+                                    size: 72, 72
+                                    allow_stretch: True
+                                    pos_hint: {'center_x': .5}
+                                    active: True
+                                    source: 'res/ic_camera.png'
+                                    
+                                MDLabel:
+                                    text: "Camera Loading..."
+                                    font_name: "assets/sf_txt_reg.ttf"
+                                    font_size: 24
+                                    halign: "center"
+                                    theme_text_color: "Secondary"
+                                    adaptive_height: True
 
-                    MDScreen:
-                        name: "camfeed_live_screen"
+                        MDScreen:
+                            name: "camfeed_live_screen"
 
-                        Image:
-                            id: camera_feed
-                            size_hint: 1, 1
-                            allow_stretch: True
-                            keep_ratio: True
+                            Image:
+                                id: camera_feed
+                                size_hint: 1, 1
+                                allow_stretch: True
+                                keep_ratio: True
 
-                    MDScreen: 
-                        name: "camfeed_null_screen"
+                        MDScreen: 
+                            name: "camfeed_null_screen"
+
+                            MDLabel:
+                                text: "Empty Chamber Detected"
+                                halign: "center"
+
+                        MDScreen:
+                            name: "camfeed_alert_screen"
+
+                            MDBoxLayout:
+                                orientation: 'vertical'
+                                adaptive_height: True
+                                pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+                                spacing: 24
+                                padding: 16
+
+                                Image:
+                                    id: ic_alert
+                                    size_hint: None, None
+                                    height: 72
+                                    width: 72
+                                    allow_stretch:
+                                    keep_ratio: True
+                                    pos_hint: {"center_x":0.5}
+
+                                MDLabel:
+                                    id: txt_alert_title
+                                    text: "Warning!"
+                                    font_name: "assets/sf_txt_bold.ttf"
+                                    font_size: 24
+                                    halign: "center"
+                                    theme_text_color: "Custom"
+                                    text_color: app.color_palette["red"]
+                                    valign: "center"
+
+                                MDLabel:
+                                    id: txt_alert_message
+                                    text: "Warning message."
+                                    font_name: "assets/sf_txt_reg.ttf"
+                                    font_size: 18
+                                    halign: "center"
+                                    theme_text_color: "Custom"
+                                    text_color: 1, 1, 1, 1
+                                    adaptive_height: True
+
+                                Button:
+                                    text: "CONTINUE"
+                                    font_name: "assets/sf_txt_bold.ttf"
+                                    font_size: 18
+                                    background_normal: "res/btn_pill_gray_s.png"
+                                    background_down: "res/btn_pill_gray_s_down.png"
+                                    size_hint: None, None
+                                    height: 36
+                                    width: self.texture_size[0] + 24
+                                    pos_hint: {"center_x": 0.5}
+                                    on_release: app.freeze_alert()
+
+                    MDBoxLayout:
+                        orientation: "vertical"
+                        size_hint: None, None
+                        width: 140
+                        height: 70
+                        spacing: 3
+                        padding: 10
+                        pos_hint: {"x":0.02, "y":0.03}
+
+                        canvas.before:
+                            Color:
+                                rgba: 1, 1, 1, 1 # Ensure the image renders at full brightness
+                            BorderImage:
+                                source: 'res/btn_pill_gray_s.png'
+                                pos: self.pos
+                                size: self.size
+                                border: [18, 18, 18, 18]
 
                         MDLabel:
-                            text: "Empty Chamber Detected"
-                            halign: "center"
+                            text: "PREDICTED:"
+                            font_name: "assets/sf_txt_reg.ttf"
+                            font_size: 20
+                            halign: "left"
+                            theme_text_color: "Custom"
+                            text_color: 1, 1, 1, 1
+
+                        MDLabel:
+                            id: camfeed_count
+                            text: "--"
+                            font_name: "assets/sf_txt_bold.ttf"
+                            font_size: 32
+                            halign: "left"
+                            theme_text_color: "Custom"
+                            adaptive_height: True
+                            text_color: app.color_palette["dark_blue"]
+
+                    SysIconButton:
+                        icon: "res/ic_expand_s.png"
+                        background_normal: "res/btn_pill_gray_s.png"
+                        background_down: "res/btn_pill_gray_s_down.png"
+                        pos_hint: {"right":0.98, "y":0.03}
+                        size_hint: None, None
                     
             # RIGHT PANE: Data & Controls
             MDBoxLayout:
@@ -207,9 +313,9 @@ ScreenManager:
                                 MDLabel:
                                     text: "28.5 °C"
                                     theme_text_color: "Custom"
-                                    text_color: 0.2, 0.8, 0.2, 1 
+                                    text_color: app.color_palette["red"] if app.critical_temp else app.color_palette["green"]  
                                     font_name: "assets/sf_mono_bold.otf"
-                                    font_size: 30
+                                    font_size: 28
                                     size_hint_y: None
                                     height: self.texture_size[1]
 
@@ -231,9 +337,9 @@ ScreenManager:
                                 MDLabel:
                                     text: "8.0 cm"
                                     theme_text_color: "Custom"
-                                    text_color: 0.2, 0.8, 0.2, 1  # Green
+                                    text_color: app.color_palette["red"] if app.critical_load else app.color_palette["blue"] 
                                     font_name: "assets/sf_mono_bold.otf"
-                                    font_size: 30
+                                    font_size: 28
                                     size_hint_y: None
                                     height: self.texture_size[1]
 
@@ -254,9 +360,9 @@ ScreenManager:
                                 MDLabel:
                                     text: "2.0 L"
                                     theme_text_color: "Custom"
-                                    text_color: 0.2, 0.8, 0.2, 1  # Green
+                                    text_color: app.color_palette["red"] if app.critical_load else app.color_palette["blue"] 
                                     font_name: "assets/sf_mono_bold.otf"
-                                    font_size: 30
+                                    font_size: 28
                                     size_hint_y: None
                                     height: self.texture_size[1]
 
@@ -436,18 +542,13 @@ ScreenManager:
             height: 36
             spacing: 12
 
-            Button:
+            SysIconButton:
                 id: btn_bck_dashboard
                 text: "Dashboard"
-                font_name: "assets/sf_txt_reg.ttf"
-                font_size: 18
+                icon: "res/ic_back.png"
                 background_normal: "res/btn_pill_gray_s.png"
                 background_down: "res/btn_pill_gray_s_down.png"
-                size_hint_x: None
-                width: self.texture_size[0] + 24
-                height: self.texture_size[1]
-                on_release: 
-                    app.go_to_dashboard()
+                on_release: app.go_to_dashboard()
 
             MDLabel:
                 text: "Settings"
@@ -559,7 +660,149 @@ ScreenManager:
                                 width: 4 
                                 cap: 'round'
                                 points: [self.x + self.padding, self.center_y, self.right - self.padding, self.center_y]
+                
+                MDCard:
+                    orientation: 'vertical'
+                    size_hint: 1, None
+                    height: self.minimum_height
+                    padding: [19, 0, 19, 0]
+                    spacing: 0
 
+                    MDBoxLayout:
+                        orientation: 'horizontal'
+                        size_hint: 1, None
+                        height: 64
+                        spacing: 12
+
+                        MDLabel:
+                            text: "Set Minimum Temperature"
+                            halign: 'left'
+                            valign: 'center'
+                            font_name: "assets/sf_txt_reg.ttf"
+                            font_size: 24
+                            theme_text_color: "Custom"
+                            text_color: 1, 1, 1, 1
+                            size_hint: 1, 1
+
+                        ClickableImage:
+                            size_hint: None, None
+                            source: "res/ic_plus.png"
+                            width: 19
+                            height: 19
+                            allow_stretch: True
+                            keep_ratio: True
+                            pos_hint: {"center_y": .5}
+                            on_release: app.config_temp_setting(increase=True, param='min')
+
+                        TextInput:
+                            id: input_min_temp
+                            text: str(app.min_temp)
+                            multiline: False
+                            input_filter: 'float'
+                            input_type: 'number'
+                            halign: 'center'
+                            on_text_validate: app.config_temp_setting(input=True, param='min')
+                            size_hint: None, None
+                            width: 100
+                            height: 48
+                            padding: ["16dp", 10, "16dp", 8]
+                            background_normal: 'res/bg_txt_field_inactive_opaque.png'
+                            background_active: 'res/bg_txt_field_active.png'
+                            border: [8, 8, 8, 8]  
+                            font_name: "assets/sf_txt_reg.ttf"
+                            font_size: 24
+                            foreground_color: 1, 1, 1, 1
+                            pos_hint: {"center_y": .5}
+
+                        MDLabel:
+                            text: "\u00B0 C"
+                            halign: 'left'
+                            font_name: "assets/sf_txt_reg.ttf"
+                            font_size: 24
+                            theme_text_color: "Custom"
+                            text_color: 0.5, 0.5, 0.5, 1
+                            size_hint: None, 1
+                            valigh: 'center'
+                            width: 40
+
+                        ClickableImage:
+                            size_hint: None, None
+                            source: "res/ic_minus.png"
+                            width: 19
+                            height: 19
+                            allow_stretch: True
+                            keep_ratio: True
+                            pos_hint: {"center_y": .5}
+                            on_release: app.config_temp_setting(decrease=True, param='min')
+
+                    MDSeparator:
+
+                    MDBoxLayout:
+                        orientation: 'horizontal'
+                        size_hint: 1, None
+                        spacing: 12
+                        height: 64
+
+                        MDLabel:
+                            text: "Set Maximum Temperature"
+                            halign: 'left'
+                            font_name: "assets/sf_txt_reg.ttf"
+                            font_size: 24
+                            theme_text_color: "Custom"
+                            text_color: 1, 1, 1, 1
+                            size_hint: 1, 1
+                            valigh: 'center'
+
+                        ClickableImage:
+                            size_hint: None, None
+                            source: "res/ic_plus.png"
+                            width: 19
+                            height: 19
+                            allow_stretch: True
+                            keep_ratio: True
+                            pos_hint: {"center_y": .5}
+                            on_release: app.config_temp_setting(increase=True, param='max')
+
+                        TextInput:
+                            id: input_max_temp
+                            text: str(app.max_temp)
+                            multiline: False
+                            input_filter: 'float'
+                            input_type: 'number'
+                            on_text_validate: app.config_temp_setting(input=True, param='max')
+                            halign: 'center'
+                            size_hint: None, None 
+                            width: 100
+                            height: 48
+                            padding: ["16dp", 10, "16dp", 8]
+                            background_normal: 'res/bg_txt_field_inactive_opaque.png'
+                            background_active: 'res/bg_txt_field_active.png'
+                            border: [8, 8, 8, 8]  
+                            font_name: "assets/sf_txt_reg.ttf"
+                            font_size: 24
+                            foreground_color: 1, 1, 1, 1
+                            pos_hint: {"center_y": .5}
+
+                        MDLabel:
+                            text: "\u00B0 C"
+                            halign: 'left'
+                            font_name: "assets/sf_txt_reg.ttf"
+                            font_size: 24
+                            theme_text_color: "Custom"
+                            text_color: 0.5, 0.5, 0.5, 1
+                            size_hint: None, 1
+                            width: 40
+                            valigh: 'center'
+
+                        ClickableImage:
+                            size_hint: None, None
+                            source: "res/ic_minus.png"
+                            width: 19
+                            height: 19
+                            allow_stretch: True
+                            keep_ratio: True
+                            pos_hint: {"center_y": .5}
+                            on_release: app.config_temp_setting(decrease=True, param='max')
                 MDCard:
                     orientation: 'vertical'
                     size_hint: 1, None
@@ -638,19 +881,13 @@ ScreenManager:
             height: 36
             spacing: 12
 
-            Button:
-                id: logs_btn_bck_dashboard
-                markup: True
-                text: "[image=res/ic_back.png][/image] Dashboard"
-                font_name: "assets/sf_txt_reg.ttf"
-                font_size: 18
+            SysIconButton:
+                id: btn_bck_dashboard
+                text: "Dashboard"
+                icon: "res/ic_back.png"
                 background_normal: "res/btn_pill_gray_s.png"
                 background_down: "res/btn_pill_gray_s_down.png"
-                size_hint_x: None
-                width: self.texture_size[0] + 24
-                height: self.texture_size[1]
-                on_release: 
-                    app.go_to_dashboard()
+                on_release: app.go_to_dashboard()
 
             MDLabel:
                 text: "Logs"
@@ -674,16 +911,12 @@ ScreenManager:
                 keep_ratio: 
                 pos_hint: {"center_y": .5}
 
-            Button:
+            SysIconButton:
                 id: logs_btn_bck_dashboard
+                icon: "res/ic_sync.png"
                 text: "Sync Logs"
-                font_name: "assets/sf_txt_reg.ttf"
-                font_size: 18
                 background_normal: "res/btn_pill_gray_s.png"
                 background_down: "res/btn_pill_gray_s_down.png"
-                size_hint_x: None
-                width: self.texture_size[0] + 24
-                height: self.texture_size[1]
                 on_release: app.sync_db_logs_thread(show_snackbar = True)
 
         RecycleView:
@@ -703,12 +936,14 @@ ScreenManager:
 <Snackbar>:
     id: snackbar
     orientation: "horizontal"
-    size_hint: None, None
-    size: 480, 48
+    size_hint_y: None
+    height: 48
+    # 1. Let the root container dynamically hug its children
+    adaptive_width: True 
     opacity: 0
     pos_hint: {"center_x": 0.5, "center_y": 0.05} 
     spacing: 10
-    padding: 14
+    padding: [16, 0, 16, 0]
     elevation: 3
     shadow_color: 0, 0, 0, 0.2
 
@@ -725,23 +960,23 @@ ScreenManager:
     Image:
         id: toast_icon
         size_hint: None, None
-        source: 'res/ic_warn_s.png' if root.warning_mode else 'res/ic_info_s.png'
+        source: 'res/ic_warning_s.png' if root.warning_mode else 'res/ic_info_s.png'
         width: 26
         height: 26
         allow_stretch: True
         keep_ratio: True
         pos_hint: {"center_y": .5}
-
     
     MDLabel:
         id: toast_text
-        text: self.text
+        text: ""
         font_name: 'assets/sf_txt_reg.ttf'
         font_size: 20
         theme_text_color: "Custom"
         text_color: (1, 1, 1, 1) if root.warning_mode else (0, 0, 0, 1)
         halign: 'left'
-        width: self.texture_size[0]
+        valign: 'center'
+        adaptive_width: True
 
 <BatchCountDialog@Popup>
     width: 500
@@ -1106,16 +1341,10 @@ ScreenManager:
             text: root.log_timestamp
             halign: 'left'
 
-        Button:
-            id: btn_bck_dashboard
-            text: "DELETE"
-            font_name: "assets/sf_txt_reg.ttf"
-            font_size: 18
+        SysIconButton:
+            icon: "res/ic_trash_s.png"
             background_normal: "res/btn_pill_gray_s.png"
             background_down: "res/btn_pill_gray_s_down.png"
-            size_hint_x: None
-            width: self.texture_size[0] + 24
-            height: self.texture_size[1]
             on_release: app.del_log_entry(target_uuid=root.log_uuid, show_dialog=True)
 
     MDLabel:
@@ -1200,15 +1429,79 @@ ScreenManager:
                 height: self.texture_size[1]
                 halign: 'left'
                     
-        MDIconButton:
-            icon: "res/ic_erase_itm_s.png"
-            theme_text_color: "Custom"
+        Button:
+            markup: True
+            size_hint: None, None
+            font_size: 20
+            text: "[image=res/ic_erase_itm_s.png]"
+            background_normal: ""
+            background_down: ""
+            height: 30
+            width: 30
             on_release: app.remove_sub_batch(root)
-            height: 16
-            width: 16
 
     MDSeparator:
+
+<SysIconButton>:
+    orientation: 'horizontal'
+    size_hint_x: None
+    height: 36
+    width: content_box.width + 5 if self.text else content_box.width
+
+    background_normal: "res/btn_pill_gray_s.png"
+    background_down: "res/btn_pill_gray_s_down.png"
+    
+    canvas.before:
+        Color:
+            rgba: 1, 1, 1, 1
+        BorderImage:
+            pos: self.pos
+            size: self.size
+            source: root.background_down if self.state == 'down' else root.background_normal
+            border: [18, 18, 18, 18]
+
+    BoxLayout:
+        id: content_box
+        orientation: 'horizontal'
+        size_hint_x: None
+        width: self.minimum_width
+        spacing: 5 if root.text else 0
+        pos_hint: {"center_x": 0.5}
+        padding: [6, 0, 6, 0]
+
+        Image:
+            source: root.icon
+            size_hint: None, None
+            size: 24, 24
+            pos_hint: {'center_y': 0.5}
+            allow_stretch: False
+
+        Label:
+            id: label_id
+            text: root.text
+            font_size: 20
+            font_name: "assets/sf_txt_reg.ttf"
+            halign: 'left'
+            valign: 'center'
+            size_hint_x: None
+            text_size: None, self.height
+            width: self.texture_size[0]
 '''
+
+def smooth_anim_curve(t):
+    """Smooth anumation curve based on the Cubic Bézier curve"""
+    p1x, p1y = 0.01, 1.0
+    p2x, p2y = 0.1, 1.2
+    u = t
+    for _ in range(5):
+        current_x = 3 * (1 - u)**2 * u * p1x + 3 * (1 - u) * u**2 * p2x + u**3
+        dx = 3 * (1 - u)**2 * p1x + 6 * (1 - u) * u * (p2x - p1x) + 3 * u**2 * (1 - p2x)
+        if abs(dx) < 1e-6:
+            break
+        u -= (current_x - t) / dx
+        u = max(0.0, min(1.0, u))
+    return 3 * (1 - u)**2 * u * p1y + 3 * (1 - u) * u**2 * p2y + u**3
+
 def config_conn_wifi(ssid, password):
     try:
         subprocess.check_call([
@@ -1283,6 +1576,15 @@ class UlangSystemApp(MDApp):
 #===STATUS
     count_active = BooleanProperty(False) # For switching UI interface mode
     is_counting = BooleanProperty(False) # Inferernce active state
+    active_alert = BooleanProperty(False)
+    critical_temp = BooleanProperty(False)
+    critical_load = BooleanProperty(False)
+    monitoring_freezed = BooleanProperty(False) # Set to True if chamber condition is non-critical or currently timed out
+
+    alert_msg = {
+        'CRITICAL_TEMP':"Water temperature exceeds acceptable level. Counting process is temporarily paused.",
+        'CRITICAL_LOAD':"Water level is too high. Please reduce water from the container."
+    }
 
     # Connectivity Status
     is_online = BooleanProperty(False)
@@ -1313,6 +1615,22 @@ class UlangSystemApp(MDApp):
     total_count = NumericProperty(0)
     current_active_widget = ObjectProperty(None, allownone=True)
     empty_chamber = True
+    water_temp = 39.0
+    water_vol = 9
+
+    color_palette = {
+        "red":'#db3838',
+        "blue":'#0078ff',
+        "green":'#38db5c',
+        "yellow":'#ccba00',
+        "dark_gray":'#2e2e2e',
+        "dark_blue":'#0000a2'
+        }
+
+    min_temp = 27.0
+    max_temp = 31.0
+    max_load = 10
+    sub_optimal_temp = [23.2, 32.9]
 
 #===CLIENT CREATION
     SUPABASE_API_URL = 'https://nltmvrjxasslpqbdyamg.supabase.co'
@@ -1393,11 +1711,37 @@ class UlangSystemApp(MDApp):
         return FadeTransition(duration=0.1)
 
 #===Camera Live Feed Functions
-    def start_camera_loading(self):
-        """1. Resets the UI and spawns the background worker."""
-        self.root.ids.dashboard_screen.ids.camfeed_pane.current = "camfeed_loading_screen"
+    def start_camera_loading(self, anti_loop:bool = False, *args):
+        """Resets the UI and spawns the background worker."""
+        dashboard_screen = self.root.ids.dashboard_screen
+        camfeed = self.root.ids.dashboard_screen.ids.camfeed_pane
 
-        threading.Thread(target=self._init_hardware, daemon=True).start()
+        if not self.monitoring_freezed:
+            # Checks the temperature and water level first before loading the camera if alert is not timed out
+            if not anti_loop:
+                self.check_chamber_stat(0)
+
+        else:
+            # If checking is queued, temporarily disable the alert
+            self.active_alert = False
+        
+        if self.active_alert:
+            if self.critical_temp:
+                if self.critical_load:
+                    camfeed.current = "camfeed_alert_screen"
+                    dashboard_screen.ids.ic_alert.source = 'res/ic_water_level.png'
+                    dashboard_screen.ids.txt_alert_title.text = "Critical Water Level"
+                    dashboard_screen.ids.txt_alert_message.text = self.alert_msg["CRITICAL_LOAD"]
+
+                else:  
+                    camfeed.current = "camfeed_alert_screen"
+                    dashboard_screen.ids.ic_alert.source = 'res/ic_temperature.png'
+                    dashboard_screen.ids.txt_alert_title.text = "Critical Temperature"
+                    dashboard_screen.ids.txt_alert_message.text = self.alert_msg["CRITICAL_TEMP"]
+
+        else:
+            camfeed.current = "camfeed_loading_screen"
+            threading.Thread(target=self._init_hardware, daemon=True).start()
 
     def _init_hardware(self):
         """@backgroundthread: Initializes capturing and loading AI model"""
@@ -1548,21 +1892,24 @@ class UlangSystemApp(MDApp):
  
     def go_to_settings(self, *args):
         if self.root.current != "settings":
-            self.root.transition.direction = "left"
+            self.root.transition = SlideTransition(direction="left", duration=0.35)
+            self.root.transition.anim_kwargs = {'transition': smooth_anim_curve}
             self.root.current = "settings"
 
         self.stop_camera()
 
     def go_to_logs(self, *args):
         if self.root.current != "logs":
-            self.root.transition.direction = "left"
+            self.root.transition = SlideTransition(direction="left", duration=0.35)
+            self.root.transition.anim_kwargs = {'transition': smooth_anim_curve}
             self.root.current = "logs"
 
         self.stop_camera()
 
     def go_to_dashboard(self, *args):
         if self.root.current != "dashboard":
-            self.root.transition.direction = "right"
+            self.root.transition = SlideTransition(direction="right", duration=0.35)
+            self.root.transition.anim_kwargs = {'transition': smooth_anim_curve}
             self.root.current = "dashboard"
 
         self.start_camera_loading()
@@ -1670,8 +2017,8 @@ class UlangSystemApp(MDApp):
         anim_in = Animation(
             opacity=1, 
             pos_hint={"center_x": 0.5, "center_y": 0.10}, 
-            duration=0.2, 
-            t="out_quad"
+            duration=0.45, 
+            t=smooth_anim_curve
         )
         anim_in.start(self.snackbar)
         Clock.schedule_once(self.hide_snackbar, 3)
@@ -1683,7 +2030,7 @@ class UlangSystemApp(MDApp):
             opacity=0, 
             pos_hint={"center_x": 0.5, "center_y": 0.05}, 
             duration=0.3, 
-            t="in_quad"
+            t="in_back"
         )
 #-------Completely remove it from the Window memory when done
         anim_out.bind(on_complete=lambda *args: Window.remove_widget(self.snackbar))
@@ -1946,14 +2293,118 @@ class UlangSystemApp(MDApp):
         else:
             del_cmd()
 
+    def config_temp_setting(self, input:bool=False, increase:bool=False, decrease:bool=False, param:str='', *args):
+        input_max = self.root.ids.settings_screen.ids.input_max_temp
+        input_min = self.root.ids.settings_screen.ids.input_min_temp
+
+        if increase:
+            if param=="min":
+                if self.max_temp > self.min_temp+1:
+                    self.min_temp += 1
+                    input_min.text = str(self.min_temp)
+
+                else: 
+                    self.show_snackbar(message="Temperature range will be too small", warning_mode=True)
+                
+            elif param=="max":
+                if self.max_temp+1 <= self.sub_optimal_temp[1]:
+                    self.max_temp += 1
+                    input_max.text = str(self.max_temp)
+
+                else:
+                    self.show_snackbar(message="Maximum temperature out sub-optimal of range", warning_mode=True)
+
+        elif decrease:
+            if param=="min":
+                if self.min_temp-1 >= self.sub_optimal_temp[0]:
+                    self.min_temp -= 1
+                    input_min.text = str(self.min_temp)
+
+                else:
+                    self.show_snackbar(message="Minimum temperature out of sub-optimal range", warning_mode=True)
+
+            elif param=="max":
+                if (self.max_temp-1) > self.min_temp:
+                    self.max_temp -= 1
+                    input_max.text = str(self.max_temp)
+
+                else:
+                    self.show_snackbar(message="Temperature range will be too small", warning_mode=True)
+
+        elif input:
+            float_input = float(input_max.text) if param=="max" else float(input_min.text)
+
+            if param=="min":
+                if float_input <= self.max_temp-1:
+                    if float_input > self.sub_optimal_temp[0]:
+                        self.min_temp = float_input
+
+                    else:
+                        input_min.text = str(self.min_temp)
+                        self.show_snackbar(message="Minimum temperature out of sub-optimal range", warning_mode=True)
+
+                elif float_input > self.max_temp:
+                    input_min.text = str(self.min_temp)
+                    self.show_snackbar(message="Invalid input", warning_mode=True)
+
+                else:
+                    input_min.text = str(self.min_temp)
+                    self.show_snackbar(message="Temperature range will be too small", warning_mode=True)  
+
+            elif param=="max": 
+                if float_input >= self.min_temp+1:
+                    if float_input <= self.sub_optimal_temp[1]:
+                        self.max_temp = float_input
+
+                    else:
+                        input_max.text = str(self.max_temp)
+                        self.show_snackbar(message="Maximum temperature out of sub-optimal range", warning_mode=True)
+
+                elif float_input < self.min_temp:
+                    input_max.text = str(self.max_temp)
+                    self.show_snackbar(message="Invalid input", warning_mode=True)
+
+                else:
+                    self.max_temp = self.min_temp+1
+                    input_max.text = str(self.max_temp)
+                    self.show_snackbar(message="Temperature range will be too small", warning_mode=True)
+
+    def check_chamber_stat(self, dt):
+        self.monitoring_freezed = False
+
+        if dt: print(f"[INFO] Chamber is checked after {dt} seconds.")
+
+        if ((self.water_temp > self.max_temp) or (self.water_temp < self.min_temp)) or (self.water_vol > self.max_load):
+            self.active_alert = True
+            self.critical_temp = True
+            print("[WARNING] Critical Water Temperature")
+
+            if self.water_vol > self.max_load:
+                self.critical_load = True
+                print("[WARNING] Critical Water Level")
+        else:
+            self.active_alert = False
+            self.critical_load = False
+            self.critical_temp = False
+
+        if self.active_alert:
+            self.start_camera_loading(anti_loop=True) # Start loading camera to check for stats
+
+    def finish_queue_check_stat(self):
+        Clock.schedule_once(self.check_chamber_stat, timeout = 5)
+
+    def freeze_alert(self):
+        """Temporarily freeze check_chamber_stat()"""
+        self.monitoring_freezed = True
+        self.finish_queue_check_stat()
+        self.start_camera_loading() # Start loading camera again
+
 class PillToggleButton(Button):
     is_toggleable = BooleanProperty(True)
     is_active = BooleanProperty(False)
-
     color_on = ColorProperty([0.1, 0.6, 0.2, 1])
     color_off = ColorProperty([0.25, 0.25, 0.25, 1])
     color_pressed = ColorProperty([0.4, 0.4, 0.4, 1])
-
     current_color = ColorProperty([0.25, 0.25, 0.25, 1])
 
     def __init__(self, **kwargs):
@@ -2000,7 +2451,7 @@ class WiFiToggleSwitch(ButtonBehavior, Widget):
             target_x = self.width - self.height + dp(2)
         else:
             target_x = dp(2)
-        anim = Animation(knob_pos=target_x, duration=0.2, t='out_quad')
+        anim = Animation(knob_pos=target_x, duration=0.2, t=smooth_anim_curve)
         anim.start(self)
 
         if self._initializing:
@@ -2066,6 +2517,15 @@ class DebounceBtn(Button):
 
 class ClickableMDLabel(ButtonBehavior, MDLabel):
     pass
+
+class ClickableImage(ButtonBehavior, Image):
+    pass
+
+class SysIconButton(ButtonBehavior, BoxLayout):
+    text = StringProperty("")
+    icon = StringProperty("")
+    background_normal = StringProperty("")
+    background_down = StringProperty("")
 
 if __name__ == '__main__':
     UlangSystemApp().run()

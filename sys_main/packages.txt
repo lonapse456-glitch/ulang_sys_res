@@ -9,6 +9,7 @@ torch
 torchvision
 ncnn
 pnnx
+shapely
 
 # --- Database & Backend ---
 supabase==2.31.0

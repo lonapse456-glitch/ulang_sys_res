@@ -7,6 +7,7 @@ import uuid
 import subprocess
 import glob
 import time
+from datetime import datetime, timedelta
 
 import serial
 
@@ -26,11 +27,16 @@ import numpy as np
 import skfuzzy as fuzz
 from skfuzzy import control as ctrl
 
+from shapely.geometry import Polygon
+from shapely.ops import unary_union
+
+#Kivy Configurations
 from kivy.config import Config
 Config.set('kivy', 'keyboard_mode', 'systemandmulti')
 Config.set('graphics', 'fullscreen', 'auto')
 Config.set('graphics', 'resizable', False)
 
+from kivy.utils import get_color_from_hex
 from kivymd.app import MDApp
 from kivy.lang import Builder
 from kivy.core.window import Window
@@ -41,20 +47,19 @@ from kivy.properties import BooleanProperty, ColorProperty, StringProperty, Nume
 from kivymd.uix.screen import MDScreen
 from kivy.uix.screenmanager import ScreenManager, Screen, FadeTransition
 from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.boxlayout import BoxLayout
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.card import MDCard
 from kivymd.uix.label import MDLabel
 from kivy.metrics import dp
 from kivy.uix.button import Button
+from kivy.uix.image import Image
 from kivy.uix.popup import Popup
 from kivy.animation import Animation
-from datetime import datetime, timedelta
 from kivy.uix.widget import Widget
 from kivy.uix.behaviors import ButtonBehavior
-import random #temporary
-# ---------------------------------------------------------
-# HARDWARE GPIO SETUP (Fail-safe for Windows/Mac testing)
-# ---------------------------------------------------------
+
+# HARDWARE GPIO SETUP
 from picamera2 import Picamera2, Preview
 from libcamera import controls
 
@@ -63,7 +68,7 @@ try:
     GPIO_AVAILABLE = True
 except ImportError:
     GPIO_AVAILABLE = False
-    print("Warning: gpiozero not found. Physical GPIO buttons disabled (Running on Laptop).")
+    print("[Warning] gpiozero not found. Physical GPIO buttons disabled (Running on Laptop).")
     
 Window.size = (800, 480)
 
@@ -76,6 +81,9 @@ ScreenManager:
     LogsScreen:
         id: logs_screen
         db_client: app.db_client
+    FullScreen: 
+        id: full_screen
+
 # ---------------------------------------------------DASHBOARD PAGE-------------------------------------------------------
 <DashboardScreen>:
     name: "dashboard"
@@ -148,50 +156,177 @@ ScreenManager:
                 size_hint_x: 0.6
                 md_bg_color: 0, 0, 0, 1
                 radius: [12, 12, 12, 12]
+                line_color: '#505050'
+                line_width: 0.5
 
-                ScreenManager:
-                    id: camfeed_pane
-                    transition: app.get_fade_transition()
-                    
-                    MDScreen:
-                        name: "camfeed_loading_screen"
+                RelativeLayout:
+                    size_hint: 1, 1
 
-                        MDBoxLayout:
-                            orientation: 'vertical'
-                            adaptive_height: True
-                            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
-                            spacing: 16
-                            
-                            MDSpinner:
-                                size_hint: None, None
-                                size: dp(26), dp(26)
-                                pos_hint: {'center_x': .5}
-                                active: True
-                                
-                            MDLabel:
-                                text: "Camera Loading..."
-                                font_name: "assets/sf_txt_reg.ttf"
-                                font_size: 24
-                                halign: "center"
-                                theme_text_color: "Secondary"
+                    ScreenManager:
+                        id: camfeed_pane
+                        transition: app.get_fade_transition()
+                        
+                        MDScreen:
+                            name: "camfeed_loading_screen"
+
+                            MDBoxLayout:
+                                orientation: 'vertical'
                                 adaptive_height: True
+                                pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+                                spacing: 16
+                                
+                                Image:
+                                    size_hint: None, None
+                                    size: 72, 72
+                                    allow_stretch: True
+                                    pos_hint: {'center_x': .5}
+                                    active: True
+                                    source: 'res/ic_camera.png'
+                                    
+                                MDLabel:
+                                    text: "Camera Loading..."
+                                    font_name: "assets/sf_txt_reg.ttf"
+                                    font_size: 24
+                                    halign: "center"
+                                    theme_text_color: "Secondary"
+                                    adaptive_height: True
 
-                    MDScreen:
-                        name: "camfeed_live_screen"
+                        MDScreen:
+                            name: "camfeed_live_screen"
 
-                        Image:
-                            id: camera_feed
-                            size_hint: 1, 1
-                            allow_stretch: True
-                            keep_ratio: True
+                            Image:
+                                id: camera_feed
+                                size_hint: 1, 1
+                                allow_stretch: True
+                                keep_ratio: True
 
-                    MDScreen: 
-                        name: "camfeed_null_screen"
+                        MDScreen: 
+                            name: "camfeed_null_screen"
+
+                            MDLabel:
+                                text: "Empty Chamber Detected"
+                                halign: "center"
+
+                        MDScreen:
+                            name: "camfeed_alert_screen"
+
+                            MDBoxLayout:
+                                orientation: 'vertical'
+                                adaptive_height: True
+                                pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+                                spacing: 24
+                                padding: 16
+
+                                Image:
+                                    id: ic_alert
+                                    size_hint: None, None
+                                    height: 72
+                                    width: 72
+                                    allow_stretch:
+                                    keep_ratio: True
+                                    pos_hint: {"center_x":0.5}
+
+                                MDLabel:
+                                    id: txt_alert_title
+                                    text: "Warning!"
+                                    font_name: "assets/sf_txt_bold.ttf"
+                                    font_size: 24
+                                    halign: "center"
+                                    theme_text_color: "Custom"
+                                    text_color: app.color_palette["red"]
+                                    valign: "center"
+
+                                MDLabel:
+                                    id: txt_alert_message
+                                    text: "Warning message."
+                                    font_name: "assets/sf_txt_reg.ttf"
+                                    font_size: 18
+                                    halign: "center"
+                                    theme_text_color: "Custom"
+                                    text_color: 1, 1, 1, 1
+                                    adaptive_height: True
+
+                                Button:
+                                    text: "CONTINUE"
+                                    font_name: "assets/sf_txt_bold.ttf"
+                                    font_size: 18
+                                    background_normal: "res/btn_pill_gray_s.png"
+                                    background_down: "res/btn_pill_gray_s_down.png"
+                                    size_hint: None, None
+                                    height: 36
+                                    width: self.texture_size[0] + 24
+                                    pos_hint: {"center_x": 0.5}
+                                    on_release: app.freeze_alert()
+
+                    MDBoxLayout:
+                        id: camfeed_batch_id_view
+                        orientation: "vertical"
+                        size_hint: None, None
+                        height: 36
+                        padding: 10
+                        pos_hint: {"x":0.02, "top":0.97}
+
+                        canvas.before:
+                            Color:
+                                rgba: 1, 1, 1, 1 # Ensure the image renders at full brightness
+                            BorderImage:
+                                source: 'res/btn_pill_gray_s.png'
+                                pos: self.pos
+                                size: self.size
+                                border: [18, 18, 18, 18]
 
                         MDLabel:
-                            text: "Empty Chamber Detected"
-                            halign: "center"
-                    
+                            text: f"BATCH: {app.name_count_batch}"
+                            font_name: "assets/sf_txt_reg.ttf"
+                            font_size: 20
+                            halign: "left"
+                            theme_text_color: "Custom"
+                            text_color: 1, 1, 1, 1
+
+                    MDBoxLayout:
+                        orientation: "vertical"
+                        size_hint: None, None
+                        width: 140
+                        height: 70
+                        spacing: 5
+                        padding: 10
+                        pos_hint: {"x":0.02, "y":0.03}
+
+                        canvas.before:
+                            Color:
+                                rgba: 1, 1, 1, 1 # Ensure the image renders at full brightness
+                            BorderImage:
+                                source: 'res/btn_pill_gray_s.png'
+                                pos: self.pos
+                                size: self.size
+                                border: [18, 18, 18, 18]
+
+                        MDLabel:
+                            text: "PREDICTED:"
+                            font_name: "assets/sf_txt_reg.ttf"
+                            font_size: 20
+                            halign: "left"
+                            theme_text_color: "Custom"
+                            text_color: 1, 1, 1, 1
+
+                        MDLabel:
+                            id: camfeed_count
+                            text: "--"
+                            font_name: "assets/sf_txt_bold.ttf"
+                            font_size: 32
+                            halign: "left"
+                            theme_text_color: "Custom"
+                            adaptive_height: True
+                            text_color: app.color_palette["dark_blue"]
+                        
+
+                    SysIconButton:
+                        icon: "res/ic_expand_s.png"
+                        background_normal: "res/btn_pill_gray_s.png"
+                        background_down: "res/btn_pill_gray_s_down.png"
+                        pos_hint: {"right":0.98, "y":0.03}
+                        size_hint: None, None
+        
             # RIGHT PANE: Data & Controls
             MDBoxLayout:
                 orientation: 'vertical'
@@ -222,9 +357,9 @@ ScreenManager:
                                     id: water_temp_label
                                     text: "28.5 °C"
                                     theme_text_color: "Custom"
-                                    text_color: 0.2, 0.8, 0.2, 1 
+                                    text_color: app.color_palette["red"] if app.critical_temp else app.color_palette["green"] 
                                     font_name: "assets/sf_mono_bold.otf"
-                                    font_size: 30
+                                    font_size: 28
                                     size_hint_y: None
                                     height: self.texture_size[1]
 
@@ -247,9 +382,9 @@ ScreenManager:
                                     id: water_lvl_label
                                     text: "8.0 cm"
                                     theme_text_color: "Custom"
-                                    text_color: 0.2, 0.8, 0.2, 1  # Green
+                                    text_color: app.color_palette["red"] if app.critical_load else app.color_palette["blue"]
                                     font_name: "assets/sf_mono_bold.otf"
-                                    font_size: 30
+                                    font_size: 28
                                     size_hint_y: None
                                     height: self.texture_size[1]
 
@@ -269,11 +404,11 @@ ScreenManager:
 
                                 MDLabel:
                                     id: water_vol_label
-                                    text: "2.0 L"
+                                    text: "--"
                                     theme_text_color: "Custom"
-                                    text_color: 0.2, 0.8, 0.2, 1  # Green
+                                    text_color: app.color_palette["red"] if app.critical_load else app.color_palette["blue"]
                                     font_name: "assets/sf_mono_bold.otf"
-                                    font_size: 30
+                                    font_size: 28
                                     size_hint_y: None
                                     height: self.texture_size[1]
 
@@ -300,7 +435,7 @@ ScreenManager:
                                     markup: True
                                     text: "[font=assets/sf_txt_bold.ttf][size=24]OPERATING[/font][/size]\\n[size=20][font=assets/sf_txt_reg.ttf]AERATOR[/font][/size]" if self.is_active else "[font=assets/sf_txt_bold.ttf][size=24]IDLE[/font][/size]\\n[size=20][font=assets/sf_txt_reg.ttf]AERATOR[/font][/size]"
                                     halign: 'center'
-                                    color_on: '#0078ff'
+                                    color_on: app.color_palette["blue"]
                                     color_off: 0, 0.47, 1, 0.2
                                     line_height: 0.9
                                     cmd_on: lambda *args: app.talk_to_ard("aerator_on")
@@ -313,7 +448,7 @@ ScreenManager:
                                     markup: True
                                     text: "[font=assets/sf_txt_bold.ttf][size=24]ON[/font][/size]\\n[size=20][font=assets/sf_txt_reg.ttf]LED PANELS[/font][/size]" if self.is_active else "[font=assets/sf_txt_bold.ttf][size=24]OFF[/font][/size]\\n[size=20][font=assets/sf_txt_reg.ttf]LED PANELS[/font][/size]"
                                     halign: 'center'
-                                    color_on: 'ccba00'
+                                    color_on: app.color_palette["yellow"]
                                     color_off: 0.8, 0.73, 0, 0.2
                                     line_height: 0.9
                                     cmd_on: lambda *args: app.talk_to_ard("led_on")
@@ -457,18 +592,13 @@ ScreenManager:
             height: 36
             spacing: 12
 
-            Button:
+            SysIconButton:
                 id: btn_bck_dashboard
                 text: "Dashboard"
-                font_name: "assets/sf_txt_reg.ttf"
-                font_size: 18
+                icon: "res/ic_back.png"
                 background_normal: "res/btn_pill_gray_s.png"
                 background_down: "res/btn_pill_gray_s_down.png"
-                size_hint_x: None
-                width: self.texture_size[0] + 24
-                height: self.texture_size[1]
-                on_release: 
-                    app.go_to_dashboard()
+                on_release: app.go_to_dashboard()
 
             MDLabel:
                 text: "Settings"
@@ -588,6 +718,151 @@ ScreenManager:
                     size_hint: 1, None
                     height: self.minimum_height
                     padding: [19, 0, 19, 0]
+                    spacing: 0
+
+                    MDBoxLayout:
+                        orientation: 'horizontal'
+                        size_hint: 1, None
+                        height: 64
+                        spacing: 12
+
+                        MDLabel:
+                            text: "Set Minimum Water Temperature"
+                            halign: 'left'
+                            valign: 'center'
+                            font_name: "assets/sf_txt_reg.ttf"
+                            font_size: 24
+                            theme_text_color: "Custom"
+                            text_color: 1, 1, 1, 1
+                            size_hint: 1, 1
+
+                        ClickableImage:
+                            size_hint: None, None
+                            source: "res/ic_plus.png"
+                            width: 19
+                            height: 19
+                            allow_stretch: True
+                            keep_ratio: True
+                            pos_hint: {"center_y": .5}
+                            on_release: app.config_temp_setting(increase=True, param='min')
+
+                        TextInput:
+                            id: input_min_temp
+                            text: str(app.min_temp)
+                            multiline: False
+                            input_filter: 'float'
+                            input_type: 'number'
+                            halign: 'center'
+                            valign: 'center'
+                            on_text_validate: app.config_temp_setting(input=True, param='min')
+                            size_hint: None, None
+                            width: 100
+                            height: 42
+                            padding: [0,8,0,0]
+                            background_normal: 'res/bg_txt_field_inactive_opaque.png'
+                            background_active: 'res/bg_txt_field_active.png'
+                            border: [8, 8, 8, 8]  
+                            font_name: "assets/sf_txt_reg.ttf"
+                            font_size: 24
+                            foreground_color: 1, 1, 1, 1
+                            pos_hint: {"center_y": .5}
+
+                        MDLabel:
+                            text: "\u00B0 C"
+                            halign: 'left'
+                            font_name: "assets/sf_txt_reg.ttf"
+                            font_size: 24
+                            theme_text_color: "Custom"
+                            text_color: 0.5, 0.5, 0.5, 1
+                            size_hint: None, 1
+                            valigh: 'center'
+                            width: 40
+
+                        ClickableImage:
+                            size_hint: None, None
+                            source: "res/ic_minus.png"
+                            width: 19
+                            height: 19
+                            allow_stretch: True
+                            keep_ratio: True
+                            pos_hint: {"center_y": .5}
+                            on_release: app.config_temp_setting(decrease=True, param='min')
+
+                    MDSeparator:
+
+                    MDBoxLayout:
+                        orientation: 'horizontal'
+                        size_hint: 1, None
+                        spacing: 12
+                        height: 64
+
+                        MDLabel:
+                            text: "Set Maximum Water Temperature"
+                            halign: 'left'
+                            font_name: "assets/sf_txt_reg.ttf"
+                            font_size: 24
+                            theme_text_color: "Custom"
+                            text_color: 1, 1, 1, 1
+                            size_hint: 1, 1
+                            valigh: 'center'
+
+                        ClickableImage:
+                            size_hint: None, None
+                            source: "res/ic_plus.png"
+                            width: 19
+                            height: 19
+                            allow_stretch: True
+                            keep_ratio: True
+                            pos_hint: {"center_y": .5}
+                            on_release: app.config_temp_setting(increase=True, param='max')
+
+                        TextInput:
+                            id: input_max_temp
+                            text: str(app.max_temp)
+                            multiline: False
+                            input_filter: 'float'
+                            input_type: 'number'
+                            on_text_validate: app.config_temp_setting(input=True, param='max')
+                            halign: 'center'
+                            valign: 'center'
+                            size_hint: None, None 
+                            width: 100
+                            height: 42
+                            padding: [0,8,0,0]
+                            background_normal: 'res/bg_txt_field_inactive_opaque.png'
+                            background_active: 'res/bg_txt_field_active.png'
+                            border: [8, 8, 8, 8]  
+                            font_name: "assets/sf_txt_reg.ttf"
+                            font_size: 24
+                            foreground_color: 1, 1, 1, 1
+                            pos_hint: {"center_y": .5}
+
+                        MDLabel:
+                            text: "\u00B0 C"
+                            halign: 'left'
+                            font_name: "assets/sf_txt_reg.ttf"
+                            font_size: 24
+                            theme_text_color: "Custom"
+                            text_color: 0.5, 0.5, 0.5, 1
+                            size_hint: None, 1
+                            width: 40
+                            valigh: 'center'
+
+                        ClickableImage:
+                            size_hint: None, None
+                            source: "res/ic_minus.png"
+                            width: 19
+                            height: 19
+                            allow_stretch: True
+                            keep_ratio: True
+                            pos_hint: {"center_y": .5}
+                            on_release: app.config_temp_setting(decrease=True, param='max')
+
+                MDCard:
+                    orientation: 'vertical'
+                    size_hint: 1, None
+                    height: self.minimum_height
+                    padding: [19, 0, 19, 0]
 
                     ClickableMDLabel:
                         text: "Sync Logs to Cloud"
@@ -595,7 +870,7 @@ ScreenManager:
                         font_name: "assets/sf_txt_reg.ttf"
                         font_size: 24
                         theme_text_color: "Custom"
-                        text_color: '#008ade'
+                        text_color: app.color_palette["blue"]
                         size_hint: 1, None
                         height: 64
                         on_release: app.sync_db_logs_thread(show_snackbar = True)
@@ -608,7 +883,7 @@ ScreenManager:
                         font_name: "assets/sf_txt_reg.ttf"
                         font_size: 24
                         theme_text_color: "Custom"
-                        text_color: '#008ade'
+                        text_color: app.color_palette["blue"]
                         size_hint: 1, None
                         height: 64
                         on_release: 
@@ -622,7 +897,7 @@ ScreenManager:
                         font_name: "assets/sf_txt_reg.ttf"
                         font_size: 24
                         theme_text_color: "Custom"
-                        text_color: '#db3838'
+                        text_color: app.color_palette["red"]
                         size_hint: 1, None
                         height: 64
                         on_release: app.wipe_local_logs(show_dialog=True)
@@ -634,7 +909,7 @@ ScreenManager:
                     padding: [19, 12, 19, 8]
 
                     MDLabel:
-                        text: "Reliability Threshold"
+                        text: "Minimum Prediction Score"
                         halign: 'left'
                         font_name: "assets/sf_txt_reg.ttf"
                         font_size: 24
@@ -649,9 +924,9 @@ ScreenManager:
                         spacing: 8
 
                         Slider:
-                            min: 60
+                            min: 70
                             max: 100
-                            value: 80
+                            value: 85
                             step: 1
                             size_hint_x: 0.85
                             value_track: True
@@ -681,25 +956,60 @@ ScreenManager:
                             pos_hint: {"center_y": .5}
 
                 MDCard:
-                    orientation: 'horizontal'
+                    orientation: 'vertical'
                     size_hint: 1, None
-                    height: 64
-                    padding: 12
-                    spacing: 12
+                    height: self.minimum_height
+                    padding: [19, 0, 19, 0]
 
-                    MDLabel:
-                        text: "Capture Inference Result"
-                        halign: 'left'
-                        pos_hint: {"center_y": .5}
-                        font_name: "assets/sf_txt_reg.ttf"
-                        font_size: 24
+                    MDBoxLayout:
+                        orientation: 'horizontal'
                         size_hint: 1, None
                         height: 64
-                        size_hint_x: 1
+                        padding: [0, 12, 0, 12]
 
-                    ToggleSwitch:
-                        on_release: app.toggle_capture_inf(self.active)
-                        pos_hint: {"center_y": .5}
+                        MDLabel:
+                            text: "Capture Result"
+                            halign: 'left'
+                            pos_hint: {"center_y": .5}
+                            font_name: "assets/sf_txt_reg.ttf"
+                            font_size: 24
+                            size_hint: 1, None
+                            height: 64
+                            size_hint_x: 1
+
+                        ToggleSwitch:
+                            on_release: app.toggle_capture_inf(self.active)
+                            pos_hint: {"center_y": .5}
+
+                    MDSeparator:
+
+                    MDBoxLayout:
+                        orientation: 'horizontal'
+                        size_hint: 1, None
+                        height: 64
+                        padding: [0, 12, 0, 12]
+
+                        ClickableMDLabel:
+                            text: "Camera Resolution"
+                            halign: 'left'
+                            pos_hint: {"center_y": .5}
+                            font_name: "assets/sf_txt_reg.ttf"
+                            font_size: 24
+                            size_hint: 1, None
+                            height: 64
+                            size_hint_x: 0.6
+                            on_release: app.show_cam_res_dialog()
+
+                        ClickableMDLabel:
+                            id: txt_cam_res
+                            text: f"{app.def_cam_res} at {app.cam_res[app.def_cam_res][2]} fps"
+                            halign: 'right'
+                            font_name: "assets/sf_txt_reg.ttf"
+                            font_size: 24
+                            theme_text_color: "Custom"
+                            text_color: 1, 1, 1, 0.5
+                            size_hint_x: 0.4
+                            on_release: app.show_cam_res_dialog()
 
                 MDCard:
                     orientation: 'horizontal'
@@ -716,7 +1026,7 @@ ScreenManager:
                         font_name: "assets/sf_txt_reg.ttf"
                         font_size: 24
                         theme_text_color: "Custom"
-                        text_color: '#db3838'
+                        text_color: app.color_palette["red"]
                         size_hint: 1, None
                         height: 64
 
@@ -737,18 +1047,13 @@ ScreenManager:
             height: 36
             spacing: 12
 
-            Button:
-                id: logs_btn_bck_dashboard
+            SysIconButton:
+                id: btn_bck_dashboard
                 text: "Dashboard"
-                font_name: "assets/sf_txt_reg.ttf"
-                font_size: 18
+                icon: "res/ic_back.png"
                 background_normal: "res/btn_pill_gray_s.png"
                 background_down: "res/btn_pill_gray_s_down.png"
-                size_hint_x: None
-                width: self.texture_size[0] + 24
-                height: self.texture_size[1]
-                on_release: 
-                    app.go_to_dashboard()
+                on_release: app.go_to_dashboard()
 
             MDLabel:
                 text: "Logs"
@@ -772,16 +1077,12 @@ ScreenManager:
                 keep_ratio: 
                 pos_hint: {"center_y": .5}
 
-            Button:
+            SysIconButton:
                 id: logs_btn_bck_dashboard
+                icon: "res/ic_sync.png"
                 text: "Sync Logs"
-                font_name: "assets/sf_txt_reg.ttf"
-                font_size: 18
                 background_normal: "res/btn_pill_gray_s.png"
                 background_down: "res/btn_pill_gray_s_down.png"
-                size_hint_x: None
-                width: self.texture_size[0] + 24
-                height: self.texture_size[1]
                 on_release: app.sync_db_logs_thread(show_snackbar = True)
 
         RecycleView:
@@ -797,16 +1098,22 @@ ScreenManager:
                 orientation: 'vertical'
                 spacing: dp(15)
                 padding: dp(20)
+
+# ---------------------------------------------------FULL SCREEN---------------------------------------------------------
+<FullScreen>:
+    name: "full_view"
+
 # --------------------------------------------------CUSTOM CLASSES-------------------------------------------------------
 <Snackbar>:
     id: snackbar
     orientation: "horizontal"
-    size_hint: None, None
-    size: 480, 48
+    size_hint_y: None
+    height: 48
+    adaptive_width: True 
     opacity: 0
     pos_hint: {"center_x": 0.5, "center_y": 0.05} 
     spacing: 10
-    padding: 14
+    padding: [16, 0, 16, 0]
     elevation: 3
     shadow_color: 0, 0, 0, 0.2
 
@@ -823,23 +1130,23 @@ ScreenManager:
     Image:
         id: toast_icon
         size_hint: None, None
-        source: 'res/ic_warn_s.png' if root.warning_mode else 'res/ic_info_s.png'
+        source: 'res/ic_warning_s.png' if root.warning_mode else 'res/ic_info_s.png'
         width: 26
         height: 26
         allow_stretch: True
         keep_ratio: True
         pos_hint: {"center_y": .5}
-
     
     MDLabel:
         id: toast_text
-        text: self.text
+        text: ""
         font_name: 'assets/sf_txt_reg.ttf'
         font_size: 20
         theme_text_color: "Custom"
         text_color: (1, 1, 1, 1) if root.warning_mode else (0, 0, 0, 1)
         halign: 'left'
-        width: self.texture_size[0]
+        valign: 'center'
+        adaptive_width: True
 
 <BatchCountDialog@Popup>
     width: 500
@@ -1064,7 +1371,7 @@ ScreenManager:
 
 <ExportLogsDialog>
     width: 500
-    height: 460
+    height: 380
     size_hint: None, None
     background: ''
     background_color: 0, 0, 0, 0
@@ -1072,11 +1379,12 @@ ScreenManager:
     title: ""
     command_on_proceed: app.export_logs
     auto_dismiss: False
+    palette: app.color_palette
 
     MDBoxLayout:
         orientation: 'vertical'
         size_hint: 1, None
-        height: 460
+        height: 380
         spacing: 28
         padding: 12
 
@@ -1104,7 +1412,7 @@ ScreenManager:
                 halign: 'left'
 
             MDLabel:
-                text: "Logs are exported in csv format via email. Enter the email address and pick the range of log date you want to export."
+                text: "Logs are exported in csv format. Enter email address and pick range of to export."
                 font_name: "assets/sf_txt_reg.ttf"
                 font_size: 20
                 text_color: 1, 1, 1, 1
@@ -1114,7 +1422,7 @@ ScreenManager:
         MDBoxLayout:
             orientation: 'vertical'
             size_hint: 1, None
-            height: 204
+            height: 72
             spacing: 12
 
             TextInput:
@@ -1131,91 +1439,58 @@ ScreenManager:
                 font_size: 24
                 foreground_color: 1, 1, 1, 1
 
-            MDCard:
-                orientation: 'vertical'
+            MDBoxLayout:
+                orientation: 'horizontal'
                 size_hint: 1, None
                 height: self.minimum_height
                 padding: [12, 0, 12, 0]
-                radius: [9,9,9,9]
+                spacing: 12
 
-                MDBoxLayout:
+                MDCard:
+                    id: opt_1
                     orientation: 'horizontal'
                     size_hint: 1, None
                     spacing: 19
                     height: 48
-
-                    Image:
-                        id: check_1
-                        size_hint: None, None
-                        source: 'res/ic_check_s.png'
-                        width: 20
-                        height: 20
-                        allow_stretch: True
-                        keep_ratio: True
-                        pos_hint: {"center_y": .5}
+                    radius: [24]
 
                     ClickableMDLabel:
-                        id: opt_1
-                        text: "Last 7 days"
-                        halign: 'left'
+                        text: "Last Week"
+                        halign: 'center'
                         font_name: "assets/sf_txt_reg.ttf"
                         font_size: 20
                         size_hint: 1, None
                         height: 48
                         on_release: root.set_timerange("opt_1")
 
-                MDSeparator:
-                    padding: [30, 0, 0, 0]
-
-                MDBoxLayout:
+                MDCard:
+                    id: opt_2
                     orientation: 'horizontal'
                     size_hint: 1, None
                     spacing: 19
                     height: 48
-
-                    Image:
-                        id: check_2
-                        size_hint: None, None
-                        source: 'res/ic_check_s.png'
-                        width: 20
-                        height: 20
-                        allow_stretch: True
-                        keep_ratio: True
-                        pos_hint: {"center_y": .5}
+                    radius: [24]
 
                     ClickableMDLabel:
-                        id: opt_2
-                        text: "Last 30 days"
-                        halign: 'left'
+                        text: "Last Month"
+                        halign: 'center'
                         font_name: "assets/sf_txt_reg.ttf"
                         font_size: 20
                         size_hint: 1, None
                         height: 48
                         on_release: root.set_timerange("opt_2")
 
-                MDSeparator:
-                    padding: [30, 0, 0, 0]
-
-                MDBoxLayout:
+                MDCard:
+                    id: opt_3
                     orientation: 'horizontal'
                     size_hint: 1, None
-                    height: 48
                     spacing: 19
-
-                    Image:
-                        id: check_3
-                        size_hint: None, None
-                        source: 'res/ic_check_s.png'
-                        width: 20
-                        height: 20
-                        allow_stretch: True
-                        keep_ratio: True
-                        pos_hint: {"center_y": .5}
+                    height: 48
+                    radius: [24]
 
                     ClickableMDLabel:
-                        id: opt_3
                         text: "All time"
-                        halign: 'left'
+                        halign: 'center'
                         font_name: "assets/sf_txt_reg.ttf"
                         font_size: 20
                         size_hint: 1, None
@@ -1248,6 +1523,136 @@ ScreenManager:
                 background_normal: "res/btn_pill_blue_l.png"
                 background_down: "res/btn_pill_blue_l_down.png"
                 on_release: root.execute_proceed(root.ids.input_email.text, root.input_timerange)
+
+<CamResDialog>
+    width: 500
+    height: 390
+    size_hint: None, None
+    background: ''
+    background_color: 0, 0, 0, 0
+    separator_height: 0
+    title: ""
+    command_on_proceed: app.config_cam_res
+    auto_dismiss: False
+    palette: app.color_palette
+    default_opt: app.def_cam_res
+
+    MDBoxLayout:
+        orientation: 'vertical'
+        size_hint: 1, None
+        height: 400
+        spacing: 19
+        padding: 12
+
+        canvas.before:
+            Color:
+                rgba: 1, 1, 1, 1 # Ensure the image renders at full brightness
+            BorderImage:
+                source: 'res/bg_dialog.png'
+                pos: self.pos
+                size: self.size
+                border: [35, 35, 35, 35]
+
+        MDBoxLayout:
+            orientation: 'vertical'
+            size_hint: 1, 1
+            spacing: 12
+            padding: [15, 10, 15, 8]
+
+            MDLabel:
+                text: "Change Camera Resolution"
+                font_name: "assets/sf_txt_bold.ttf"
+                font_size: 24
+                text_color: 1, 1, 1, 1
+                size_hint_x: 1
+                halign: 'left'
+
+            MDLabel:
+                text: "Higher resolution results to lower frame rate but gives you higher quality images."
+                font_name: "assets/sf_txt_reg.ttf"
+                font_size: 20
+                text_color: 1, 1, 1, 1
+                size_hint_x: 1
+                halign: 'left'
+                height: self.texture_size[1]
+
+            MDCard:
+                id: opt_1
+                orientation: 'vertical'
+                size_hint: 1, None
+                height: 48
+                padding: [12, 0, 12, 0]
+                radius: [24]
+                on_release: root.select("opt_1")
+                
+                MDLabel:
+                    text: "4K at 10fps"
+                    font_name: "assets/sf_txt_reg.ttf"
+                    font_size: 20
+                    text_color: 1, 1, 1, 1
+                    size_hint_x: 1
+                    halign: 'center'
+
+            MDCard:
+                id: opt_2
+                orientation: 'vertical'
+                size_hint: 1, None
+                height: 48
+                padding: [12, 0, 12, 0]
+                radius: [24]
+                on_release: root.select("opt_2")
+                
+                MDLabel:
+                    text: "2K at 15fps"
+                    font_name: "assets/sf_txt_reg.ttf"
+                    font_size: 20
+                    text_color: 1, 1, 1, 1
+                    size_hint_x: 1
+                    halign: 'center'
+
+            MDCard:
+                id: opt_3
+                orientation: 'vertical'
+                size_hint: 1, None
+                height: 48
+                padding: [12, 0, 12, 0]
+                radius: [24]
+                on_release: root.select("opt_3")
+                
+                MDLabel:
+                    text: "1080p at 20fps"
+                    font_name: "assets/sf_txt_reg.ttf"
+                    font_size: 20
+                    text_color: 1, 1, 1, 1
+                    size_hint_x: 1
+                    halign: 'center'
+
+        MDBoxLayout:
+            orientation: 'horizontal'
+            size_hint: 1, None
+            spacing: 12
+            height: 64
+
+            Button:
+                text: "CANCEL"
+                size_hint: 1, None
+                height: 56
+                font_size: 24
+                font_name: "assets/sf_txt_bold.ttf"
+                background_normal: "res/btn_pill_gray_l.png"
+                background_down: "res/btn_pill_gray_l_down.png"
+                on_release:
+                    root.dismiss()
+
+            Button:
+                text: "SAVE"
+                size_hint: 1, None
+                height: 56
+                font_size: 24
+                font_name: "assets/sf_txt_bold.ttf"
+                background_normal: "res/btn_pill_blue_l.png"
+                background_down: "res/btn_pill_blue_l_down.png"
+                on_release: root.execute_proceed(root.selected_opt)
 
 <SystemDialog>
     width: 500
@@ -1411,16 +1816,10 @@ ScreenManager:
             text: root.log_timestamp
             halign: 'left'
 
-        Button:
-            id: btn_bck_dashboard
-            text: "DELETE"
-            font_name: "assets/sf_txt_reg.ttf"
-            font_size: 18
+        SysIconButton:
+            icon: "res/ic_trash_s.png"
             background_normal: "res/btn_pill_gray_s.png"
             background_down: "res/btn_pill_gray_s_down.png"
-            size_hint_x: None
-            width: self.texture_size[0] + 24
-            height: self.texture_size[1]
             on_release: app.del_log_entry(target_uuid=root.log_uuid, show_dialog=True)
 
     MDLabel:
@@ -1439,7 +1838,7 @@ ScreenManager:
         height: self.texture_size[1]
         font_size: 24
         halign: 'left'
-        text: f"[font=assets/sf_mono_reg.otf][color=#ffffff]OPERATOR: [/font][/color][font=assets/sf_mono_reg.otf][color=#008ade]{root.log_name_op}[/font][/color]"
+        text: f"[font=assets/sf_mono_reg.otf][color=#ffffff]OPERATOR: [/font][/color][font=assets/sf_mono_reg.otf][color=#0078ff]{root.log_name_op}[/font][/color]"
 
     MDLabel:
         markup: True
@@ -1448,7 +1847,7 @@ ScreenManager:
         height: self.texture_size[1]
         font_size: 24
         halign: 'left'
-        text: f"[font=assets/sf_mono_reg.otf][color=#ffffff]PL COUNT: [/font][/color][font=assets/sf_mono_reg.otf][color=#008ade]{root.log_pl_count}[/font][/color]"
+        text: f"[font=assets/sf_mono_reg.otf][color=#ffffff]PL COUNT: [/font][/color][font=assets/sf_mono_reg.otf][color=#0078ff]{root.log_pl_count}[/font][/color]"
 
     MDLabel:
         markup: True
@@ -1457,7 +1856,7 @@ ScreenManager:
         height: self.texture_size[1]
         font_size: 24
         halign: 'left'
-        text: f"[font=assets/sf_mono_reg.otf][color=#ffffff]SUB-BATCHES: [/font][/color][font=assets/sf_mono_reg.otf][color=#008ade]{root.log_num_sbatches}[/font][/color]"    
+        text: f"[font=assets/sf_mono_reg.otf][color=#ffffff]SUB-BATCHES: [/font][/color][font=assets/sf_mono_reg.otf][color=#0078ff]{root.log_num_sbatches}[/font][/color]"    
 
     MDLabel:
         markup:True
@@ -1513,7 +1912,64 @@ ScreenManager:
             width: 16
 
     MDSeparator:
+
+<SysIconButton>:
+    orientation: 'horizontal'
+    size_hint_x: None
+    height: 36
+    width: content_box.width + 5 if self.text else content_box.width
+
+    background_normal: "res/btn_pill_gray_s.png"
+    background_down: "res/btn_pill_gray_s_down.png"
+    
+    canvas.before:
+        Color:
+            rgba: 1, 1, 1, 1
+        BorderImage:
+            pos: self.pos
+            size: self.size
+            source: root.background_down if self.state == 'down' else root.background_normal
+            border: [18, 18, 18, 18]
+
+    BoxLayout:
+        id: content_box
+        orientation: 'horizontal'
+        size_hint_x: None
+        width: self.minimum_width
+        spacing: 5 if root.text else 0
+        padding: [6, 0, 6, 0]
+
+        Image:
+            source: root.icon
+            size_hint: None, None
+            size: 24, 24
+            pos_hint: {'center_y': .5}
+            allow_stretch: True
+
+        Label:
+            id: label_id
+            text: root.text
+            font_size: 18
+            font_name: "assets/sf_txt_reg.ttf"
+            halign: 'left'
+            valign: 'center'
+            size_hint_x: None
+            text_size: None, self.height
+            width: self.texture_size[0]
 '''
+def smooth_anim_curve(t):
+    """Smooth anumation curve based on the Cubic Bézier curve"""
+    p1x, p1y = 0.01, 1.0
+    p2x, p2y = 0.1, 1.2
+    u = t
+    for _ in range(5):
+        current_x = 3 * (1 - u)**2 * u * p1x + 3 * (1 - u) * u**2 * p2x + u**3
+        dx = 3 * (1 - u)**2 * p1x + 6 * (1 - u) * u * (p2x - p1x) + 3 * u**2 * (1 - p2x)
+        if abs(dx) < 1e-6:
+            break
+        u -= (current_x - t) / dx
+        u = max(0.0, min(1.0, u))
+    return 3 * (1 - u)**2 * u * p1y + 3 * (1 - u) * u**2 * p2y + u**3
 
 def config_conn_wifi(ssid, password):
     try:
@@ -1585,37 +2041,63 @@ class SettingsScreen(Screen):
 class LogsScreen(Screen):
     pass
 
+class FullScreen(Screen):
+    pass
+
 class UlangSystemApp(MDApp):
-#===STATUS
+    # SYSTEM STATUS
     count_active = BooleanProperty(False) # For switching UI interface mode
     is_counting = BooleanProperty(False) # Inference active state
     is_cam_initializing = BooleanProperty(False)
-
+    active_alert = BooleanProperty(False)
+    empty_chamber = True
+    critical_temp = BooleanProperty(False)
+    critical_load = BooleanProperty(False)
+    monitoring_freezed = BooleanProperty(False) # Set to True if chamber condition is non-critical or currently timed out
+    
+    alert_msg = {
+        'CRITICAL_TEMP':"Water temperature exceeds acceptable level. Counting process is temporarily paused.",
+        'CRITICAL_LOAD':"Water level is too high. Please reduce water from the container."
+    }
+    
     # Connectivity Status
     is_online = BooleanProperty(False)
     wifi_on = BooleanProperty(False)
     wifi_stat = ['disconnected', '1', '2', '3', '4']
     wifi_strength = NumericProperty(0)
 
-    capture_inf = BooleanProperty(False)
+    # YOLO model path
+    model_path = 'models/pre-trained/ulangn-obb-annotator-v6-3_ncnn_model'
 
-#===PLACEHOLDERS
+    # UI Elements
     dialog = None
     snackbar = None
+    current_active_widget = ObjectProperty(None, allownone=True)
+    color_palette = {
+        "red":'#db3838',
+        "blue":'#0078ff',
+        "green":'#38db5c',
+        "yellow":'#ccba00',
+        "dark_gray":'#2e2e2e',
+        "dark_blue":'#0000a2'
+        }
 
+    # Settings
+    capture_inf = BooleanProperty(False)
+    timeout_scan = NumericProperty(10)
+    def_cam_res = OptionProperty("4K", options=["4K", "2K", "1080p"])
+    cam_res = {
+        "4K" : [4608, 2592, 10],
+        "2K" : [2304, 1296, 15],
+        "1080p" : [1920, 1080, 20] } # Values are in [W, H, fps] format
+    
+    min_temp = 27.0
+    max_temp = 31.0
+    max_load = 10 #In kilograms
+    sub_optimal_temp = [23.2, 32.9]
+
+    # Placeholders
     sub_batch_history = {}
-    payload = {
-        "log_uuid": None, #Auto-generated
-        "timestamp": None,
-        "batch_id": None,
-        "op_name": None,
-        "total_pl_count": None,
-        "num_of_sbatch": None,
-        "counts_of_sbatch": None,
-        "model_version": None,
-        "accuracy": None
-    }
-
     name_count_batch = ""
     name_operator = ""
     total_batches_created = NumericProperty(0)
@@ -1623,13 +2105,32 @@ class UlangSystemApp(MDApp):
     reliability_score = ObjectProperty(0.0)
     reliability_threshold = ObjectProperty(0.8)
     reliability_scores = []
+    water_vol = NumericProperty(0.0)
+    water_vol_array = []
+    water_temp = NumericProperty(0.0)
+    water_temp_array = []
+    count_timer = NumericProperty(0.0)
+    count_timer_array = []
+    batch_uuid = StringProperty("")
 
-    current_active_widget = ObjectProperty(None, allownone=True)
-    empty_chamber = True
+    payload = {
+            "local_id": None, #Auto-generated uuid
+            "timestamp": None,
+            "batch_id": None,
+            "op_name": None,
+            "count_total_pl": None,
+            "num_sbatch": None,
+            "count_per_sbatch": None,
+            "model_version": None,
+            "rel": None,
+            "ave_temp": None,
+            "ave_approx_density": None,
+            "time_elapsed": None
+        }
 
-#===SUPABASE CLIENT
+    # Online Database: Supabase Client
     SUPABASE_API_URL = 'https://nltmvrjxasslpqbdyamg.supabase.co'
-    SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sdG12cmp4YXNzbHBxYmR5YW1nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2MjcwNzUsImV4cCI6MjA5OTIwMzA3NX0.LCwGdbW5DVKSjl8Qql65LjQQgjOYMkhre7y3q94Eo68'
+    SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sdG12cmp4YXNzbHBxYmR5YW1nIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MzYyNzA3NSwiZXhwIjoyMDk5MjAzMDc1fQ.u3AtVGmKXwP9r9JfvfpVrvcRdZZ7ujskrE5tFM1ZdoU'
 
     def build(self):
         self.theme_cls.theme_style = "Dark"
@@ -1660,6 +2161,7 @@ class UlangSystemApp(MDApp):
             self.arduino = serial.Serial('/dev/ttyUSB0', 115200, timeout=1)
             time.sleep(2)
             print("[INFO] Arduino Active via UART")
+
         except Exception as e:
             self.arduino = None
             print(f"[WARNING] Arduino Unavailable: {e}")
@@ -1668,7 +2170,7 @@ class UlangSystemApp(MDApp):
         return Builder.load_string(INTERFACE)
 
     def on_start(self):
-        """Called automatically after the app builds. We set up GPIO here."""
+        """Called automatically after the app builds."""
         self.right_pane = self.root.ids.dashboard_screen.ids.data_pane_sm
         self.right_pane.current = "panel_count_inactive"
         self.btm_btn = self.root.ids.dashboard_screen.ids.btm_btn_container
@@ -1685,31 +2187,47 @@ class UlangSystemApp(MDApp):
             self.btn_settings.when_pressed = lambda: Clock.schedule_once(self.go_to_settings)
 
             self.btn_home = HardwareButton(27)
-            self.btn_home.when_pressed = lambda: Clock.schedule_once(self.hboard)
+            self.btn_home.when_pressed = lambda: Clock.schedule_once(self.go_to_dashboard)
 
             self.btn_start = HardwareButton(22)
             self.btn_start.when_pressed = lambda: Clock.schedule_once(self.start_batch_count)
 
-        #Initialize camera
+        # Initialize camera
         self.start_camera_loading()
+
+        # Initialize Raspi-Arduino Listener
         listener = threading.Thread(target=self.listen_to_ard, daemon=True)
         listener.start()
 
-#===Arduino-Raspi Communication Protocol
+    # Arduino-Raspi Communication Protocol
     @mainthread
     def update_sensor_reads(self, data):
-        """@mainthread: Updates the screen with the JSON data"""
-        # Because we used on_start, we know for a fact these IDs exist!
+        """@mainthread: Updates the screen with the JSON data from the Arduino"""
         wtrlvl = data.get('wtrlvl')
-        self.root.ids.dashboard_screen.ids.water_temp_label.text = f"{data.get('temp')} °C"
+        wtrtemp = data.get('temp')
+        self.root.ids.dashboard_screen.ids.water_temp_label.text = f"{wtrtemp} °C"
         self.root.ids.dashboard_screen.ids.water_lvl_label.text = f"{wtrlvl} cm"
+
+        if not wtrtemp=='--':
+            self.water_temp = 30.0 #float(wtrtemp) Temporarily set to optimal
+
+            if self.count_active:
+                self.water_temp_array.append(wtrtemp)
+
  
         if not wtrlvl=="--":
-            #Calculate the water volume here, output in liters
+            #Calculate the water volume here, output in liters (L)
             wtrvol = (34 * 19 * float(wtrlvl))/1000
+            self.water_vol = wtrvol
+
+            if self.count_active:
+                self.water_vol_array.append(wtrvol)
+            
+            self.root.ids.dashboard_screen.ids.water_vol_label.text = f"{wtrvol:.2f} L"
+
         else:
             wtrvol="--"
-        self.root.ids.dashboard_screen.ids.water_vol_label.text = f"{wtrvol:.2f} L"
+            self.root.ids.dashboard_screen.ids.water_vol_label.text = f"{wtrvol} L"
 
     def listen_to_ard(self):
         """
@@ -1717,20 +2235,20 @@ class UlangSystemApp(MDApp):
         """
         while True:
             if self.arduino:
-                # 1. PING: Ask the Arduino for the latest sensor readings
+                # Ping the Arduino for the latest sensor readings
                 ping_cmd = json.dumps({"command": "get_sensors"}) + "\n"
                 self.arduino.write(ping_cmd.encode('utf-8'))
                 
-                # Give the microcontroller a fraction of a second to reply
+                # MCU response wait
                 time.sleep(0.1)
                 
-                # 2. PONG: Read the incoming response
+                # Read the incoming response
                 if self.arduino.in_waiting > 0:
                     try:
                         raw_data = self.arduino.readline().decode('utf-8').strip()
                         sensor_data = json.loads(raw_data)
-                        print(f"[Sensors Updated] Temp: {sensor_data.get('temp')}°C, Lvl: {sensor_data.get('wtrlvl')}")
                         self.update_sensor_reads(sensor_data)
+                        print(f"[Sensors Updated] Temp: {sensor_data.get('temp')}°C, Lvl: {sensor_data.get('wtrlvl')}")
                         
                     except json.JSONDecodeError:
                         print("Failed to decode JSON from Arduino.")
@@ -1745,14 +2263,19 @@ class UlangSystemApp(MDApp):
         """
         Triggered by the Main UI Thread when a technician taps a Kivy button.
         """
-        command_dict = {"command": action}
-        
-        # Convert Python dictionary to JSON string and add the newline delimiter
-        json_string = json.dumps(command_dict) + "\n"
-        
-        # Send it down the USB wire
-        self.arduino.write(json_string.encode('utf-8'))
-        print(f"Sent command to Arduino: {action}")
+        try:
+            command_dict = {"command": action}
+            
+            # Convert Python dictionary to JSON string and add the newline delimiter
+            json_string = json.dumps(command_dict) + "\n"
+            
+            # Send it down the USB wire
+            self.arduino.write(json_string.encode('utf-8'))
+            print(f"Sent command to Arduino: {action}")
+
+        except:
+            self.show_snackbar(message="Warning: Crontroller is unavailable", warning_mode=True)
+            print("[Error] Arduino is not responding")
 
     def exit_program(self):
         print("[INFO] System shutting down...")
@@ -1774,30 +2297,57 @@ class UlangSystemApp(MDApp):
     def get_fade_transition(self):
         return FadeTransition(duration=0.1)
 
-#===Camera and Image Processing and AI Inference
-    def start_camera_loading(self):
-        """1. Resets the UI and spawns the background worker."""
-        if hasattr(self, 'picam2') or self.is_cam_initializing:
-            return
-        self.is_cam_initializing = True
-        self.root.ids.dashboard_screen.ids.camfeed_pane.current = "camfeed_loading_screen"
-        threading.Thread(target=self._init_hardware, daemon=True).start()
+    # [SECTION] Camera and Image Processing and AI Inference Pipeline
+    def start_camera_loading(self, anti_loop:bool = False, *args):
+        """Resets the UI and spawns the background worker."""
+        dashboard_screen = self.root.ids.dashboard_screen
+        camfeed = self.root.ids.dashboard_screen.ids.camfeed_pane
+
+        if not self.monitoring_freezed:
+            # Checks the temperature and water level first before loading the camera if alert is not timed out
+            if not anti_loop:
+                self.check_chamber_stat(0)
+        
+        else:
+            # If checking is queued, temporarily disable the alert
+            self.active_alert = False
+        
+        if self.active_alert:
+            if self.critical_temp:
+                if self.critical_load:
+                    camfeed.current = "camfeed_alert_screen"
+                    dashboard_screen.ids.ic_alert.source = 'res/ic_water_level.png'
+                    dashboard_screen.ids.txt_alert_title.text = "Critical Water Level"
+                    dashboard_screen.ids.txt_alert_message.text = self.alert_msg["CRITICAL_LOAD"]
+
+                else:  
+                    camfeed.current = "camfeed_alert_screen"
+                    dashboard_screen.ids.ic_alert.source = 'res/ic_temperature.png'
+                    dashboard_screen.ids.txt_alert_title.text = "Critical Temperature"
+                    dashboard_screen.ids.txt_alert_message.text = self.alert_msg["CRITICAL_TEMP"]
+
+        else:
+            if hasattr(self, 'picam2') or self.is_cam_initializing:
+                return
+            self.is_cam_initializing = True
+            self.root.ids.dashboard_screen.ids.camfeed_pane.current = "camfeed_loading_screen"
+            threading.Thread(target=self._init_hardware, daemon=True).start()
 
     def _init_hardware(self):
         """@backgroundthread: Initializes capturing and loading AI model"""
         try:
             self.picam2 = Picamera2()
             vd_config = self.picam2.create_video_configuration(
-                main={"size": (4608, 2592), "format": "RGB888"}
+                main={"size": (self.cam_res[self.def_cam_res][0], self.cam_res[self.def_cam_res][1]), "format": "RGB888"}
             )
             self.picam2.configure(vd_config)
             self.picam2.start_preview(Preview.NULL)
-            self.picam2.set_controls({"AfMode": controls.AfModeEnum.Manual, "LensPosition": 1.8})
+            self.picam2.set_controls({"AfMode": controls.AfModeEnum.Continuous})
             self.picam2.start()
             
-            self.model = YOLO("models/pre-trained/ulangn-obb-annotator_v5-0_ncnn_model")
+            self.model = YOLO(self.model_path)
             
-            #---Initialize Fuzzy Evaluator---
+            # Initialize Fuzzy Evaluation
             self.fuzzy_sim = self.init_fuzzy()
             self.prev_count = 0 
             
@@ -1818,7 +2368,8 @@ class UlangSystemApp(MDApp):
         """@backgroundthread: Grabs camera live feed frames, runs inference, 
         initializes fuzzy logic, and passes the output to UI when reliability 
         score threshold is met."""
-        targ_fps = 10
+
+        targ_fps = self.cam_res[self.def_cam_res][2]
         targ_frame_time = 1/targ_fps
 
         while True:
@@ -1832,7 +2383,7 @@ class UlangSystemApp(MDApp):
                     if inf_result[0].obb is not None:
                         inf_count = len(inf_result[0].obb)
                         
-                        # --- 1. CRISP VARIABLE EXTRACTION ---
+                        # Crisp Values Extraction
                         # Mean Confidence
                         confs = inf_result[0].obb.conf.cpu().numpy()
                         c_mean = confs.mean() if len(confs) > 0 else 0.0
@@ -1842,13 +2393,18 @@ class UlangSystemApp(MDApp):
                         v_temp = min(v_temp, 1.0) # Cap at 100%
 
                         # Clumping Index (Density Proxy)
-                        # Calculates the total area taken up by OBBs relative to frame size
-                        # High density mathematically correlates to severe clumping
-                        boxes = inf_result[0].obb.xywhr.cpu().numpy()
-                        total_box_area = sum([w * h for _, _, w, h, _ in boxes])
-                        c_index = min(total_box_area / (4608 * 2592), 1.0) 
+                        c_index = 0.0
+                        if inf_count > 1:
+                            # Extract normalized corner points (xyxyxyxyn)
+                            corners = inf_result[0].obb.xyxyxyxyn.cpu().numpy()
+                            pred_polys = [Polygon(c) for c in corners]
+                            
+                            area_total = sum(p.area for p in pred_polys)
+                            if area_total > 0:
+                                area_union = unary_union(pred_polys).area
+                                c_index = max(0.0, min(1.0 - (area_union / area_total), 1.0)) 
                         
-                        # --- 2. FUZZY EVALUATION ---
+                        # Fuzzy Evaluation
                         self.fuzzy_sim.input['confidence'] = c_mean
                         self.fuzzy_sim.input['clumping'] = c_index
                         self.fuzzy_sim.input['variance'] = v_temp
@@ -1857,28 +2413,27 @@ class UlangSystemApp(MDApp):
                         try:
                             self.fuzzy_sim.compute()
                             frame_reliability = self.fuzzy_sim.output['reliability']
+
                         except KeyError:
                             # Safeguard from KeyError
                             frame_reliability = 0.0
-                        print(f"[FUZZY] Conf: {c_mean:.2f} | Var: {v_temp:.2f} | Rel: {frame_reliability:.2f}")
+                        print(f"[FUZZY] Conf: {c_mean:.2f} | Clump: {c_index:.2f} | Var: {v_temp:.2f} | Rel: {frame_reliability:.2f}")
 
-                        # --- 3. LOCK THE COUNT ---
+                        # Count locking mechanism
                         if frame_reliability >= self.reliability_threshold:
                             if self.capture_inf:
-                                # 1. Create a directory and timestamp for the export
-                                save_dir = "locked_frames_log"
+                                # directory for the export
+                                save_dir = f"res_captured/{self.batch_uuid}"
                                 os.makedirs(save_dir, exist_ok=True)
-                                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                                base_path = os.path.join(save_dir, f"batch_{timestamp}")
+                                base_path = os.path.join(save_dir, f"{self.batch_uuid}_SB{self.total_batches_created}")
                                 
-                                # 2. Save the RAW Image
+                                # RAW Image
                                 # The camera captures in RGB888, but OpenCV's imwrite requires BGR
-                                bgr_frame = cv2.cvtColor(hi_res_frame, cv2.COLOR_RGB2BGR)
-                                cv2.imwrite(f"{base_path}.jpg", bgr_frame)
+                                # bgr_frame = cv2.cvtColor(hi_res_frame, cv2.COLOR_RGB2BGR)
+                                cv2.imwrite(f"{base_path}.jpg", hi_res_frame)
                                 
-                                # 3. Save the YOLO-OBB annotations (.txt)
+                                # YOLO-OBB annotations (.txt)
                                 with open(f"{base_path}.txt", "w") as f:
-                                    # Extract classes and pre-normalized corners (0.0 to 1.0 scale)
                                     classes = inf_result[0].obb.cls.cpu().numpy()
                                     norm_corners = inf_result[0].obb.xyxyxyxyn.cpu().numpy()
                                     
@@ -1889,7 +2444,7 @@ class UlangSystemApp(MDApp):
                                         # Format: class_id x1 y1 x2 y2 x3 y3 x4 y4
                                         f.write(f"{cls_id} {c[0][0]:.6f} {c[0][1]:.6f} {c[1][0]:.6f} {c[1][1]:.6f} {c[2][0]:.6f} {c[2][1]:.6f} {c[3][0]:.6f} {c[3][1]:.6f}\n")
                                 
-                                print(f"[LOG] Saved locked frame and OBB data to {base_path}")
+                                print(f"[LOG] Saved captured results to {base_path}")
 
                             # Safely hand the final count back to the Main UI Thread
                             Clock.schedule_once(lambda dt, count=inf_count: self._lock_sub_batch(count))
@@ -1905,19 +2460,20 @@ class UlangSystemApp(MDApp):
 
                     inf_wframe = inf_result[0].plot(labels=False, line_width=2, conf=False)
                     disp_frame = cv2.resize(inf_wframe, (434, 244), interpolation=cv2.INTER_LINEAR)
-                    rgb_frame = cv2.cvtColor(disp_frame, cv2.COLOR_BGR2RGB)
 
                 else:
                     disp_frame = cv2.resize(hi_res_frame, (434, 244), interpolation=cv2.INTER_LINEAR)
-                    rgb_frame = cv2.cvtColor(disp_frame, cv2.COLOR_BGR2RGB)
 
+                rgb_frame = cv2.cvtColor(disp_frame, cv2.COLOR_BGR2RGB)
                 frame_bytes = rgb_frame.tobytes()
-                # Only pass inf_count to UI if we are actively scanning
+
                 self.update_feed(frame_bytes, 434, 244, inf_count if self.is_counting else 0)
 
-                eltime = time.time()-sttime
-                slptime = targ_frame_time-eltime
-                if slptime>0:
+                eltime = time.time() - sttime
+                self.count_timer += eltime
+                slptime = targ_frame_time - eltime
+
+                if slptime > 0:
                     time.sleep(slptime)
 
             except Exception as e:
@@ -1935,6 +2491,9 @@ class UlangSystemApp(MDApp):
         cam_widget = self.root.ids.dashboard_screen.ids.camera_feed
         cam_widget.texture = texture
         cam_widget.canvas.ask_update()
+
+        predict_count_txt = self.root.ids.dashboard_screen.ids.camfeed_count
+        predict_count_txt.text = str(total_count) if total_count>0 else "--"
 
         if self.is_counting:
             print(f"[INFO|COUNTING] Count: {total_count}")
@@ -1957,37 +2516,133 @@ class UlangSystemApp(MDApp):
         variance = ctrl.Antecedent(np.arange(0, 1.01, 0.01), 'variance')
         reliability = ctrl.Consequent(np.arange(0, 1.01, 0.01), 'reliability')
 
-        # 2. Define Membership Functions 
-        confidence['poor'] = fuzz.trapmf(confidence.universe, [0, 0, 0.55, 0.7])
-        confidence['acceptable'] = fuzz.trimf(confidence.universe, [0.6, 0.75, 0.9])
-        confidence['high'] = fuzz.trapmf(confidence.universe, [0.8, 0.9, 1.0, 1.0])
-
+        # Fuzzy MFs
+        confidence['poor'] = fuzz.trapmf(confidence.universe, [0, 0, 0.77, 0.80])
+        confidence['acceptable'] = fuzz.trimf(confidence.universe, [0.78, 0.81, 0.84])
+        confidence['high'] = fuzz.trapmf(confidence.universe, [0.82, 0.84, 1.0, 1.0])
+    
+        # MFs for Clumping
         clumping['sparse'] = fuzz.trapmf(clumping.universe, [0, 0, 0.1, 0.2])
-        clumping['moderate'] = fuzz.trimf(clumping.universe, [0.15, 0.3, 0.5])
-        clumping['dense'] = fuzz.trapmf(clumping.universe, [0.4, 0.6, 1.0, 1.0])
+        clumping['moderate'] = fuzz.trimf(clumping.universe, [0.015, 0.06, 0.12])
+        clumping['dense'] = fuzz.trapmf(clumping.universe, [0.1, 0.15, 1.0, 1.0])
+    
+        # MFs for Temporal Variance
+        variance['stable'] = fuzz.trapmf(variance.universe, [0, 0, 0.05, 0.07])
+        variance['jittery'] = fuzz.trimf(variance.universe, [0.05, 0.07, 0.10])
+        variance['erratic'] = fuzz.trapmf(variance.universe, [0.08, 0.10, 1.0, 1.0])
 
-        variance['stable'] = fuzz.trapmf(variance.universe, [0, 0, 0.02, 0.05])
-        variance['jittery'] = fuzz.trimf(variance.universe, [0.03, 0.08, 0.15])
-        variance['erratic'] = fuzz.trapmf(variance.universe, [0.10, 0.20, 1.0, 1.0])
-
+        # Output MFs
         reliability['unacceptable'] = fuzz.trapmf(reliability.universe, [0, 0, 0.4, 0.6])
-        reliability['moderate'] = fuzz.trimf(reliability.universe, [0.5, 0.7, 0.85])
-        reliability['excellent'] = fuzz.trapmf(reliability.universe, [0.8, 0.9, 1.0, 1.0])
+        reliability['acceptable'] = fuzz.trimf(reliability.universe, [0.55, 0.7, 0.85])
+        reliability['excellent'] = fuzz.trapmf(reliability.universe, [0.75, 0.85, 1.0, 1.0])
 
-        # 3. Custom Rules
+        # Conditions for 'excellent' reliability
         rule1 = ctrl.Rule(
-            confidence['high'] & variance['stable'] & (clumping['sparse'] | clumping['moderate']), 
-            reliability['excellent']
-        )
-
-        rule2 = ctrl.Rule(confidence['acceptable'] & variance['stable'] & (clumping['sparse'] | clumping['moderate']), reliability['moderate'])
-        rule3 = ctrl.Rule(clumping['dense'] & (confidence['high'] | confidence['acceptable']) & variance['stable'], reliability['moderate']) 
-        rule4 = ctrl.Rule(variance['jittery'] & confidence['high'] & (clumping['sparse'] | clumping['moderate']), reliability['moderate'])
-        rule5 = ctrl.Rule(variance['erratic'] | confidence['poor'] | (clumping['dense'] & variance['jittery']), reliability['unacceptable'])
+                        (confidence['high'] | confidence['acceptable']) & variance['stable'] & (clumping['sparse'] | clumping['moderate']), 
+                        reliability['excellent']
+                    )
+        
+        #Conditions for 'acceptable' reliability
+        rule2 = ctrl.Rule(
+                    (confidence['high'] | confidence['acceptable']) & variance['jittery'] & (clumping['sparse'] | clumping['moderate']), 
+                    reliability['acceptable']
+                )
+        rule3 = ctrl.Rule(
+                    (confidence['high'] | confidence['acceptable']) & variance['stable'] & clumping['dense'], 
+                    reliability['acceptable']
+                )
+        
+        #Conditions for 'unacceptable' reliability
+        rule4 = ctrl.Rule(
+                    (confidence['acceptable'] | confidence['poor']) & (variance["jittery"] | variance['erratic']) & (clumping['moderate'] | clumping['dense']),
+                    reliability['unacceptable']
+                )
+    
+        rule5 = ctrl.Rule(
+                    confidence['poor'] | variance['erratic'], 
+                    reliability['unacceptable']
+                )
 
         judge_ctrl = ctrl.ControlSystem([rule1, rule2, rule3, rule4, rule5])
         return ctrl.ControlSystemSimulation(judge_ctrl)
 
+    # [SECTION] Settings Commands
+    def config_temp_setting(self, input:bool=False, increase:bool=False, decrease:bool=False, param:str='', *args):
+        input_max = self.root.ids.settings_screen.ids.input_max_temp
+        input_min = self.root.ids.settings_screen.ids.input_min_temp
+
+        if increase:
+            if param=="min":
+                if self.max_temp > self.min_temp+1:
+                    self.min_temp += 1
+                    input_min.text = str(self.min_temp)
+
+                else: 
+                    self.show_snackbar(message="Temperature range will be too small", warning_mode=True)
+                
+            elif param=="max":
+                if self.max_temp+1 <= self.sub_optimal_temp[1]:
+                    self.max_temp += 1
+                    input_max.text = str(self.max_temp)
+
+                else:
+                    self.show_snackbar(message="Maximum temperature out sub-optimal of range", warning_mode=True)
+
+        elif decrease:
+            if param=="min":
+                if self.min_temp-1 >= self.sub_optimal_temp[0]:
+                    self.min_temp -= 1
+                    input_min.text = str(self.min_temp)
+
+                else:
+                    self.show_snackbar(message="Minimum temperature out of sub-optimal range", warning_mode=True)
+
+            elif param=="max":
+                if (self.max_temp-1) > self.min_temp:
+                    self.max_temp -= 1
+                    input_max.text = str(self.max_temp)
+
+                else:
+                    self.show_snackbar(message="Temperature range will be too small", warning_mode=True)
+
+        elif input:
+            float_input = float(input_max.text) if param=="max" else float(input_min.text)
+
+            if param=="min":
+                if float_input <= self.max_temp-1:
+                    if float_input > self.sub_optimal_temp[0]:
+                        self.min_temp = float_input
+
+                    else:
+                        input_min.text = str(self.min_temp)
+                        self.show_snackbar(message="Minimum temperature out of sub-optimal range", warning_mode=True)
+
+                elif float_input > self.max_temp:
+                    input_min.text = str(self.min_temp)
+                    self.show_snackbar(message="Invalid input", warning_mode=True)
+
+                else:
+                    input_min.text = str(self.min_temp)
+                    self.show_snackbar(message="Temperature range will be too small", warning_mode=True)  
+
+            elif param=="max": 
+                if float_input >= self.min_temp+1:
+                    if float_input <= self.sub_optimal_temp[1]:
+                        self.max_temp = float_input
+
+                    else:
+                        input_max.text = str(self.max_temp)
+                        self.show_snackbar(message="Maximum temperature out of sub-optimal range", warning_mode=True)
+
+                elif float_input < self.min_temp:
+                    input_max.text = str(self.max_temp)
+                    self.show_snackbar(message="Invalid input", warning_mode=True)
+
+                else:
+                    self.max_temp = self.min_temp+1
+                    input_max.text = str(self.max_temp)
+                    self.show_snackbar(message="Temperature range will be too small", warning_mode=True)
+                    
     def config_rel_threshold(self, instance, slider_value):
         """Adjust reliability score threshold."""
         self.reliability_threshold = int(slider_value)/100
@@ -2000,7 +2655,7 @@ class UlangSystemApp(MDApp):
         else: 
             self.capture_inf = True
 
-#===Wifi Configuration Commands
+    # [SECTION] Wifi Configuration Commands
     def update_wifi_stat(self, dt=0):
         wifi_text_widget = self.root.ids.settings_screen.ids.txt_conn_stat_ssid
 
@@ -2066,7 +2721,7 @@ class UlangSystemApp(MDApp):
         self.wifi_on = not value
         self.update_wifi_stat()
 
-#==================================================SCREEN NAVIGATION FUNCTIONS===============================================
+    #==================================================SCREEN NAVIGATION FUNCTIONS===============================================
  
     def go_to_settings(self, *args):
         if self.root.current != "settings":
@@ -2086,10 +2741,9 @@ class UlangSystemApp(MDApp):
         if self.root.current != "dashboard":
             self.root.transition.direction = "right"
             self.root.current = "dashboard"
-
         self.start_camera_loading()
 
-#============================================================================================================================
+    #============================================================================================================================
 
     def start_batch_count(self, *args):
         if self.root.current == "dashboard":
@@ -2105,10 +2759,14 @@ class UlangSystemApp(MDApp):
         self.popup.open()
 
     def show_export_dialog(self, *args):
-        self.popup=Factory.ExportLogsDialog()
+        self.popup = Factory.ExportLogsDialog()
         self.popup.open()
 
-#=============================================================================================================================
+    def show_cam_res_dialog(self, *args):
+        self.popup = Factory.CamResDialog()
+        self.popup.open()
+
+    # =============================================================================================================================
 
     def activate_count(self, input_name_batch = "", input_name_op = "", *args):
         self.name_count_batch = input_name_batch
@@ -2117,6 +2775,7 @@ class UlangSystemApp(MDApp):
         def execute_activation():
             self.count_active = True
             print('[INFO] Counting Process Activated')
+            self.batch_uuid = str(uuid.uuid4())
             self.popup.dismiss()
             if self.aerator.is_active:
                 self.talk_to_ard("aerator_off")
@@ -2134,35 +2793,49 @@ class UlangSystemApp(MDApp):
         else:
             execute_activation()
 
+    # dev: checked, it: 01
     def deactivate_count(self, abort = False, *args):
         def execute_deactivation():
             self.count_active = False
             print('[INFO] Counting Process Deactivated')
-#-----------Reset Status
+            
+            # Reset Status
             self.aerator.is_toggleable = True
             self.led_panels.is_toggleable = True
-#-----------Reset Containers
+            
+            # Reset Containers
             self.right_pane.current = "panel_count_inactive"
             self.btm_btn.current = "btn_count_inactive"
             self.sub_batch_scrollview.clear_widgets()
-#-----------Clear Placeholders and Payload
+            
+            # Clear Placeholders and Payload
             self.sub_batch_history.clear()
             self.total_count = 0
             self.total_batches_created = 0
             self.reliability_score = 0
             self.name_count_batch = ""
             self.name_operator = ""
+            self.reliability_scores.clear()
+            self.water_vol = 0
+            self.water_vol_array = []
+            self.water_temp = 0
+            self.water_temp_array = []
+            self.count_timer = 0
+            self.count_timer_array = []
             self.payload.update({
+                "local_id": None,
                 "timestamp": None,
                 "batch_id": None,
                 "op_name": None,
-                "total_pl_count": None,
-                "num_of_sbatch": None,
-                "counts_of_sbatch": None,
-                "model_version": "",
-                "accuracy": float(0.0)
+                "count_total_pl": None,
+                "num_sbatch": None,
+                "count_per_sbatch": None,
+                "model_version": None,
+                "rel": None,
+                "ave_temp": None,
+                "ave_approx_density": None,
+                "time_elapsed":None
             })
-            self.reliability_scores.clear()
 
         if self.sub_batch_history and abort:
             dialog = SystemDialog(
@@ -2197,6 +2870,7 @@ class UlangSystemApp(MDApp):
 
         if self.snackbar.parent:
             self.snackbar.parent.remove_widget(self.snackbar)
+
         Window.add_widget(self.snackbar)
         self.snackbar.ids.toast_text.text = message
         Animation.cancel_all(self.snackbar)
@@ -2204,7 +2878,7 @@ class UlangSystemApp(MDApp):
             opacity=1, 
             pos_hint={"center_x": 0.5, "center_y": 0.10}, 
             duration=0.2, 
-            t="out_quad"
+            t=smooth_anim_curve
         )
         anim_in.start(self.snackbar)
         Clock.schedule_once(self.hide_snackbar, 3)
@@ -2216,16 +2890,22 @@ class UlangSystemApp(MDApp):
             opacity=0, 
             pos_hint={"center_x": 0.5, "center_y": 0.05}, 
             duration=0.3, 
-            t="in_quad"
+            t="in_back"
         )
-#-------Completely remove it from the Window memory when done
+
+        # Completely remove it from the Window memory when done
         anim_out.bind(on_complete=lambda *args: Window.remove_widget(self.snackbar))
         anim_out.start(self.snackbar)
 
+    # dev: checked, it: 01
     @mainthread
     def _lock_sub_batch(self, locked_count):
         """Called by the background fuzzy evaluator when an Excellent frame is found."""
         if self.current_active_widget:
+            #Append time elapsed and reset timer
+            self.count_timer_array.append(self.count_timer)
+            self.count_timer = 0
+
             self.current_active_widget.count = locked_count
             self.current_active_widget.is_active = False
             self.total_count += locked_count
@@ -2233,8 +2913,9 @@ class UlangSystemApp(MDApp):
             self.current_active_widget = None
             
             # Provide visual feedback to the operator
-            self.show_snackbar(message=f"Locked Count: {locked_count}", warning_mode=False)
+            self.show_snackbar(message=f"PL Count: {locked_count}", warning_mode=False)
 
+    #dev: checked, it: 01
     def count_on_click(self):
         """Triggered when the operator taps +SUB-BATCH. The AI handles the rest."""
         if not self.is_counting:
@@ -2255,7 +2936,7 @@ class UlangSystemApp(MDApp):
             self.current_active_widget = new_widget
 
     def remove_sub_batch(self, widget_to_remove):
-#-------If we are deleting the active widget, reset the system state
+        # Reset the system state if we are deleting the active widget
         def execute_deletion():
             if widget_to_remove.is_active:
                 self.is_counting = False
@@ -2266,7 +2947,8 @@ class UlangSystemApp(MDApp):
                 del self.sub_batch_history[widget_to_remove.batch_name]
             self.sub_batch_scrollview.remove_widget(widget_to_remove)
             print(f"[INFO] Removed {widget_to_remove.batch_name}. Current Backend Data:", self.sub_batch_history)
-#-------Show a confirmation dialog
+
+        # Show a confirmation dialog
         dialog = SystemDialog(
             dialog_title = "Remove Sub-batch",
             dialog_msg = "Are you sure you want to remove this Sub-batch? This process cannot be undone.", 
@@ -2274,25 +2956,30 @@ class UlangSystemApp(MDApp):
             command_on_proceed = execute_deletion)
         dialog.open()
 
-#=======================================================Database Functions=============================================================
+    #[SECTION] Database Functions
+    #dev: checked, it: 01
     def save_batch_log(self):
-        new_loguuid = str(uuid.uuid4())
+        """Calculates or assigns the final values for keys in the payload."""
         self.payload.update({
-            "log_uuid": new_loguuid,
-            "timestamp": datetime.now().strftime("%b %d, %Y %I:%M %p"),
+            "local_id": self.batch_uuid,
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f+00"), # Format to ISO-8601 / PostgreSQL timestamptz
             "batch_id": self.name_count_batch,
             "op_name": self.name_operator,
-            "total_pl_count": self.total_count,
-            "num_of_sbatch": len(self.sub_batch_history),
-            "counts_of_sbatch": self.sub_batch_history,
-            "model_version": "ulang-obb-v2",
-            "accuracy": sum(self.reliability_scores)/len(self.reliability_scores)
+            "count_total_pl": self.total_count,
+            "num_sbatch": len(self.sub_batch_history),
+            "count_per_sbatch": self.sub_batch_history,
+            "model_version": self.model_path,
+            "rel": sum(self.reliability_scores)/max(len(self.reliability_scores),1),
+            "ave_temp": sum(self.water_temp_array)/max(len(self.water_temp_array),1),
+            "ave_approx_density": self.total_count/max((sum(self.water_vol_array)/max(len(self.water_temp_array),1)),1),
+            "time_elapsed": sum(self.count_timer_array)
         })
         cached_payload = copy.deepcopy(self.payload)
 
+        #dev: checked, it: 01
         def push_data():
             try:
-                self.db_client.table("batch_count_history_logs").insert(cached_payload).execute()
+                self.db_client.table("system_logs").insert(cached_payload).execute()
                 print("[INFO] Log Saved to Database:")
 
                 for key, value in cached_payload.items():
@@ -2306,12 +2993,13 @@ class UlangSystemApp(MDApp):
                 save_to_local()
                 Clock.schedule_once(lambda dt: self.show_snackbar(warning_mode=True, message=f"Failed to push log on cloud, log is saved locally"))
 
+        #dev: checked, it: 01
         def save_to_local():
             try:
                 folder_name = "pending_sync"
                 os.makedirs(folder_name, exist_ok=True) 
 
-                filename = f"{cached_payload['log_uuid']}.json"
+                filename = f"{cached_payload['local_id']}.json"
                 filepath = os.path.join(folder_name, filename)
 
                 with open(filepath, "w") as json_file:
@@ -2327,6 +3015,7 @@ class UlangSystemApp(MDApp):
         else:    
             save_to_local()
 
+    #dev: checked, it: 01
     def wipe_local_logs(self, show_dialog: bool = False, *args):
         db_directory = "pending_sync/"
 
@@ -2364,7 +3053,7 @@ class UlangSystemApp(MDApp):
 
         # LOAD CLOUD (OR LOCAL HISTORY) LOGS
         try:
-            response = self.db_client.table("batch_count_history_logs").select("*").order("timestamp", desc=True).limit(50).execute()
+            response = self.db_client.table("system_logs").select("*").order("timestamp", desc=True).limit(1000).execute()
             
             for cloud_log in response.data:
                 cloud_log["log_loc"] = "cloud"
@@ -2386,7 +3075,7 @@ class UlangSystemApp(MDApp):
                         if sync_succeed:
                             try:
                                 # Push to Supabase
-                                self.db_client.table("batch_count_history_logs").insert(log_data).execute()
+                                self.db_client.table("system_logs").insert(log_data).execute()
                                 print(f"[DEBUG] Successfully synced {filename} to Cloud!")
                                 
                                 # Delete the local file once uploaded
@@ -2409,7 +3098,7 @@ class UlangSystemApp(MDApp):
         # SORT THE MERGED LIST BY TIMESTAMP
         try:
             master_log_list.sort(
-                key=lambda x: datetime.strptime(x["timestamp"], "%b %d, %Y %I:%M %p"), 
+                key=lambda x: datetime.strptime(x["timestamp"], "%Y-%m-%d %H:%M:%S.%f+00"), 
                 reverse=True
             )
         except Exception as e:
@@ -2419,14 +3108,15 @@ class UlangSystemApp(MDApp):
         rv_data = []
         for log in master_log_list:
             rv_data.append({
-                "log_uuid": str(log.get("log_uuid", "NULL")),
+                "log_uuid": str(log.get("local_id", "NULL")),
                 "log_id_batch": str(log.get("batch_id", "UNKNOWN")),
                 "log_timestamp": str(log.get("timestamp", "No Date")),
                 "log_name_op": str(log.get("op_name", "Unknown Operator")),
-                "log_pl_count": int(log.get("total_pl_count", 0)),
-                "log_num_sbatches": int(log.get("num_of_sbatch", 0)),
-                "log_margin_of_err": float(log.get("accuracy", 0.0)),
-                "log_loc": str(log.get("log_loc", "UNKNOWN"))
+                "log_pl_count": int(log.get("count_total_pl", 0)),
+                "log_num_sbatches": int(log.get("num_sbatch", 0)),
+                "log_margin_of_err": float(log.get("rel", 0.0)),
+                "log_loc": str(log.get("log_loc", "UNKNOWN")),
+                "log_time_elapsed": float(log.get("time_elapsed", 0.0))
             })
 
         Clock.schedule_once(lambda dt: self.update_rv(rv_data))
@@ -2443,10 +3133,11 @@ class UlangSystemApp(MDApp):
     def del_log_entry(self, target_uuid:str="", show_dialog:bool=True, **args):
         def del_from_db():
             try:
-                self.db_client.table("batch_count_history_logs").delete().eq("log_uuid", target_uuid).execute()
-                rv.data = [item for item in rv.data if item.get('log_uuid') != target_uuid]
+                self.db_client.table("system_logs").delete().eq("local_id", target_uuid).execute()
+                rv.data = [item for item in rv.data if item.get('local_id') != target_uuid]
                 print(f"[INFO] {target_uuid} is successfully removed from database")
                 self.show_snackbar(message="Successfully removed from Database", warning_mode=False)
+
             except Exception as e:
                 print(f"[DEBUG] Cloud delete failed (offline?): {e}")
                 self.show_snackbar(message="Failed to remove from Database", warning_mode=True)
@@ -2457,15 +3148,16 @@ class UlangSystemApp(MDApp):
                 file_path = f"pending_sync/{target_uuid}.json" 
                 if os.path.exists(file_path):
                     os.remove(file_path)
-                    rv.data = [item for item in rv.data if item.get('log_uuid') != target_uuid]
+                    rv.data = [item for item in rv.data if item.get('local_id') != target_uuid]
                     print(f"[INFO] {file_path} is successfully removed from local logs")
                     self.show_snackbar(message="Successfully removed from Local Logs", warning_mode=False)
+
             except Exception as e:
                 print(f"[DEBUG] Local delete failed: {e}")
                 self.show_snackbar(message="Failed to remove from Local Logs", warning_mode=True)
 
         rv = self.root.ids.logs_screen.ids.logs_recycle_view
-        target_item = next((item for item in rv.data if item.get('log_uuid') == target_uuid), None)
+        target_item = next((item for item in rv.data if item.get('local_id') == target_uuid), None)
 
         if not target_item:
             print("[ERROR] Could not find the target log in the RecycleView.")
@@ -2514,14 +3206,14 @@ class UlangSystemApp(MDApp):
             """Fetches batch logs within the given specific time window."""
             try:
                 if all_time:
-                    response = self.db_client.table("batch_count_history_logs") \
+                    response = self.db_client.table("system_logs") \
                         .select("*").execute()
                 else:
-                    time_format = "%b %d, %Y %I:%M %p"
+                    time_format = "%Y-%m-%d %H:%M:%S.%f+00"
                     end_time = time.now()
                     start_time = end_time - timedelta(days_window)
                     print(f"[INFO] Fetching Logs from {end_time.strf(time_format)}")
-                    response = self.db_client.table("batch_count_history_logs") \
+                    response = self.db_client.table("system_logs") \
                         .select("*") \
                         .gte("timestamp", start_time.strf(time_format)) \
                         .lte("timestamp", end_time.strf(time_format)) \
@@ -2580,6 +3272,45 @@ class UlangSystemApp(MDApp):
                 Clock.schedule_once(lambda dt: self.show_snackbar(warning_mode=True, message="Failed to send email"))
 
         threading.Thread(target=_export_worker, daemon=True).start()
+
+    def config_cam_res(self, opt):
+        self.def_cam_res = opt
+
+    def check_chamber_stat(self, dt):
+        self.monitoring_freezed = False
+
+        if dt: print(f"[INFO] Chamber is checked after {dt} seconds.")
+
+        if ((self.water_temp > self.max_temp) or (self.water_temp < self.min_temp)):
+            self.active_alert = True
+            self.critical_temp = True
+            self.stop_camera()
+            print("[WARNING] Critical Water Temperature")
+
+        else:
+            self.active_alert = False
+            self.critical_load = False
+
+        if self.water_vol > self.max_load:
+            self.critical_load = True
+            self.active_alert = True
+            print("[WARNING] Critical Water Level")
+
+        else:
+            if not self.critical_temp: self.active_alert = False
+            self.critical_load = False
+
+        if self.active_alert:
+            self.start_camera_loading(anti_loop=True) # Start loading camera to check for stats
+
+    def finish_queue_check_stat(self):
+        Clock.schedule_once(self.check_chamber_stat, timeout = 5)
+
+    def freeze_alert(self):
+        """Temporarily freeze check_chamber_stat()"""
+        self.monitoring_freezed = True
+        self.finish_queue_check_stat()
+        self.start_camera_loading() # Start loading camera again
 #=====================================================Graphics====================================================
 
 class PillToggleButton(Button):
@@ -2646,7 +3377,7 @@ class WiFiToggleSwitch(ButtonBehavior, Widget):
             target_x = self.width - self.height + dp(2)
         else:
             target_x = dp(2)
-        anim = Animation(knob_pos=target_x, duration=0.2, t='out_quad')
+        anim = Animation(knob_pos=target_x, duration=0.2, t=smooth_anim_curve)
         anim.start(self)
 
         if self._initializing:
@@ -2673,7 +3404,7 @@ class ToggleSwitch(ButtonBehavior, Widget):
             target_x = self.width - self.height + dp(2)
         else:
             target_x = dp(2)
-        anim = Animation(knob_pos=target_x, duration=0.2, t='out_quad')
+        anim = Animation(knob_pos=target_x, duration=0.35, t=smooth_anim_curve)
         anim.start(self)
 
 class SubBatchItem(MDBoxLayout):
@@ -2695,31 +3426,71 @@ class SystemDialog(Popup):
 class ExportLogsDialog(Popup):
     input_timerange = OptionProperty("all_time", options=["last_7", "last_30", "all_time"])
     command_on_proceed = ObjectProperty(None, allownone=True)
+    palette = ObjectProperty(None, allownone=True)
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def on_pre_open(self):
         self.set_timerange("all_time")
 
     def set_timerange(self, id):
         if id == 'opt_1':
             self.input_timerange = "last_7"
-            self.ids.check_1.opacity = 1
-            self.ids.check_2.opacity = 0
-            self.ids.check_3.opacity = 0
+            self.ids.opt_1.md_bg_color = get_color_from_hex(self.palette["blue"])
+            self.ids.opt_2.md_bg_color = get_color_from_hex(self.palette["dark_gray"])
+            self.ids.opt_3.md_bg_color = get_color_from_hex(self.palette["dark_gray"])
         elif id == 'opt_2':
             self.input_timerange = "last_30"
-            self.ids.check_1.opacity = 0
-            self.ids.check_2.opacity = 1
-            self.ids.check_3.opacity = 0
+            self.ids.opt_1.md_bg_color = get_color_from_hex(self.palette["dark_gray"])
+            self.ids.opt_2.md_bg_color = get_color_from_hex(self.palette["blue"])
+            self.ids.opt_3.md_bg_color = get_color_from_hex(self.palette["dark_gray"])
         else:
             self.input_timerange = "all_time"
-            self.ids.check_1.opacity = 0
-            self.ids.check_2.opacity = 0
-            self.ids.check_3.opacity = 1
+            self.ids.opt_1.md_bg_color = get_color_from_hex(self.palette["dark_gray"])
+            self.ids.opt_2.md_bg_color = get_color_from_hex(self.palette["dark_gray"])
+            self.ids.opt_3.md_bg_color = get_color_from_hex(self.palette["blue"])
 
     def execute_proceed(self, email, timerange):
         if self.command_on_proceed and callable(self.command_on_proceed): 
             self.command_on_proceed(email, timerange)
+        self.dismiss()
+
+class CamResDialog(Popup):
+    default_opt = ObjectProperty(None, allownone=True)
+    selected_opt = OptionProperty(default_opt, options=["4K", "2K", "1080p"])
+    command_on_proceed = ObjectProperty(None, allownone=True)
+    palette = ObjectProperty(None, allownone=True)
+
+    def on_pre_open(self):
+        if self.default_opt == "4K":
+            opt = "opt_1"
+        elif self.default_opt == "2K":
+            opt = "opt_2"
+        else:
+            opt = "opt_3"
+
+        self.select(opt)
+
+    def select(self, id):
+        if id == 'opt_1':
+            self.selected_opt = "4K"
+            self.ids.opt_1.md_bg_color = get_color_from_hex(self.palette["blue"])
+            self.ids.opt_2.md_bg_color = get_color_from_hex(self.palette["dark_gray"])
+            self.ids.opt_3.md_bg_color = get_color_from_hex(self.palette["dark_gray"])
+
+        elif id == 'opt_2':
+            self.selected_opt = "2K"
+            self.ids.opt_1.md_bg_color = get_color_from_hex(self.palette["dark_gray"])
+            self.ids.opt_2.md_bg_color = get_color_from_hex(self.palette["blue"])
+            self.ids.opt_3.md_bg_color = get_color_from_hex(self.palette["dark_gray"])
+
+        else:
+            self.selected_opt = "1080p"
+            self.ids.opt_1.md_bg_color = get_color_from_hex(self.palette["dark_gray"])
+            self.ids.opt_2.md_bg_color = get_color_from_hex(self.palette["dark_gray"])
+            self.ids.opt_3.md_bg_color = get_color_from_hex(self.palette["blue"])
+
+    def execute_proceed(self, selected_opt):
+        if self.command_on_proceed and callable(self.command_on_proceed): 
+            self.command_on_proceed(selected_opt)
         self.dismiss()
 
 class Snackbar(MDBoxLayout):
@@ -2733,6 +3504,7 @@ class BatchLogItem(MDCard):
     log_pl_count = NumericProperty(0)
     log_num_sbatches = NumericProperty(0)
     log_margin_of_err = NumericProperty(0.0)
+    log_time_elapsed = NumericProperty(0.0)
 
 # Custom Button for Count/+Sub-batch to avoid double-clicking issue on touchscreen
 class DebounceBtn(Button):
@@ -2758,5 +3530,14 @@ class DebounceBtn(Button):
 class ClickableMDLabel(ButtonBehavior, MDLabel):
     pass
 
+class SysIconButton(ButtonBehavior, BoxLayout):
+    text = StringProperty("")
+    icon = StringProperty("")
+    background_normal = StringProperty("")
+    background_down = StringProperty("")
+
+class ClickableImage(ButtonBehavior, Image):
+    pass
+    
 if __name__ == '__main__':
     UlangSystemApp().run()
