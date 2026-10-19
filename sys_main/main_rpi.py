@@ -758,7 +758,7 @@ ScreenManager:
                             size_hint: None, None
                             width: 100
                             height: 42
-                            padding: [0,0,0,0]
+                            padding: [0,8,0,0]
                             background_normal: 'res/bg_txt_field_inactive_opaque.png'
                             background_active: 'res/bg_txt_field_active.png'
                             border: [8, 8, 8, 8]  
@@ -828,7 +828,7 @@ ScreenManager:
                             size_hint: None, None 
                             width: 100
                             height: 42
-                            padding: [0,0,0,0]
+                            padding: [0,8,0,0]
                             background_normal: 'res/bg_txt_field_inactive_opaque.png'
                             background_active: 'res/bg_txt_field_active.png'
                             border: [8, 8, 8, 8]  
