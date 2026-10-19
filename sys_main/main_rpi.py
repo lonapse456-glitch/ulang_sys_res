@@ -1804,6 +1804,7 @@ ScreenManager:
         size_hint_x: 1
         size_hint_y: None
         height: 36
+        spacing: 12
 
         MDLabel:
             size_hint_x: 1
@@ -2234,6 +2235,25 @@ class UlangSystemApp(MDApp):
         else:
             wtrvol="--"
             self.root.ids.dashboard_screen.ids.water_vol_label.text = f"{wtrvol} L"
+
+        if ((self.water_temp > self.max_temp) or (self.water_temp < self.min_temp)):
+            self.active_alert = True
+            self.critical_temp = True
+            self.stop_camera()
+            print("[WARNING] Critical Water Temperature")
+
+        else:
+            self.active_alert = False
+            self.critical_load = False
+
+        if self.water_vol > self.max_load:
+            self.critical_load = True
+            self.active_alert = True
+            print("[WARNING] Critical Water Level")
+
+        else:
+            if not self.critical_temp: self.active_alert = False
+            self.critical_load = False
 
     def listen_to_ard(self):
         """
@@ -3286,25 +3306,6 @@ class UlangSystemApp(MDApp):
         self.monitoring_freezed = False
 
         if dt: print(f"[INFO] Chamber is checked after {dt} seconds.")
-
-        if ((self.water_temp > self.max_temp) or (self.water_temp < self.min_temp)):
-            self.active_alert = True
-            self.critical_temp = True
-            self.stop_camera()
-            print("[WARNING] Critical Water Temperature")
-
-        else:
-            self.active_alert = False
-            self.critical_load = False
-
-        if self.water_vol > self.max_load:
-            self.critical_load = True
-            self.active_alert = True
-            print("[WARNING] Critical Water Level")
-
-        else:
-            if not self.critical_temp: self.active_alert = False
-            self.critical_load = False
 
         if self.active_alert:
             self.start_camera_loading(anti_loop=True) # Start loading camera to check for stats
