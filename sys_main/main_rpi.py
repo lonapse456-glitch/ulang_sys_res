@@ -1817,6 +1817,12 @@ ScreenManager:
             halign: 'left'
 
         SysIconButton:
+            icon: "res/ic_image.png"
+            text: "See Results"
+            background_normal: "res/btn_pill_gray_s.png"
+            background_down: "res/btn_pill_gray_s_down.png"
+
+        SysIconButton:
             icon: "res/ic_trash_s.png"
             background_normal: "res/btn_pill_gray_s.png"
             background_down: "res/btn_pill_gray_s_down.png"
