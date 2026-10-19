@@ -2294,7 +2294,6 @@ class UlangSystemApp(MDApp):
     # [SECTION] Camera and Image Processing and AI Inference Pipeline
     def start_camera_loading(self, anti_loop:bool = False, *args):
         """Resets the UI and spawns the background worker."""
-
         dashboard_screen = self.root.ids.dashboard_screen
         camfeed = self.root.ids.dashboard_screen.ids.camfeed_pane
 
@@ -3297,8 +3296,7 @@ class UlangSystemApp(MDApp):
 
     def freeze_alert(self):
         """Temporarily freeze check_chamber_stat()"""
-        self.stop_camera()
-        self.is_cam_initializing = False
+        self.freeze_alert = True
         self.finish_queue_check_stat()
         self.start_camera_loading() # Start loading camera again
 #=====================================================Graphics====================================================
