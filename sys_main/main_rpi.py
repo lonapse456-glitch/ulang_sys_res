@@ -2295,9 +2295,6 @@ class UlangSystemApp(MDApp):
     def start_camera_loading(self, anti_loop:bool = False, *args):
         """Resets the UI and spawns the background worker."""
 
-        if hasattr(self, 'picam2') or self.is_cam_initializing:
-            return
-
         dashboard_screen = self.root.ids.dashboard_screen
         camfeed = self.root.ids.dashboard_screen.ids.camfeed_pane
 
@@ -2311,6 +2308,7 @@ class UlangSystemApp(MDApp):
             self.active_alert = False
         
         if self.active_alert:
+            self.is_cam_initializing = False
             if self.critical_temp:
                 if self.critical_load:
                     camfeed.current = "camfeed_alert_screen"
@@ -2325,6 +2323,8 @@ class UlangSystemApp(MDApp):
                     dashboard_screen.ids.txt_alert_message.text = self.alert_msg["CRITICAL_TEMP"]
 
         else:
+            if hasattr(self, 'picam2') or self.is_cam_initializing:
+                return
             self.is_cam_initializing = True
             self.root.ids.dashboard_screen.ids.camfeed_pane.current = "camfeed_loading_screen"
             threading.Thread(target=self._init_hardware, daemon=True).start()
