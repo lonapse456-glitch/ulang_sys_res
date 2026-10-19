@@ -2067,7 +2067,7 @@ class UlangSystemApp(MDApp):
     wifi_strength = NumericProperty(0)
 
     # YOLO model path
-    model_path = 'models/pre-trained/ulangn-obb-annotator_v5-0_ncnn_model'
+    model_path = 'models/pre-trained/ulangn-obb-annotator_v6-3_ncnn_model'
 
     # UI Elements
     dialog = None
@@ -2209,7 +2209,7 @@ class UlangSystemApp(MDApp):
         self.root.ids.dashboard_screen.ids.water_lvl_label.text = f"{wtrlvl} cm"
 
         if not wtrtemp=='--' and self.count_active:
-            self.water_temp = float(wtrtemp)
+            self.water_temp = 30.0 #float(wtrtemp) Temporarily set to optimal
             self.water_temp_array.append(wtrtemp)
  
         if not wtrlvl=="--":
