@@ -2067,7 +2067,7 @@ class UlangSystemApp(MDApp):
     wifi_strength = NumericProperty(0)
 
     # YOLO model path
-    model_path = 'models/pre-trained/ulangn-obb-annotator_v6-3_ncnn_model'
+    model_path = 'models/pre-trained/ulangn-obb-annotator-v6-3_ncnn_model'
 
     # UI Elements
     dialog = None
@@ -2208,15 +2208,21 @@ class UlangSystemApp(MDApp):
         self.root.ids.dashboard_screen.ids.water_temp_label.text = f"{wtrtemp} °C"
         self.root.ids.dashboard_screen.ids.water_lvl_label.text = f"{wtrlvl} cm"
 
-        if not wtrtemp=='--' and self.count_active:
+        if not wtrtemp=='--':
             self.water_temp = 30.0 #float(wtrtemp) Temporarily set to optimal
-            self.water_temp_array.append(wtrtemp)
+
+            if self.count_active:
+                self.water_temp_array.append(wtrtemp)
+
  
         if not wtrlvl=="--":
             #Calculate the water volume here, output in liters (L)
             wtrvol = (34 * 19 * float(wtrlvl))/1000
             self.water_vol = wtrvol
-            self.water_vol_array.append(wtrvol)
+
+            if self.count_active:
+                self.water_vol_array.append(wtrvol)
+            
             self.root.ids.dashboard_screen.ids.water_vol_label.text = f"{wtrvol:.2f} L"
 
         else:
