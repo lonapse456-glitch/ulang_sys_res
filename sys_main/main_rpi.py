@@ -1107,12 +1107,13 @@ ScreenManager:
 <Snackbar>:
     id: snackbar
     orientation: "horizontal"
-    size_hint: None, None
-    size: 480, 48
+    size_hint_y: None
+    height: 48
+    adaptive_width: True 
     opacity: 0
     pos_hint: {"center_x": 0.5, "center_y": 0.05} 
     spacing: 10
-    padding: 14
+    padding: [16, 0, 16, 0]
     elevation: 3
     shadow_color: 0, 0, 0, 0.2
 
@@ -1135,17 +1136,17 @@ ScreenManager:
         allow_stretch: True
         keep_ratio: True
         pos_hint: {"center_y": .5}
-
     
     MDLabel:
         id: toast_text
-        text: self.text
+        text: ""
         font_name: 'assets/sf_txt_reg.ttf'
         font_size: 20
         theme_text_color: "Custom"
         text_color: (1, 1, 1, 1) if root.warning_mode else (0, 0, 0, 1)
         halign: 'left'
-        width: self.texture_size[0]
+        valign: 'center'
+        adaptive_width: True
 
 <BatchCountDialog@Popup>
     width: 500
@@ -1956,6 +1957,19 @@ ScreenManager:
             text_size: None, self.height
             width: self.texture_size[0]
 '''
+def smooth_anim_curve(t):
+    """Smooth anumation curve based on the Cubic Bézier curve"""
+    p1x, p1y = 0.01, 1.0
+    p2x, p2y = 0.1, 1.2
+    u = t
+    for _ in range(5):
+        current_x = 3 * (1 - u)**2 * u * p1x + 3 * (1 - u) * u**2 * p2x + u**3
+        dx = 3 * (1 - u)**2 * p1x + 6 * (1 - u) * u * (p2x - p1x) + 3 * u**2 * (1 - p2x)
+        if abs(dx) < 1e-6:
+            break
+        u -= (current_x - t) / dx
+        u = max(0.0, min(1.0, u))
+    return 3 * (1 - u)**2 * u * p1y + 3 * (1 - u) * u**2 * p2y + u**3
 
 def config_conn_wifi(ssid, password):
     try:
@@ -2281,6 +2295,9 @@ class UlangSystemApp(MDApp):
     def start_camera_loading(self, anti_loop:bool = False, *args):
         """Resets the UI and spawns the background worker."""
 
+        if hasattr(self, 'picam2') or self.is_cam_initializing:
+            return
+
         dashboard_screen = self.root.ids.dashboard_screen
         camfeed = self.root.ids.dashboard_screen.ids.camfeed_pane
 
@@ -2308,9 +2325,6 @@ class UlangSystemApp(MDApp):
                     dashboard_screen.ids.txt_alert_message.text = self.alert_msg["CRITICAL_TEMP"]
 
         else:
-            if hasattr(self, 'picam2') or self.is_cam_initializing:
-                return
-            
             self.is_cam_initializing = True
             self.root.ids.dashboard_screen.ids.camfeed_pane.current = "camfeed_loading_screen"
             threading.Thread(target=self._init_hardware, daemon=True).start()
@@ -2860,7 +2874,7 @@ class UlangSystemApp(MDApp):
             opacity=1, 
             pos_hint={"center_x": 0.5, "center_y": 0.10}, 
             duration=0.2, 
-            t="out_quad"
+            t=smooth_anim_curve
         )
         anim_in.start(self.snackbar)
         Clock.schedule_once(self.hide_snackbar, 3)
@@ -2872,7 +2886,7 @@ class UlangSystemApp(MDApp):
             opacity=0, 
             pos_hint={"center_x": 0.5, "center_y": 0.05}, 
             duration=0.3, 
-            t="in_quad"
+            t="in_back"
         )
 
         # Completely remove it from the Window memory when done
@@ -3353,7 +3367,7 @@ class WiFiToggleSwitch(ButtonBehavior, Widget):
             target_x = self.width - self.height + dp(2)
         else:
             target_x = dp(2)
-        anim = Animation(knob_pos=target_x, duration=0.2, t='out_quad')
+        anim = Animation(knob_pos=target_x, duration=0.2, t=smooth_anim_curve)
         anim.start(self)
 
         if self._initializing:
@@ -3380,7 +3394,7 @@ class ToggleSwitch(ButtonBehavior, Widget):
             target_x = self.width - self.height + dp(2)
         else:
             target_x = dp(2)
-        anim = Animation(knob_pos=target_x, duration=0.35, t='out_quad')
+        anim = Animation(knob_pos=target_x, duration=0.35, t=smooth_anim_curve)
         anim.start(self)
 
 class SubBatchItem(MDBoxLayout):
