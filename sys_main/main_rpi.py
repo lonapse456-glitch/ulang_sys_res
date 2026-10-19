@@ -276,7 +276,7 @@ ScreenManager:
                                 border: [18, 18, 18, 18]
 
                         MDLabel:
-                            text: f"BATCH: {app.batch_name}"
+                            text: f"BATCH: {app.name_batch_count}"
                             font_name: "assets/sf_txt_reg.ttf"
                             font_size: 20
                             halign: "left"
