@@ -2308,7 +2308,6 @@ class UlangSystemApp(MDApp):
             self.active_alert = False
         
         if self.active_alert:
-            self.is_cam_initializing = False
             if self.critical_temp:
                 if self.critical_load:
                     camfeed.current = "camfeed_alert_screen"
@@ -3299,6 +3298,7 @@ class UlangSystemApp(MDApp):
     def freeze_alert(self):
         """Temporarily freeze check_chamber_stat()"""
         self.monitoring_freezed = True
+        self.is_cam_initializing = False
         self.finish_queue_check_stat()
         self.start_camera_loading() # Start loading camera again
 #=====================================================Graphics====================================================
