@@ -288,7 +288,7 @@ ScreenManager:
                         size_hint: None, None
                         width: 140
                         height: 70
-                        spacing: 3
+                        spacing: 5
                         padding: 10
                         pos_hint: {"x":0.02, "y":0.03}
 
@@ -3275,19 +3275,24 @@ class UlangSystemApp(MDApp):
 
         if dt: print(f"[INFO] Chamber is checked after {dt} seconds.")
 
-        if ((self.water_temp > self.max_temp) or (self.water_temp < self.min_temp)) or (self.water_vol > self.max_load):
+        if ((self.water_temp > self.max_temp) or (self.water_temp < self.min_temp)):
             self.active_alert = True
             self.critical_temp = True
             self.stop_camera()
             print("[WARNING] Critical Water Temperature")
 
-            if self.water_vol > self.max_load:
-                self.critical_load = True
-                print("[WARNING] Critical Water Level")
         else:
             self.active_alert = False
             self.critical_load = False
-            self.critical_temp = False
+
+        if self.water_vol > self.max_load:
+            self.critical_load = True
+            self.active_alert = True
+            print("[WARNING] Critical Water Level")
+
+        else:
+            if not self.critical_temp: self.active_alert = False
+            self.critical_load = False
 
         if self.active_alert:
             self.start_camera_loading(anti_loop=True) # Start loading camera to check for stats
