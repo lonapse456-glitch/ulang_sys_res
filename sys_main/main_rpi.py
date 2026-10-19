@@ -286,7 +286,9 @@ ScreenManager:
                     MDBoxLayout:
                         orientation: "vertical"
                         size_hint: None, None
-                        height: 36
+                        width: 140
+                        height: 70
+                        spacing: 3
                         padding: 10
                         pos_hint: {"x":0.02, "y":0.03}
 
