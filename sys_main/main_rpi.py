@@ -3296,7 +3296,7 @@ class UlangSystemApp(MDApp):
 
     def freeze_alert(self):
         """Temporarily freeze check_chamber_stat()"""
-        self.freeze_alert = True
+        self.monitoring_freezed = True
         self.finish_queue_check_stat()
         self.start_camera_loading() # Start loading camera again
 #=====================================================Graphics====================================================
