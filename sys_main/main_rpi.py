@@ -259,7 +259,7 @@ ScreenManager:
                                     on_release: app.freeze_alert()
 
                     MDBoxLayout:
-                        id: id_batch_camfeed
+                        id: camfeed_batch_id_view
                         orientation: "vertical"
                         adaptive_size: True
                         padding: 
@@ -288,7 +288,7 @@ ScreenManager:
                             
                             # FORCE LAYOUT REFRESH FOR RELATIVELAYOUT:
                             # Whenever the texture size updates, manually tell the parent box to re-draw its canvas
-                            on_texture_size: id_batch_camfeed.do_layout()
+                            on_texture_size: camfeed_batch_id_view.do_layout()
                     MDBoxLayout:
                         orientation: "vertical"
                         size_hint: None, None
