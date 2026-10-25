@@ -147,7 +147,7 @@ ScreenManager:
                 on_release: app.go_to_logs()
 
         MDBoxLayout:
-            orientation: 'horizontal'
+            orientation: 'vertical'
             size_hint_y: 1
             spacing: 12
 
