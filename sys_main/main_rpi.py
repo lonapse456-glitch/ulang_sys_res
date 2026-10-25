@@ -147,7 +147,7 @@ ScreenManager:
                 on_release: app.go_to_logs()
 
         MDBoxLayout:
-            orientation: 'vertical'
+            orientation: 'horizontal'
             size_hint_y: 1
             spacing: 12
 
@@ -261,15 +261,18 @@ ScreenManager:
                     MDBoxLayout:
                         id: camfeed_batch_id_view
                         orientation: "vertical"
-                        adaptive_size: True
-                        height: 36
-                        padding: 10
-                        pos_hint: {"x":0.02, "top":0.97}
+                        
+                        # FIX 1: Replaces size_hint: None, None & manual minimum bindings
+                        adaptive_size: True 
+                        
+                        # Keep your custom sizing limits if needed, but height is now handled by padding + label font size
+                        padding: [10, 5, 10, 5] 
+                        pos_hint: {"x": 0.02, "top": 0.97}
                         opacity: 1 if app.count_active else 0
 
                         canvas.before:
                             Color:
-                                rgba: 1, 1, 1, 1 # Ensure the image renders at full brightness
+                                rgba: 1, 1, 1, 1
                             BorderImage:
                                 source: 'res/btn_pill_gray_s.png'
                                 pos: self.pos
@@ -285,6 +288,8 @@ ScreenManager:
                             theme_text_color: "Custom"
                             text_color: 1, 1, 1, 1
                             opacity: 1 if app.count_active else 0
+                            
+                            # FIX 2: Ensure label breaks free of parental bounding boxes
                             size_hint: None, None
                             text_size: None, None  # Allows the text texture to grow unrestricted horizontally
                             width: self.texture_size[0]
