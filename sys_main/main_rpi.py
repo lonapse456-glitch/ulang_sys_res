@@ -261,33 +261,34 @@ ScreenManager:
                     MDBoxLayout:
                         id: id_batch_camfeed
                         orientation: "vertical"
-                        adaptive_size: True         # Forces layout to match child constraints perfectly
-                        padding: [14, 6]            # Internal breathing room for the text inside your pill background
+                        adaptive_size: True
+                        padding: 
                         pos_hint: {"x": 0.02, "top": 0.97}
                         opacity: 1 if app.count_active else 0
 
                         canvas.before:
                             Color:
-                                rgba: 1, 1, 1, 1
+                                rgba: 1, 1, 1, 1 
                             BorderImage:
                                 source: 'res/btn_pill_gray_s.png'
                                 pos: self.pos
                                 size: self.size
                                 border: [18, 18, 18, 18]
 
-                        # Use standard Label here to bypass KivyMD's automatic text wrapping constraints
                         Label:
                             id: id_batch_camfeed
                             text: "BATCH"
                             font_name: "assets/sf_txt_reg.ttf"
                             font_size: 20
-                            color: 1, 1, 1, 1       # Standard Kivy Label uses color instead of text_color
+                            color: 1, 1, 1, 1
                             opacity: 1 if app.count_active else 0
                             
-                            # Absolute size constraint enforcement
                             size_hint: None, None
-                            size: self.texture_size  # Locks both width and height to real pixel dimensions
-
+                            size: self.texture_size  # Strictly binds size to text footprint
+                            
+                            # FORCE LAYOUT REFRESH FOR RELATIVELAYOUT:
+                            # Whenever the texture size updates, manually tell the parent box to re-draw its canvas
+                            on_texture_size: camfeed_batch_id_view.do_layout()
                     MDBoxLayout:
                         orientation: "vertical"
                         size_hint: None, None
