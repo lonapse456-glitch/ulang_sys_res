@@ -277,6 +277,7 @@ ScreenManager:
                                 border: [18, 18, 18, 18]
 
                         MDLabel:
+                            id:
                             text: f"BATCH: {app.name_count_batch}"
                             font_name: "assets/sf_txt_reg.ttf"
                             font_size: 20
@@ -2218,7 +2219,7 @@ class UlangSystemApp(MDApp):
         self.root.ids.dashboard_screen.ids.water_lvl_label.text = f"{wtrlvl} cm"
 
         if not wtrtemp=='--':
-            self.water_temp = 30.0 #float(wtrtemp) Temporarily set to optimal
+            self.water_temp = float(wtrtemp)
 
             if self.count_active:
                 self.water_temp_array.append(wtrtemp)
@@ -3166,7 +3167,7 @@ class UlangSystemApp(MDApp):
                 self.show_snackbar(message="Failed to remove from Local Logs", warning_mode=True)
 
         rv = self.root.ids.logs_screen.ids.logs_recycle_view
-        target_item = next((item for item in rv.data if item.get('local_id') == target_uuid), None)
+        target_item = next((item for item in rv.data if item.get('log_uuid') == target_uuid), None)
 
         if not target_item:
             print("[ERROR] Could not find the target log in the RecycleView.")
@@ -3303,6 +3304,7 @@ class UlangSystemApp(MDApp):
         if self.water_vol > self.max_load:
             self.critical_load = True
             self.active_alert = True
+            self.stop_camera()
             print("[WARNING] Critical Water Level")
 
         else:
