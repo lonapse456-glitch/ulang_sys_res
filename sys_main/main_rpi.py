@@ -277,8 +277,8 @@ ScreenManager:
                                 border: [18, 18, 18, 18]
 
                         MDLabel:
-                            id:
-                            text: f"BATCH: {app.name_count_batch}"
+                            id: id_batch_camfeed
+                            text: "BATCH"
                             font_name: "assets/sf_txt_reg.ttf"
                             font_size: 20
                             halign: "left"
@@ -2796,6 +2796,7 @@ class UlangSystemApp(MDApp):
             self.led_panels.is_toggleable = False
             self.right_pane.current = "panel_count_active"
             self.btm_btn.current = "btn_count_active"
+            self.root.ids.id_atch_camfeed.text = f"BATCH: {self.name_count_batch}"
             print(f"[INFO] Count started for: {self.name_count_batch}. Operator: {self.name_operator}")
 
         if not (self.name_count_batch and self.name_operator):
