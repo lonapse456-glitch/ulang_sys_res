@@ -261,8 +261,7 @@ ScreenManager:
                     MDBoxLayout:
                         id: camfeed_batch_id_view
                         orientation: "vertical"
-                        size_hint: None, None
-                        width: self.minimum_width
+                        adaptive_size: True
                         height: 36
                         padding: 10
                         pos_hint: {"x":0.02, "top":0.97}
@@ -279,7 +278,6 @@ ScreenManager:
 
                         MDLabel:
                             id: id_batch_camfeed
-                            size_hint: None, None
                             text: "BATCH"
                             font_name: "assets/sf_txt_reg.ttf"
                             font_size: 20
@@ -287,7 +285,10 @@ ScreenManager:
                             theme_text_color: "Custom"
                             text_color: 1, 1, 1, 1
                             opacity: 1 if app.count_active else 0
+                            size_hint: None, None
+                            text_size: None, None  # Allows the text texture to grow unrestricted horizontally
                             width: self.texture_size[0]
+                            height: self.texture_size[1]
 
                     MDBoxLayout:
                         orientation: "vertical"
