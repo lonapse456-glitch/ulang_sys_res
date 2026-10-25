@@ -265,6 +265,7 @@ ScreenManager:
                         height: 36
                         padding: 10
                         pos_hint: {"x":0.02, "top":0.97}
+                        opacity: 1 if app.count_active else 0
 
                         canvas.before:
                             Color:
@@ -282,7 +283,7 @@ ScreenManager:
                             halign: "left"
                             theme_text_color: "Custom"
                             text_color: 1, 1, 1, 1
-                            opacity: 0 if app.count_active else 1
+                            opacity: 1 if app.count_active else 0
 
                     MDBoxLayout:
                         orientation: "vertical"
