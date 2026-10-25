@@ -262,6 +262,7 @@ ScreenManager:
                         id: camfeed_batch_id_view
                         orientation: "vertical"
                         size_hint: None, None
+                        width: self.minimum_width
                         height: 36
                         padding: 10
                         pos_hint: {"x":0.02, "top":0.97}
