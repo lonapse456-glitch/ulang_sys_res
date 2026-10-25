@@ -938,7 +938,6 @@ ScreenManager:
     orientation: "horizontal"
     size_hint_y: None
     height: 48
-    # 1. Let the root container dynamically hug its children
     adaptive_width: True 
     opacity: 0
     pos_hint: {"center_x": 0.5, "center_y": 0.05} 

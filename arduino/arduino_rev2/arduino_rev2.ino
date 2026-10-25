@@ -14,7 +14,7 @@ const int mtrPWMA = 5;
 const int mtrAIN2 = 6;
 const int mtrAIN1 = 7;
 const int mtrSTBY = 4;
-const int mtrSpeed = 255;
+const int mtrSpeed = 200;
 
 const int trigPIN = 10;
 const int echoPIN = 9;

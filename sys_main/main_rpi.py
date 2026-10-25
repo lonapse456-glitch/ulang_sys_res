@@ -282,6 +282,7 @@ ScreenManager:
                             halign: "left"
                             theme_text_color: "Custom"
                             text_color: 1, 1, 1, 1
+                            opacity: 0 if app.count_active else 1
 
                     MDBoxLayout:
                         orientation: "vertical"
@@ -2206,7 +2207,7 @@ class UlangSystemApp(MDApp):
         listener = threading.Thread(target=self.listen_to_ard, daemon=True)
         listener.start()
 
-    # Arduino-Raspi Communication Protocol
+    # [SECTION] Arduino-Raspi Communication Protocol
     @mainthread
     def update_sensor_reads(self, data):
         """@mainthread: Updates the screen with the JSON data from the Arduino"""
