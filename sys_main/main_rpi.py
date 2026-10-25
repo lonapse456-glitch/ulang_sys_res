@@ -259,14 +259,10 @@ ScreenManager:
                                     on_release: app.freeze_alert()
 
                     MDBoxLayout:
-                        id: camfeed_batch_id_view
+                        id: id_batch_camfeed
                         orientation: "vertical"
-                        
-                        # FIX 1: Replaces size_hint: None, None & manual minimum bindings
-                        adaptive_size: True 
-                        
-                        # Keep your custom sizing limits if needed, but height is now handled by padding + label font size
-                        padding: [10, 5, 10, 5] 
+                        adaptive_size: True         # Forces layout to match child constraints perfectly
+                        padding: [14, 6]            # Internal breathing room for the text inside your pill background
                         pos_hint: {"x": 0.02, "top": 0.97}
                         opacity: 1 if app.count_active else 0
 
@@ -279,21 +275,18 @@ ScreenManager:
                                 size: self.size
                                 border: [18, 18, 18, 18]
 
-                        MDLabel:
+                        # Use standard Label here to bypass KivyMD's automatic text wrapping constraints
+                        Label:
                             id: id_batch_camfeed
                             text: "BATCH"
                             font_name: "assets/sf_txt_reg.ttf"
                             font_size: 20
-                            halign: "left"
-                            theme_text_color: "Custom"
-                            text_color: 1, 1, 1, 1
+                            color: 1, 1, 1, 1       # Standard Kivy Label uses color instead of text_color
                             opacity: 1 if app.count_active else 0
                             
-                            # FIX 2: Ensure label breaks free of parental bounding boxes
+                            # Absolute size constraint enforcement
                             size_hint: None, None
-                            text_size: None, None  # Allows the text texture to grow unrestricted horizontally
-                            width: self.texture_size[0]
-                            height: self.texture_size[1]
+                            size: self.texture_size  # Locks both width and height to real pixel dimensions
 
                     MDBoxLayout:
                         orientation: "vertical"
