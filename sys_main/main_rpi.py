@@ -266,6 +266,7 @@ ScreenManager:
                         padding: 10
                         pos_hint: {"x":0.02, "top":0.97}
                         opacity: 1 if app.count_active else 0
+                        adaptive_width: True
 
                         canvas.before:
                             Color:
