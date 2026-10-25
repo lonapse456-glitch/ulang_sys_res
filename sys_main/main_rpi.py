@@ -266,7 +266,6 @@ ScreenManager:
                         padding: 10
                         pos_hint: {"x":0.02, "top":0.97}
                         opacity: 1 if app.count_active else 0
-                        width: self.texture_size[0]
 
                         canvas.before:
                             Color:
@@ -279,6 +278,7 @@ ScreenManager:
 
                         MDLabel:
                             id: id_batch_camfeed
+                            size_hint: None, None
                             text: "BATCH"
                             font_name: "assets/sf_txt_reg.ttf"
                             font_size: 20
@@ -286,6 +286,7 @@ ScreenManager:
                             theme_text_color: "Custom"
                             text_color: 1, 1, 1, 1
                             opacity: 1 if app.count_active else 0
+                            width: self.texture_size[0]
 
                     MDBoxLayout:
                         orientation: "vertical"
