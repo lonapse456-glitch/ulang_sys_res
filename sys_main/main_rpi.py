@@ -2240,10 +2240,12 @@ class UlangSystemApp(MDApp):
 
         if self.is_counting and (self.water_temp < self.min_temp or self.water_temp > self.max_temp):
             self.remove_sub_batch(self.current_active_widget, show_dialog=False)
+            Clock.schedule_once(lambda dt: self.show_snackbar(warning_mode = True, message="Warning: Water temperature on critical level!"))
             self.is_counting=False
 
         if self.is_counting and (wtrvol > self.max_load):
             self.remove_sub_batch(self.current_active_widget, show_dialog=False)
+            Clock.schedule_once(lambda dt: self.show_snackbar(warning_mode = True, message="Warning: Water level on critical level!"))
             self.is_counting=False
 
     def listen_to_ard(self):
