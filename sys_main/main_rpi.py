@@ -82,7 +82,7 @@ ScreenManager:
         id: logs_screen
         db_client: app.db_client
     FullScreen: 
-        id: full_screen
+        id: full_view
 
 # ---------------------------------------------------DASHBOARD PAGE-------------------------------------------------------
 <DashboardScreen>:
@@ -329,6 +329,7 @@ ScreenManager:
                         background_down: "res/btn_pill_gray_s_down.png"
                         pos_hint: {"right":0.98, "y":0.03}
                         size_hint: None, None
+                        on_release: app.go_full_view()
         
             # RIGHT PANE: Data & Controls
             MDBoxLayout:
@@ -1106,6 +1107,72 @@ ScreenManager:
 <FullScreen>:
     name: "full_view"
 
+    RelativeLayout:
+        size_hint: 1, 1
+
+        Image:
+            id: fullscreen_camfeed
+            size_hint: 1, 1
+            allow_stretch: True
+
+        MDBoxLayout:
+            id: fullscreen_batch_id_view
+            orientation: "vertical"
+            size_hint_x: 0.35
+            # Let Kivy automatically wrap the box around the two text labels
+            adaptive_height: True 
+            pos_hint: {"top": 1.0, "center_x": 0.5}
+            padding: [5, 5, 5, 5]
+            spacing: 1
+
+            canvas.before:
+                Color:
+                    rgba: 1, 1, 1, 1 
+                BorderImage:
+                    source: 'res/btn_pill_gray_l.png'
+                    pos: self.pos
+                    size: self.size
+                    border: [28, 28, 28, 28]
+            MDLabel:
+                id: id_batch_full_screen
+                text: app.name_count_batch if app.name_count_batch else "Not Counting"
+                font_name: "assets/sf_txt_bold.ttf"
+                font_size: 22
+                color: 1, 1, 1, 1
+                shorten: True
+                shorten_from: 'right'
+                halign: "center"
+                adaptive_height: True
+
+            MDLabel:
+                text: "BATCH"
+                font_name: "assets/sf_txt_reg.ttf"
+                font_size: 18
+                color: 1, 1, 1, 1
+                halign: "center"
+                # adaptive_height forces the label to snap to the text, 
+                # avoiding overlap with the label below it.
+                adaptive_height: True
+        MDBoxLayout:
+            size_hint: 0.5, None
+            padding: [12]
+            pos_hint: {"top":1.0, "x":0.5}
+            orientation: "horizontal"
+            height: self.minimum_height
+            spacing: 19
+            halign: "right"
+
+            Widget:
+                size_hint: 1, 1
+
+            SysIconButton:
+                id: minimize
+                icon: "res/ic_minimize_s.png"
+                text: "Minimize"
+                background_normal: "res/btn_pill_gray_s.png"
+                background_down: "res/btn_pill_gray_s_down.png"
+                on_release: app.go_to_dashboard()
+                size_hint: None, None
 # --------------------------------------------------CUSTOM CLASSES-------------------------------------------------------
 <Snackbar>:
     id: snackbar
@@ -2485,9 +2552,12 @@ class UlangSystemApp(MDApp):
 
                 rgb_frame = cv2.cvtColor(disp_frame, cv2.COLOR_BGR2RGB)
                 frame_bytes = rgb_frame.tobytes()
-
-                self.update_feed(frame_bytes, 434, 244, inf_count if self.is_counting else 0)
-
+                
+                if self.root.current == "dashboard":
+                    self.update_feed(frame_bytes, 434, 244, inf_count if self.is_counting else 0)
+                elif self.root.current == "full_view":
+                    self.update_feed(frame_bytes, 800, 400, inf_count if self.is_counting else 0)
+                    
                 eltime = time.time() - sttime
                 self.count_timer += eltime
                 slptime = targ_frame_time - eltime
@@ -2507,7 +2577,11 @@ class UlangSystemApp(MDApp):
 
         texture.flip_vertical()
 
-        cam_widget = self.root.ids.dashboard_screen.ids.camera_feed
+        if self.root.current == "dashboard":
+            cam_widget = self.root.ids.dashboard_screen.ids.camera_feed
+        elif self.root.current == "full_view":
+            cam_widget = self.root.ids.full_view.ids.fullscreen_camfeed
+
         cam_widget.texture = texture
         cam_widget.canvas.ask_update()
 
@@ -2758,9 +2832,17 @@ class UlangSystemApp(MDApp):
 
     def go_to_dashboard(self, *args):
         if self.root.current != "dashboard":
-            self.root.transition.direction = "right"
+            if self.root.current == "full_view":
+                self.root.transition = "down"
+            else:
+                self.root.transition.direction = "right"
             self.root.current = "dashboard"
         self.start_camera_loading()
+
+    def go_full_view(self, *args):
+        if self.root.current != "full_view":
+            self.root.transition.direction = "top"
+            self.root.current = "full_view"
 
     #============================================================================================================================
 
