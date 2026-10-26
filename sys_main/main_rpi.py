@@ -2239,9 +2239,11 @@ class UlangSystemApp(MDApp):
             self.root.ids.dashboard_screen.ids.water_vol_label.text = f"{wtrvol} L"
 
         if self.is_counting and (self.water_temp < self.min_temp or self.water_temp > self.max_temp):
+            self.remove_sub_batch(self.current_active_widget, show_dialog=False)
             self.is_counting=False
 
         if self.is_counting and (wtrvol > self.max_load):
+            self.remove_sub_batch(self.current_active_widget, show_dialog=False)
             self.is_counting=False
 
     def listen_to_ard(self):
@@ -2951,7 +2953,7 @@ class UlangSystemApp(MDApp):
             self.sub_batch_history[new_name] = -1 
             self.current_active_widget = new_widget
 
-    def remove_sub_batch(self, widget_to_remove):
+    def remove_sub_batch(self, widget_to_remove, show_dialog=True, *args):
         # Reset the system state if we are deleting the active widget
         def execute_deletion():
             if widget_to_remove.is_active:
@@ -2964,13 +2966,16 @@ class UlangSystemApp(MDApp):
             self.sub_batch_scrollview.remove_widget(widget_to_remove)
             print(f"[INFO] Removed {widget_to_remove.batch_name}. Current Backend Data:", self.sub_batch_history)
 
-        # Show a confirmation dialog
-        dialog = SystemDialog(
-            dialog_title = "Remove Sub-batch",
-            dialog_msg = "Are you sure you want to remove this Sub-batch? This process cannot be undone.", 
-            mode = "destructive", 
-            command_on_proceed = execute_deletion)
-        dialog.open()
+        if show_dialog:
+            # Show a confirmation dialog
+            dialog = SystemDialog(
+                dialog_title = "Remove Sub-batch",
+                dialog_msg = "Are you sure you want to remove this Sub-batch? This process cannot be undone.", 
+                mode = "destructive", 
+                command_on_proceed = execute_deletion)
+            dialog.open()
+        else:
+            execute_deletion()
 
     #[SECTION] Database Functions
     #dev: checked, it: 01
