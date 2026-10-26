@@ -262,7 +262,7 @@ ScreenManager:
                         id: camfeed_batch_id_view
                         orientation: "vertical"
                         adaptive_size: True
-                        padding: [10]
+                        padding: [8]
                         pos_hint: {"x": 0.02, "top": 0.97}
                         opacity: 1 if app.count_active else 0
 
@@ -282,13 +282,10 @@ ScreenManager:
                             font_size: 20
                             color: 1, 1, 1, 1
                             opacity: 1 if app.count_active else 0
-                            
                             size_hint: None, None
                             size: self.texture_size  # Strictly binds size to text footprint
-                            
-                            # FORCE LAYOUT REFRESH FOR RELATIVELAYOUT:
-                            # Whenever the texture size updates, manually tell the parent box to re-draw its canvas
                             on_texture_size: camfeed_batch_id_view.do_layout()
+
                     MDBoxLayout:
                         orientation: "vertical"
                         size_hint: None, None
@@ -2227,7 +2224,6 @@ class UlangSystemApp(MDApp):
             if self.count_active:
                 self.water_temp_array.append(wtrtemp)
 
- 
         if not wtrlvl=="--":
             #Calculate the water volume here, output in liters (L)
             wtrvol = (34 * 19 * float(wtrlvl))/1000
@@ -2241,6 +2237,12 @@ class UlangSystemApp(MDApp):
         else:
             wtrvol="--"
             self.root.ids.dashboard_screen.ids.water_vol_label.text = f"{wtrvol} L"
+
+        if self.is_counting and (self.water_temp < self.min_temp or self.water_temp > self.max_temp):
+            self.is_counting=False
+
+        if self.is_counting and (wtrvol > self.max_load):
+            self.is_counting=False
 
     def listen_to_ard(self):
         """
