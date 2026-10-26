@@ -2428,7 +2428,10 @@ class UlangSystemApp(MDApp):
             )
             self.picam2.configure(vd_config)
             self.picam2.start_preview(Preview.NULL)
-            self.picam2.set_controls({"AfMode": controls.AfModeEnum.Continuous})
+            self.picam2.set_controls({"AfMode": controls.AfModeEnum.Continuous,
+                                      "AeFlickerMode": 1,
+                                      "FlickerPeriod": 16666,
+                                      "FrameRate": 30.0})
             self.picam2.start()
             
             self.model = YOLO(self.model_path)
