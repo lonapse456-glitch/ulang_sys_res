@@ -2164,9 +2164,9 @@ class UlangSystemApp(MDApp):
     timeout_scan = NumericProperty(10)
     def_cam_res = OptionProperty("4K", options=["4K", "2K", "1080p"])
     cam_res = {
-        "4K" : [4608, 2592, 10],
+        "4K" : [4608, 2592, 9],
         "2K" : [2304, 1296, 15],
-        "1080p" : [1920, 1080, 20] } # Values are in [W, H, fps] format
+        "1080p" : [1920, 1080, 18] } # Values are in [W, H, fps] format
     
     min_temp = 27.0
     max_temp = 31.0
@@ -2841,7 +2841,7 @@ class UlangSystemApp(MDApp):
 
     def go_full_view(self, *args):
         if self.root.current != "full_view":
-            self.root.transition.direction = "top"
+            self.root.transition.direction = "up"
             self.root.current = "full_view"
 
     #============================================================================================================================
