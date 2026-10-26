@@ -2835,7 +2835,7 @@ class UlangSystemApp(MDApp):
     def go_to_dashboard(self, *args):
         if self.root.current != "dashboard":
             if self.root.current == "full_view":
-                self.root.transition = "down"
+                self.root.transition.direction = "down"
             else:
                 self.root.transition.direction = "right"
             self.root.current = "dashboard"
