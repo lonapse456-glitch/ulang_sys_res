@@ -2122,6 +2122,8 @@ class FullScreen(Screen):
     pass
 
 class UlangSystemApp(MDApp):
+    is_transitioning = BooleanProperty(False) # A page is actively transitioning
+
     # SYSTEM STATUS
     count_active = BooleanProperty(False) # For switching UI interface mode
     is_counting = BooleanProperty(False) # Inference active state
@@ -2554,11 +2556,11 @@ class UlangSystemApp(MDApp):
 
                 rgb_frame = cv2.cvtColor(disp_frame, cv2.COLOR_BGR2RGB)
                 frame_bytes = rgb_frame.tobytes()
-                
-                if self.root.current == "dashboard":
-                    self.update_feed(frame_bytes, 434, 244, inf_count if self.is_counting else 0)
-                elif self.root.current == "full_view":
-                    self.update_feed(frame_bytes, 800, 400, inf_count if self.is_counting else 0)
+
+                if not self.is_transitioning:
+                    h = 400 if self.root.current == "full_view" else 244
+                    w = 800 if self.root.current == "full_view" else 434
+                    self.update_feed(frame_bytes, w, h, inf_count if self.is_counting else 0)
                     
                 eltime = time.time() - sttime
                 self.count_timer += eltime
@@ -2841,17 +2843,25 @@ class UlangSystemApp(MDApp):
 
     def go_to_dashboard(self, *args):
         if self.root.current != "dashboard":
+            self.is_transitioning = True
             if self.root.current == "full_view":
                 self.root.transition.direction = "down"
             else:
                 self.root.transition.direction = "right"
             self.root.current = "dashboard"
+            Clock.schedule_once(self._unlock_feed, 0.5)
         self.start_camera_loading()
 
     def go_full_view(self, *args):
         if self.root.current != "full_view":
+            self.is_transitioning = True
             self.root.transition.direction = "up"
             self.root.current = "full_view"
+            Clock.schedule_once(self._unlock_feed, 0.5)
+
+    def _unlock_feed(self, dt):
+        """Re-enables the live camera feed after a screen transition."""
+        self.is_transitioning = False
 
     #============================================================================================================================
 
