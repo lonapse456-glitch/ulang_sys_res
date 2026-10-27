@@ -2308,12 +2308,7 @@ class UlangSystemApp(MDApp):
 
     def format_timestamp(self,timestamp_str):
         try:
-            # Splits '2026-10-27 14:15:30.123456+00' at the dot
-            # and grabs the date and time parts: '2026-10-27 14:15:30'
-            main_part = timestamp_str.split('.')[0]
-            
-            # Parse without worrying about the changing decimal digits
-            dt_obj = datetime.strptime(main_part, "%Y-%m-%d %H:%M:%S")
+            dt_obj = datetime.fromisoformat(timestamp_str)
             return dt_obj.strftime("%b %d, %Y %I:%M %p")
         except Exception as e:
             print(f"[Error parsing date] {e}")
@@ -3298,7 +3293,7 @@ class UlangSystemApp(MDApp):
         # SORT THE MERGED LIST BY TIMESTAMP
         try:
             master_log_list.sort(
-                key=lambda x: datetime.strptime(x["timestamp"], "%Y-%m-%d %H:%M:%S.%f+00"), 
+                key=lambda x: datetime.fromisoformat(x["timestamp"]), 
                 reverse=True
             )
         except Exception as e:
