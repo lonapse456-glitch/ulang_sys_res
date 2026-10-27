@@ -2604,24 +2604,24 @@ class UlangSystemApp(MDApp):
     def update_feed(self, frame_bytes, width, height, total_count, *args):
         """@mainthread: Refresh camera_feed"""
         
-        # We must create two separate textures in memory so the screens don't fight
-        texture_main = Texture.create(size=(width, height), colorfmt='rgb')
-        texture_main.blit_buffer(frame_bytes, colorfmt='rgb', bufferfmt='ubyte')
-        texture_main.flip_vertical()
-        
-        texture_full = Texture.create(size=(width, height), colorfmt='rgb')
-        texture_full.blit_buffer(frame_bytes, colorfmt='rgb', bufferfmt='ubyte')
-        texture_full.flip_vertical()
+        if not self.is_transitioning:
+            texture_main = Texture.create(size=(width, height), colorfmt='rgb')
+            texture_main.blit_buffer(frame_bytes, colorfmt='rgb', bufferfmt='ubyte')
+            texture_main.flip_vertical()
+            
+            texture_full = Texture.create(size=(width, height), colorfmt='rgb')
+            texture_full.blit_buffer(frame_bytes, colorfmt='rgb', bufferfmt='ubyte')
+            texture_full.flip_vertical()
 
-        # Update both widgets simultaneously so transitions are seamless
-        cam_widget_main = self.root.ids.dashboard_screen.ids.camera_feed
-        cam_widget_full = self.root.ids.full_view.ids.fullscreen_camfeed
+            # Update both widgets simultaneously so transitions are seamless
+            cam_widget_main = self.root.ids.dashboard_screen.ids.camera_feed
+            cam_widget_full = self.root.ids.full_view.ids.fullscreen_camfeed
 
-        cam_widget_main.texture = texture_main
-        cam_widget_full.texture = texture_full
-        
-        cam_widget_main.canvas.ask_update()
-        cam_widget_full.canvas.ask_update()
+            cam_widget_main.texture = texture_main
+            cam_widget_full.texture = texture_full
+            
+            cam_widget_main.canvas.ask_update()
+            cam_widget_full.canvas.ask_update()
 
         predict_count_txt = self.root.ids.dashboard_screen.ids.camfeed_count
         predict_count_txt.text = str(total_count) if total_count > 0 else "--"
