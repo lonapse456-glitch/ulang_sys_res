@@ -1224,6 +1224,15 @@ ScreenManager:
         valign: 'center'
         adaptive_width: True
 
+    SysIconButton:
+        id: view_image_btn
+        text: "See Image"
+        opacity: 1 if root.actionable else 0
+        background_normal: "res/btn_pill_gray_s.png"
+        background_down: "res/btn_pill_gray_s_down.png"
+        size_hint: None, None
+        on_release: root.command_on_proceed
+
 <BatchCountDialog@Popup>
     width: 500
     height: 350
@@ -3053,12 +3062,14 @@ class UlangSystemApp(MDApp):
             )
         dialog.open()
 
-    def show_snackbar(self, message = "", warning_mode = False, *args):
+    def show_snackbar(self, message = "", warning_mode = False,actionable=False, command_on_proceed=None, *args):
         if getattr(self, 'snackbar', None) is None:
             self.snackbar = Snackbar()
 
         self.snackbar.warning_mode = warning_mode
         self.snackbar.ids.toast_text.text = message
+        self.snackbar.actionable = actionable
+        self.snackbar.command_on_proceed = command_on_proceed
 
         if self.snackbar.parent:
             self.snackbar.parent.remove_widget(self.snackbar)
@@ -3073,7 +3084,8 @@ class UlangSystemApp(MDApp):
             t=smooth_anim_curve
         )
         anim_in.start(self.snackbar)
-        Clock.schedule_once(self.hide_snackbar, 3)
+        close_time = 10 if actionable else 3
+        Clock.schedule_once(self.hide_snackbar, close_time)
 
     def hide_snackbar(self, dt=None):
         if not self.snackbar:
@@ -3105,7 +3117,7 @@ class UlangSystemApp(MDApp):
             self.current_active_widget = None
             
             # Provide visual feedback to the operator
-            self.show_snackbar(message=f"PL Count: {locked_count}", warning_mode=False)
+            self.show_snackbar(message=f"PL Count: {locked_count}", warning_mode=False, actionable=True, command_on_proceed=lambda *args: self.show_result_frame(batch_uuid=self.batch_uuid, sbatch_num=self.total_batches_created))
 
     #dev: checked, it: 01
     def count_on_click(self):
@@ -3507,6 +3519,10 @@ class UlangSystemApp(MDApp):
         self.monitoring_freezed = True
         self.finish_queue_check_stat()
         self.start_camera_loading() # Start loading camera again
+
+    def show_result_frame(self, batch_uuid:str = "", sbatch_num:int = 0):
+        self.root.ids.full_view.fullscreen_camfeed.source = f"res_captured/{batch_uuid}/{batch_uuid}_SB{sbatch_num}.jpg"
+        self.go_full_view()
 #=====================================================Graphics====================================================
 
 class PillToggleButton(Button):
@@ -3691,6 +3707,13 @@ class CamResDialog(Popup):
 
 class Snackbar(MDBoxLayout):
     warning_mode = BooleanProperty(False)
+    actionable = BooleanProperty(False)
+    command_on_proceed = ObjectProperty(None, allownone=True)
+
+    def execute_proceed(self):
+        if self.command_on_proceed and callable(self.command_on_proceed): 
+            self.command_on_proceed()
+        self.dismiss()
 
 class BatchLogItem(MDCard):
     log_uuid = StringProperty("")
