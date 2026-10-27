@@ -2485,7 +2485,7 @@ class UlangSystemApp(MDApp):
             )
             self.picam2.configure(vd_config)
             self.picam2.start_preview(Preview.NULL)
-            self.picam2.set_controls({"AfMode": controls.AfModeEnum.Manual, "LensPosition": 1/self.water_lvl})
+            self.picam2.set_controls({"AfMode": controls.AfModeEnum.Manual, "LensPosition": 1/36.5-self.water_lvl})
             self.picam2.start()
             
             self.model = YOLO(self.model_path)
