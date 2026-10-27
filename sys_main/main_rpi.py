@@ -3516,10 +3516,23 @@ class UlangSystemApp(MDApp):
 
     def show_result_frame(self, batch_uuid:str = "", sbatch_num:int = 0):
         img_path = f"res_captured/{batch_uuid}/{batch_uuid}_SB{sbatch_num}.jpg"
-        Cache.remove('kv.image')
-        Cache.remove('kv.texture')
+        abs_path = os.path.abspath(img_path)
+        
+        # Verify the file exists before attempting to load
+        if not os.path.exists(abs_path):
+            print(f"[ERROR] Captured image not found at: {abs_path}")
+            self.show_snackbar(warning_mode=True, message="Captured image file not found.")
+            return
+
+        print(f"[INFO] Loading image: {abs_path}")
+        
+        # Switch to full view first so the screen/widget is active in the tree
+        self.go_full_view()
+        
+        # Safely assign source (clearing first forces Kivy to re-trigger texture loading)
         fullscreen_widget = self.root.ids.full_view.ids.fullscreen_camfeed
-        fullscreen_widget.source = img_path
+        fullscreen_widget.source = ""
+        fullscreen_widget.source = abs_path
         fullscreen_widget.reload()
         print(f"[INFO] Image Showing: {img_path}")
         self.go_full_view()
