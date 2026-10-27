@@ -2231,6 +2231,8 @@ class UlangSystemApp(MDApp):
     count_timer_array = []
     batch_uuid = StringProperty("")
 
+    full_img = ""
+
     payload = {
             "local_id": None, #Auto-generated uuid
             "timestamp": None,
@@ -3517,6 +3519,7 @@ class UlangSystemApp(MDApp):
     def show_result_frame(self, batch_uuid:str = "", sbatch_num:int = 0):
         img_path = f"res_captured/{batch_uuid}/{batch_uuid}_SB{sbatch_num}.jpg"
         abs_path = os.path.abspath(img_path)
+        self.full_img = abs_path
         
         # Verify the file exists before attempting to load
         if not os.path.exists(abs_path):
@@ -3528,14 +3531,16 @@ class UlangSystemApp(MDApp):
         
         # Switch to full view first so the screen/widget is active in the tree
         self.go_full_view()
-        
-        # Safely assign source (clearing first forces Kivy to re-trigger texture loading)
-        fullscreen_widget = self.root.ids.full_view.ids.fullscreen_camfeed
-        fullscreen_widget.source = ""
-        fullscreen_widget.source = abs_path
-        fullscreen_widget.reload()
         print(f"[INFO] Image Showing: {img_path}")
         self.go_full_view()
+        Clock.schedule_once(lambda dt: update_tex())
+        # Safely assign source (clearing first forces Kivy to re-trigger texture loading)
+        def update_tex():
+            fullscreen_widget = self.root.ids.full_view.ids.fullscreen_camfeed
+            fullscreen_widget.source = ""
+            fullscreen_widget.source = self.full_img
+            fullscreen_widget.reload()
+        
 #=====================================================Graphics====================================================
 
 class PillToggleButton(Button):
