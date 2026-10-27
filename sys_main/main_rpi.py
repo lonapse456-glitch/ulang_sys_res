@@ -2352,16 +2352,17 @@ class UlangSystemApp(MDApp):
             wtrvol="--"
             self.root.ids.dashboard_screen.ids.water_vol_label.text = f"{wtrvol} L"
 
-        if self.water_temp < self.min_temp or self.water_temp > self.max_temp:
-            self.critical_temp = True
-        else: 
-            self.critical_temp = False
+        if not wtrlvl == "--" or wtrtemp == "--"
+            if self.water_temp < self.min_temp or self.water_temp > self.max_temp:
+                self.critical_temp = True
+            else: 
+                self.critical_temp = False
 
-        if wtrvol > self.max_load:
-            self.critical_load = True
+            if wtrvol > self.max_load:
+                self.critical_load = True
 
-        else:
-            self.critical_load = False
+            else:
+                self.critical_load = False
 
         if self.is_counting and (self.water_temp < self.min_temp or self.water_temp > self.max_temp):
             self.remove_sub_batch(self.current_active_widget, show_dialog=False)
