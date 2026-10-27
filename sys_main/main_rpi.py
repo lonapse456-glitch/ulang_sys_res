@@ -1890,7 +1890,7 @@ ScreenManager:
             font_name: 'assets/sf_mono_reg.otf'
             theme_text_color: "Custom"
             text_color: 0.5, 0.5, 0.5, 1
-            text: root.time_formatted
+            text: app.format_timestamp(str(root.timestamp))
             halign: 'left'
 
     #    SysIconButton:
@@ -2101,19 +2101,6 @@ def set_wifi_state(enable: bool):
         except Exception as e:
             print(f"[DEBUG] Error toggling Wi-Fi state: {e}")
 
-def format_timestamp(timestamp_str):
-    try:
-        # Splits '2026-10-27 14:15:30.123456+00' at the dot
-        # and grabs the date and time parts: '2026-10-27 14:15:30'
-        main_part = timestamp_str.split('.')[0]
-        
-        # Parse without worrying about the changing decimal digits
-        dt_obj = datetime.strptime(main_part, "%Y-%m-%d %H:%M:%S")
-        return dt_obj.strftime("%b %d, %Y %I:%M %p")
-    except Exception as e:
-        print(f"[Error parsing date] {e}")
-        return timestamp_str
-
 class DashboardScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -2204,6 +2191,8 @@ class UlangSystemApp(MDApp):
         "4K" : [4608, 2592, 9],
         "2K" : [2304, 1296, 15],
         "1080p" : [1920, 1080, 18] } # Values are in [W, H, fps] format
+
+    water_lvl = NumericProperty(0.0)
     
     min_temp = 27.0
     max_temp = 31.0
@@ -2317,11 +2306,25 @@ class UlangSystemApp(MDApp):
         listener = threading.Thread(target=self.listen_to_ard, daemon=True)
         listener.start()
 
+    def format_timestamp(self,timestamp_str):
+        try:
+            # Splits '2026-10-27 14:15:30.123456+00' at the dot
+            # and grabs the date and time parts: '2026-10-27 14:15:30'
+            main_part = timestamp_str.split('.')[0]
+            
+            # Parse without worrying about the changing decimal digits
+            dt_obj = datetime.strptime(main_part, "%Y-%m-%d %H:%M:%S")
+            return dt_obj.strftime("%b %d, %Y %I:%M %p")
+        except Exception as e:
+            print(f"[Error parsing date] {e}")
+            return timestamp_str
+
     # [SECTION] Arduino-Raspi Communication Protocol
     @mainthread
     def update_sensor_reads(self, data):
         """@mainthread: Updates the screen with the JSON data from the Arduino"""
         wtrlvl = data.get('wtrlvl')
+        self.water_lvl = float(wtrlvl)
         wtrtemp = data.get('temp')
         self.root.ids.dashboard_screen.ids.water_temp_label.text = f"{wtrtemp} °C"
         self.root.ids.dashboard_screen.ids.water_lvl_label.text = f"{wtrlvl} cm"
@@ -2482,7 +2485,7 @@ class UlangSystemApp(MDApp):
             )
             self.picam2.configure(vd_config)
             self.picam2.start_preview(Preview.NULL)
-            self.picam2.set_controls({"AfMode": controls.AfModeEnum.Continuous})
+            self.picam2.set_controls({"AfMode": controls.AfModeEnum.Manual, "LensPosition": 1/self.water_lvl})
             self.picam2.start()
             
             self.model = YOLO(self.model_path)
@@ -3699,7 +3702,6 @@ class BatchLogItem(MDCard):
     log_num_sbatches = NumericProperty(0)
     log_margin_of_err = NumericProperty(0.0)
     log_time_elapsed = NumericProperty(0.0)
-    time_formatted = format_timestamp(str(log_timestamp))
 
 # Custom Button for Count/+Sub-batch to avoid double-clicking issue on touchscreen
 class DebounceBtn(Button):
