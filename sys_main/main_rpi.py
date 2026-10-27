@@ -2098,8 +2098,6 @@ def set_wifi_state(enable: bool):
 class DashboardScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.focus_index = 0
-        self.focusable_ids = []
         Clock.schedule_interval(self.update_clock, 1)
 
     def update_clock(self, *args):
@@ -2112,6 +2110,16 @@ class DashboardScreen(Screen):
         if 'clock_label' in self.ids:
             self.ids.clock_label.text = formatted_time
 
+    def on_pre_leave(self, *args):
+        # Lock the feed the millisecond before the slide begins
+        app = MDApp.get_running_app()
+        app.is_transitioning = True
+
+    def on_enter(self, *args):
+        # Unlock the feed the millisecond the slide finishes
+        app = MDApp.get_running_app()
+        app.is_transitioning = False
+
 class SettingsScreen(Screen):
     pass
 
@@ -2119,7 +2127,15 @@ class LogsScreen(Screen):
     pass
 
 class FullScreen(Screen):
-    pass
+    def on_pre_leave(self, *args):
+        # Lock the feed the millisecond before sliding down
+        app = MDApp.get_running_app()
+        app.is_transitioning = True
+
+    def on_enter(self, *args):
+        # Unlock the feed the millisecond the slide finishes
+        app = MDApp.get_running_app()
+        app.is_transitioning = False
 
 class UlangSystemApp(MDApp):
     is_transitioning = BooleanProperty(False) # A page is actively transitioning
@@ -2855,8 +2871,6 @@ class UlangSystemApp(MDApp):
     def go_to_dashboard(self, *args):
         if self.root.current != "dashboard":
             self.is_transitioning = True
-            self.root.ids.dashboard_screen.ids.camera_feed.texture = None
-            self.root.ids.full_view.ids.fullscreen_camfeed.texture = None
             if self.root.current == "full_view":
                 self.root.transition.direction = "down"
             else:
@@ -2868,8 +2882,6 @@ class UlangSystemApp(MDApp):
     def go_full_view(self, *args):
         if self.root.current != "full_view":
             self.is_transitioning = True
-            self.root.ids.dashboard_screen.ids.camera_feed.texture = None
-            self.root.ids.full_view.ids.fullscreen_camfeed.texture = None
             self.root.transition.direction = "up"
             self.root.current = "full_view"
             Clock.schedule_once(self._unlock_feed, 0.5)
