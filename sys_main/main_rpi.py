@@ -3514,7 +3514,9 @@ class UlangSystemApp(MDApp):
         self.start_camera_loading() # Start loading camera again
 
     def show_result_frame(self, batch_uuid:str = "", sbatch_num:int = 0):
-        self.root.ids.full_view.ids.fullscreen_camfeed.source = f"res_captured/{batch_uuid}/{batch_uuid}_SB{sbatch_num}.jpg"
+        img_path = f"res_captured/{batch_uuid}/{batch_uuid}_SB{sbatch_num}.jpg"
+        self.root.ids.full_view.ids.fullscreen_camfeed.source = img_path
+        print(f"[INFO] Image Showing: {img_path}")
         self.go_full_view()
 #=====================================================Graphics====================================================
 
