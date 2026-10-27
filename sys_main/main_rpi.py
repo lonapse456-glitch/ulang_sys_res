@@ -3405,13 +3405,13 @@ class UlangSystemApp(MDApp):
                         .select("*").execute()
                 else:
                     time_format = "%Y-%m-%d %H:%M:%S.%f+00"
-                    end_time = time.now()
+                    end_time = datetime.now()
                     start_time = end_time - timedelta(days_window)
                     print(f"[INFO] Fetching Logs from {end_time.strf(time_format)}")
                     response = self.db_client.table("system_logs") \
                         .select("*") \
-                        .gte("timestamp", start_time.strf(time_format)) \
-                        .lte("timestamp", end_time.strf(time_format)) \
+                        .gte("timestamp", start_time.isoformat()) \
+                        .lte("timestamp", end_time.isoformat()) \
                         .execute()
 
                 fetched_data = response.data
