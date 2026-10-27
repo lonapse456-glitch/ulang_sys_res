@@ -2295,16 +2295,6 @@ class UlangSystemApp(MDApp):
         if not self.is_online:
             self.show_snackbar(message = "System is Running Offline", warning_mode=False)
 
-        if GPIO_AVAILABLE:
-            self.btn_settings = HardwareButton(17)
-            self.btn_settings.when_pressed = lambda: Clock.schedule_once(self.go_to_settings)
-
-            self.btn_home = HardwareButton(27)
-            self.btn_home.when_pressed = lambda: Clock.schedule_once(self.go_to_dashboard)
-
-            self.btn_start = HardwareButton(22)
-            self.btn_start.when_pressed = lambda: Clock.schedule_once(self.start_batch_count)
-
         # Initialize camera
         self.start_camera_loading()
 
