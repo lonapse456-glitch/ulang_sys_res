@@ -35,6 +35,8 @@ from skfuzzy import control as ctrl
 from shapely.geometry import Polygon
 from shapely.ops import unary_union
 
+from kivy.core.image import Image as CoreImage
+
 #Kivy Configurations
 from kivy.config import Config
 Config.set('kivy', 'keyboard_mode', 'systemandmulti')
@@ -2231,7 +2233,7 @@ class UlangSystemApp(MDApp):
     count_timer_array = []
     batch_uuid = StringProperty("")
 
-    full_img = ""
+    full_img = ObjectProperty(None, allownone=True)
 
     payload = {
             "local_id": None, #Auto-generated uuid
@@ -3519,7 +3521,8 @@ class UlangSystemApp(MDApp):
     def show_result_frame(self, batch_uuid:str = "", sbatch_num:int = 0):
         img_path = f"res_captured/{batch_uuid}/{batch_uuid}_SB{sbatch_num}.jpg"
         abs_path = os.path.abspath(img_path)
-        self.full_img = abs_path
+        tex_img = CoreImage(abs_path)
+        self.full_img = tex_img.texture
         
         # Verify the file exists before attempting to load
         if not os.path.exists(abs_path):
@@ -3537,9 +3540,8 @@ class UlangSystemApp(MDApp):
         # Safely assign source (clearing first forces Kivy to re-trigger texture loading)
         def update_tex():
             fullscreen_widget = self.root.ids.full_view.ids.fullscreen_camfeed
-            fullscreen_widget.source = ""
-            fullscreen_widget.source = self.full_img
-            fullscreen_widget.reload()
+            fullscreen_widget.texture = self.full_img
+            fullscreen_widget.canvas.ask_update()
         
 #=====================================================Graphics====================================================
 
