@@ -3705,7 +3705,6 @@ class Snackbar(MDBoxLayout):
     def execute_proceed(self):
         if self.command_on_proceed and callable(self.command_on_proceed): 
             self.command_on_proceed()
-        self.dismiss()
 
 class BatchLogItem(MDCard):
     log_uuid = StringProperty("")
