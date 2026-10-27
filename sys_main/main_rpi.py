@@ -2307,13 +2307,26 @@ class UlangSystemApp(MDApp):
             wtrvol="--"
             self.root.ids.dashboard_screen.ids.water_vol_label.text = f"{wtrvol} L"
 
+        if self.water_temp < self.min_temp or self.water_temp > self.max_temp:
+            self.critical_temp = True
+        else: 
+            self.critical_temp = False
+
+        if wtrvol > self.max_load:
+            self.critical_load = True
+
+        else:
+            self.critical_load = False
+
         if self.is_counting and (self.water_temp < self.min_temp or self.water_temp > self.max_temp):
             self.remove_sub_batch(self.current_active_widget, show_dialog=False)
+            self.total_batches_created -= 1
             Clock.schedule_once(lambda dt: self.show_snackbar(warning_mode = True, message="Warning: Water temperature on critical level!"))
             self.is_counting=False
 
         if self.is_counting and (wtrvol > self.max_load):
             self.remove_sub_batch(self.current_active_widget, show_dialog=False)
+            self.total_batches_created -= 1
             Clock.schedule_once(lambda dt: self.show_snackbar(warning_mode = True, message="Warning: Water level on critical level!"))
             self.is_counting=False
 
@@ -2842,6 +2855,8 @@ class UlangSystemApp(MDApp):
     def go_to_dashboard(self, *args):
         if self.root.current != "dashboard":
             self.is_transitioning = True
+            self.root.ids.dashboard_screen.ids.camera_feed.texture = None
+            self.root.ids.full_view.ids.fullscreen_camfeed.texture = None
             if self.root.current == "full_view":
                 self.root.transition.direction = "down"
             else:
@@ -2853,9 +2868,11 @@ class UlangSystemApp(MDApp):
     def go_full_view(self, *args):
         if self.root.current != "full_view":
             self.is_transitioning = True
+            self.root.ids.dashboard_screen.ids.camera_feed.texture = None
+            self.root.ids.full_view.ids.fullscreen_camfeed.texture = None
             self.root.transition.direction = "up"
             self.root.current = "full_view"
-            Clock.schedule_once(self._unlock_feed, 0.7)
+            Clock.schedule_once(self._unlock_feed, 0.5)
 
     def _unlock_feed(self, dt):
         """Re-enables the live camera feed after a screen transition."""
