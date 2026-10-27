@@ -3527,19 +3527,31 @@ class UlangSystemApp(MDApp):
             print(f"[ERROR] Image missing or empty at: {abs_path}")
             return
 
-        # Clear Kivy cache for this image path to force a fresh texture reload
-        Cache.remove('kv.image', abs_path)
-        Cache.remove('kv.texture', abs_path)
+        # 1. Read the image using OpenCV (which we already know works and isn't blank)
+        frame = cv2.imread(abs_path)
+        if frame is None:
+            print(f"[ERROR] Could not read image with cv2: {abs_path}")
+            return
 
-        # Switch view first
+        # 2. Convert BGR to RGB
+        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        height, width, _ = frame_rgb.shape
+
+        # 3. Switch to full view first so the screen/widget exists in the layout tree
         self.go_full_view()
 
-        # Assign source safely
+        # 4. Create a direct Kivy Texture and blit the RGB buffer into it
+        texture = Texture.create(size=(width, height), colorfmt='rgb')
+        texture.flip_vertical()  # Flip vertically to match Kivy's coordinate system
+        texture.blit_buffer(frame_rgb.tobytes(), colorfmt='rgb', bufferfmt='ubyte')
+
+        # 5. Assign the texture directly to the fullscreen Image widget
         fullscreen_widget = self.root.ids.full_view.ids.fullscreen_camfeed
-        fullscreen_widget.source = ""
-        fullscreen_widget.source = abs_path
-        fullscreen_widget.reload()
-        print(f"[INFO] Fullscreen image successfully loaded: {abs_path}")
+        fullscreen_widget.source = ""  # Clear any old source string
+        fullscreen_widget.texture = texture
+        fullscreen_widget.canvas.ask_update()
+        
+        print(f"[INFO] Successfully forced direct texture render for: {abs_path}")
         
 #=====================================================Graphics====================================================
 
