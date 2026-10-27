@@ -1123,6 +1123,7 @@ ScreenManager:
             id: fullscreen_camfeed
             size_hint: 1, 1
             allow_stretch: True
+            keep_ratio: True
 
         MDBoxLayout:
             id: fullscreen_batch_id_view
@@ -3521,27 +3522,24 @@ class UlangSystemApp(MDApp):
     def show_result_frame(self, batch_uuid:str = "", sbatch_num:int = 0):
         img_path = f"res_captured/{batch_uuid}/{batch_uuid}_SB{sbatch_num}.jpg"
         abs_path = os.path.abspath(img_path)
-        tex_img = CoreImage(abs_path)
-        self.full_img = tex_img.texture
         
-        # Verify the file exists before attempting to load
-        if not os.path.exists(abs_path):
-            print(f"[ERROR] Captured image not found at: {abs_path}")
-            self.show_snackbar(warning_mode=True, message="Captured image file not found.")
+        if not os.path.exists(abs_path) or os.path.getsize(abs_path) == 0:
+            print(f"[ERROR] Image missing or empty at: {abs_path}")
             return
 
-        print(f"[INFO] Loading image: {abs_path}")
-        
-        # Switch to full view first so the screen/widget is active in the tree
+        # Clear Kivy cache for this image path to force a fresh texture reload
+        Cache.remove('kv.image', abs_path)
+        Cache.remove('kv.texture', abs_path)
+
+        # Switch view first
         self.go_full_view()
-        print(f"[INFO] Image Showing: {img_path}")
-        self.go_full_view()
-        Clock.schedule_once(lambda dt: update_tex())
-        # Safely assign source (clearing first forces Kivy to re-trigger texture loading)
-        def update_tex():
-            fullscreen_widget = self.root.ids.full_view.ids.fullscreen_camfeed
-            fullscreen_widget.texture = self.full_img
-            fullscreen_widget.canvas.ask_update()
+
+        # Assign source safely
+        fullscreen_widget = self.root.ids.full_view.ids.fullscreen_camfeed
+        fullscreen_widget.source = ""
+        fullscreen_widget.source = abs_path
+        fullscreen_widget.reload()
+        print(f"[INFO] Fullscreen image successfully loaded: {abs_path}")
         
 #=====================================================Graphics====================================================
 
