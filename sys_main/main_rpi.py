@@ -3443,7 +3443,7 @@ class UlangSystemApp(MDApp):
 
         else:
             self.active_alert = False
-            self.critical_load = False
+            self.critical_temp = False
 
         if self.water_vol > self.max_load:
             self.critical_load = True
