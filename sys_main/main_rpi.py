@@ -1,3 +1,6 @@
+import faulthandler
+faulthandler.enable()
+
 from supabase import create_client, Client
 import threading
 import copy
@@ -1887,11 +1890,11 @@ ScreenManager:
             text: root.log_timestamp
             halign: 'left'
 
-        SysIconButton:
-            icon: "res/ic_image.png"
-            text: "See Results"
-            background_normal: "res/btn_pill_gray_s.png"
-            background_down: "res/btn_pill_gray_s_down.png"
+    #    SysIconButton:
+    #        icon: "res/ic_image.png"
+    #        text: "See Results"
+    #        background_normal: "res/btn_pill_gray_s.png"
+    #        background_down: "res/btn_pill_gray_s_down.png"
 
         SysIconButton:
             icon: "res/ic_trash_s.png"
@@ -2222,6 +2225,8 @@ class UlangSystemApp(MDApp):
             "ave_approx_density": None,
             "time_elapsed": None
         }
+
+    frame_bytes=ObjectProperty(None,allownone=True)
 
     # Online Database: Supabase Client
     SUPABASE_API_URL = 'https://nltmvrjxasslpqbdyamg.supabase.co'
@@ -2582,12 +2587,12 @@ class UlangSystemApp(MDApp):
                     disp_frame = cv2.resize(hi_res_frame, (434, 244), interpolation=cv2.INTER_LINEAR)
 
                 rgb_frame = cv2.cvtColor(disp_frame, cv2.COLOR_BGR2RGB)
-                frame_bytes = rgb_frame.tobytes()
+                self.frame_bytes = rgb_frame.tobytes()
 
                 if not self.is_transitioning:
                     h = 400 if self.root.current == "full_view" else 244
                     w = 800 if self.root.current == "full_view" else 434
-                    self.update_feed(frame_bytes, w, h, inf_count if self.is_counting else 0)
+                    self.update_feed(self.frame_bytes, w, h, inf_count if self.is_counting else 0)
                     
                 eltime = time.time() - sttime
                 self.count_timer += eltime
