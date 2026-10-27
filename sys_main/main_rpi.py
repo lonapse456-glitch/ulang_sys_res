@@ -2352,7 +2352,7 @@ class UlangSystemApp(MDApp):
             wtrvol="--"
             self.root.ids.dashboard_screen.ids.water_vol_label.text = f"{wtrvol} L"
 
-        if not wtrlvl == "--" or wtrtemp == "--":
+        if not (wtrlvl == "--" and wtrtemp == "--") and not self.water_vol=="--":
             if self.water_temp < self.min_temp or self.water_temp > self.max_temp:
                 self.critical_temp = True
             else: 
