@@ -1,6 +1,8 @@
 import faulthandler
 faulthandler.enable()
 
+from dateutil import parser
+
 from supabase import create_client, Client
 import threading
 import copy
@@ -2099,6 +2101,19 @@ def set_wifi_state(enable: bool):
         except Exception as e:
             print(f"[DEBUG] Error toggling Wi-Fi state: {e}")
 
+def format_timestamp(timestamp_str):
+    try:
+        # Splits '2026-10-27 14:15:30.123456+00' at the dot
+        # and grabs the date and time parts: '2026-10-27 14:15:30'
+        main_part = timestamp_str.split('.')[0]
+        
+        # Parse without worrying about the changing decimal digits
+        dt_obj = datetime.strptime(main_part, "%Y-%m-%d %H:%M:%S")
+        return dt_obj.strftime("%b %d, %Y %I:%M %p")
+    except Exception as e:
+        print(f"[Error parsing date] {e}")
+        return timestamp_str
+
 class DashboardScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -3684,8 +3699,7 @@ class BatchLogItem(MDCard):
     log_num_sbatches = NumericProperty(0)
     log_margin_of_err = NumericProperty(0.0)
     log_time_elapsed = NumericProperty(0.0)
-    time_obj = datetime.strptime(str(log_timestamp), "%Y-%m-%d %H:%M:%S.%f+00")
-    time_formatted =time_obj.strftime("%b %d, %Y %I:%M %p")
+    time_formatted = format_timestamp(str(log_timestamp))
 
 # Custom Button for Count/+Sub-batch to avoid double-clicking issue on touchscreen
 class DebounceBtn(Button):
