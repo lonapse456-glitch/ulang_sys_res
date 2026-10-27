@@ -1141,7 +1141,7 @@ ScreenManager:
                     border: [28, 28, 28, 28]
             MDLabel:
                 id: id_batch_full_screen
-                text: app.name_count_batch if app.name_count_batch else "Not Counting"
+                text: app.name_count_batch if app.count_active else "Not Counting"
                 font_name: "assets/sf_txt_bold.ttf"
                 font_size: 22
                 color: 1, 1, 1, 1
@@ -1151,7 +1151,7 @@ ScreenManager:
                 adaptive_height: True
 
             MDLabel:
-                text: "BATCH"
+                text: f"SUB-BATCH {app.total_batches_created}"
                 font_name: "assets/sf_txt_reg.ttf"
                 font_size: 18
                 color: 1, 1, 1, 1
@@ -1159,6 +1159,7 @@ ScreenManager:
                 # adaptive_height forces the label to snap to the text, 
                 # avoiding overlap with the label below it.
                 adaptive_height: True
+
         MDBoxLayout:
             size_hint: 0.5, None
             padding: [12]
