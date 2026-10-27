@@ -3684,7 +3684,7 @@ class BatchLogItem(MDCard):
     log_num_sbatches = NumericProperty(0)
     log_margin_of_err = NumericProperty(0.0)
     log_time_elapsed = NumericProperty(0.0)
-    time_obj = datetime.strptime(log_timestamp, "%Y-%m-%d %H:%M:%S.%f+00")
+    time_obj = datetime.strptime(str(log_timestamp), "%Y-%m-%d %H:%M:%S.%f+00")
     time_formatted =time_obj.strftime("%b %d, %Y %I:%M %p")
 
 # Custom Button for Count/+Sub-batch to avoid double-clicking issue on touchscreen
