@@ -63,6 +63,7 @@ from kivy.uix.popup import Popup
 from kivy.animation import Animation
 from kivy.uix.widget import Widget
 from kivy.uix.behaviors import ButtonBehavior
+from kivy.cache import Cache
 
 # HARDWARE GPIO SETUP
 from picamera2 import Picamera2, Preview
@@ -3515,7 +3516,11 @@ class UlangSystemApp(MDApp):
 
     def show_result_frame(self, batch_uuid:str = "", sbatch_num:int = 0):
         img_path = f"res_captured/{batch_uuid}/{batch_uuid}_SB{sbatch_num}.jpg"
-        self.root.ids.full_view.ids.fullscreen_camfeed.source = img_path
+        Cache.remove('kv.image')
+        Cache.remove('kv.texture')
+        fullscreen_widget = self.root.ids.full_view.ids.fullscreen_camfeed
+        fullscreen_widget.source = img_path
+        fullscreen_widget.reload()
         print(f"[INFO] Image Showing: {img_path}")
         self.go_full_view()
 #=====================================================Graphics====================================================
