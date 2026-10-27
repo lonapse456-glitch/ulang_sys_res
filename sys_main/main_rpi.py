@@ -2535,6 +2535,7 @@ class UlangSystemApp(MDApp):
             try:
                 if self.is_counting:
                     inf_result = self.model.predict(hi_res_frame, conf=0.35, verbose=False)
+                    inf_wframe = inf_result[0].plot(labels=False, line_width=2, conf=False)
 
                     if inf_result[0].obb is not None:
                         inf_count = len(inf_result[0].obb)
@@ -2586,7 +2587,7 @@ class UlangSystemApp(MDApp):
                                 # RAW Image
                                 # The camera captures in RGB888, but OpenCV's imwrite requires BGR
                                 # bgr_frame = cv2.cvtColor(hi_res_frame, cv2.COLOR_RGB2BGR)
-                                cv2.imwrite(f"{base_path}.jpg", hi_res_frame)
+                                cv2.imwrite(f"{base_path}.jpg", inf_wframe)
                                 
                                 # YOLO-OBB annotations (.txt)
                                 with open(f"{base_path}.txt", "w") as f:
@@ -2614,7 +2615,6 @@ class UlangSystemApp(MDApp):
                         inf_count = 0
                         self.prev_count = 0
 
-                    inf_wframe = inf_result[0].plot(labels=False, line_width=2, conf=False)
                     disp_frame = cv2.resize(inf_wframe, (434, 244), interpolation=cv2.INTER_LINEAR)
 
                 else:
