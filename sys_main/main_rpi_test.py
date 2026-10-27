@@ -1897,7 +1897,7 @@ ScreenManager:
             font_name: 'assets/sf_mono_reg.otf'
             theme_text_color: "Custom"
             text_color: 0.5, 0.5, 0.5, 1
-            text: app.format_timestamp(str(root.timestamp))
+            text: app.format_timestamp(str(root.log_timestamp))
             halign: 'left'
 
     #    SysIconButton:
