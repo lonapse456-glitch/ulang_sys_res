@@ -2172,8 +2172,8 @@ class UlangSystemApp(MDApp):
     
     min_temp = 27.0
     max_temp = 31.0
-    max_load = 10 #In kilograms
-    sub_optimal_temp = [23.2, 32.9]
+    max_load = 5.2 #In kilograms
+    sub_optimal_temp = [23.2, 37]
 
     # Placeholders
     sub_batch_history = {}
