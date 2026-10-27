@@ -2484,7 +2484,7 @@ class UlangSystemApp(MDApp):
             )
             self.picam2.configure(vd_config)
             self.picam2.start_preview(Preview.NULL)
-            self.picam2.set_controls({"AfMode": controls.AfModeEnum.Manual, "LensPosition": 1/36.5-self.water_lvl})
+            self.picam2.set_controls({"AfMode": controls.AfModeEnum.Manual, "LensPosition": 1/((36.5-self.water_lvl)/100)})
             self.picam2.start()
             
             self.model = YOLO(self.model_path)
@@ -3157,7 +3157,7 @@ class UlangSystemApp(MDApp):
         """Calculates or assigns the final values for keys in the payload."""
         self.payload.update({
             "local_id": self.batch_uuid,
-            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f+00"), # Format to ISO-8601 / PostgreSQL timestamptz
+            "timestamp": datetime.now().isoformat(), # Format to ISO-8601 / PostgreSQL timestamptz
             "batch_id": self.name_count_batch,
             "op_name": self.name_operator,
             "count_total_pl": self.total_count,
