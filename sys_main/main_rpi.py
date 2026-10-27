@@ -2649,7 +2649,6 @@ class UlangSystemApp(MDApp):
 
         try:
             cam_widget_main = self.root.ids.dashboard_screen.ids.camera_feed
-            cam_widget_full = self.root.ids.full_view.ids.fullscreen_camfeed
 
             if current_screen == "dashboard" and cam_widget_main:
                 # Initialize or recreate texture ONLY if size changed to save GPU allocations
@@ -2663,17 +2662,6 @@ class UlangSystemApp(MDApp):
                 self._cached_dashboard_tex.blit_buffer(frame_bytes, colorfmt='rgb', bufferfmt='ubyte')
                 cam_widget_main.texture = self._cached_dashboard_tex
                 cam_widget_main.canvas.ask_update()
-
-            elif current_screen == "full_view" and cam_widget_full:
-                if (not self._cached_fullscreen_tex or 
-                    self._cached_fullscreen_tex.width != width or 
-                    self._cached_fullscreen_tex.height != height):
-                    self._cached_fullscreen_tex = Texture.create(size=(width, height), colorfmt='rgb')
-                    self._cached_fullscreen_tex.flip_vertical()
-                
-                self._cached_fullscreen_tex.blit_buffer(frame_bytes, colorfmt='rgb', bufferfmt='ubyte')
-                cam_widget_full.texture = self._cached_fullscreen_tex
-                cam_widget_full.canvas.ask_update()
 
         except Exception as tex_err:
             print(f"[OpenGL Guard] Suppressed render collision during window state shift: {tex_err}")
