@@ -332,7 +332,8 @@ ScreenManager:
                         background_down: "res/btn_pill_gray_s_down.png"
                         pos_hint: {"right":0.98, "y":0.03}
                         size_hint: None, None
-                        on_release: app.go_full_view()
+                        # on_release: app.go_full_view()
+                        opacity: 0
         
             # RIGHT PANE: Data & Controls
             MDBoxLayout:
@@ -1887,7 +1888,7 @@ ScreenManager:
             font_name: 'assets/sf_mono_reg.otf'
             theme_text_color: "Custom"
             text_color: 0.5, 0.5, 0.5, 1
-            text: root.log_timestamp
+            text: root.time_formatted
             halign: 'left'
 
     #    SysIconButton:
@@ -3683,6 +3684,8 @@ class BatchLogItem(MDCard):
     log_num_sbatches = NumericProperty(0)
     log_margin_of_err = NumericProperty(0.0)
     log_time_elapsed = NumericProperty(0.0)
+    time_obj = datetime.strptime(log_timestamp, "%Y-%m-%d %H:%M:%S.%f+00")
+    time_formatted =time_obj.strftime("%b %d, %Y %I:%M %p")
 
 # Custom Button for Count/+Sub-batch to avoid double-clicking issue on touchscreen
 class DebounceBtn(Button):
