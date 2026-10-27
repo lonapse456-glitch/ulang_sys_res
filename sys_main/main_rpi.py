@@ -2324,7 +2324,10 @@ class UlangSystemApp(MDApp):
     def update_sensor_reads(self, data):
         """@mainthread: Updates the screen with the JSON data from the Arduino"""
         wtrlvl = data.get('wtrlvl')
-        self.water_lvl = float(wtrlvl)
+        try:
+            self.water_lvl = float(wtrlvl) 
+        except:
+            self.water_lvl = 36.5
         wtrtemp = data.get('temp')
         self.root.ids.dashboard_screen.ids.water_temp_label.text = f"{wtrtemp} °C"
         self.root.ids.dashboard_screen.ids.water_lvl_label.text = f"{wtrlvl} cm"
