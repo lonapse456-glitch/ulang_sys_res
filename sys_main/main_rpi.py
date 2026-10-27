@@ -1224,14 +1224,17 @@ ScreenManager:
         valign: 'center'
         adaptive_width: True
 
-    SysIconButton:
+    Button:
         id: view_image_btn
+        font_name: "assets/sf_txt_bold.ttf"
+        font_size: 18
         text: "See Image"
         opacity: 1 if root.actionable else 0
         background_normal: "res/btn_pill_gray_s.png"
         background_down: "res/btn_pill_gray_s_down.png"
         size_hint: None, None
-        on_release: root.command_on_proceed
+        on_release: root.execute_proceed()
+        pos_hint: {"center_y":0.5}
 
 <BatchCountDialog@Popup>
     width: 500
