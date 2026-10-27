@@ -2227,6 +2227,8 @@ class UlangSystemApp(MDApp):
         }
 
     frame_bytes=ObjectProperty(None,allownone=True)
+    _cached_dashboard_tex = None
+    _cached_fullscreen_tex = None
 
     # Online Database: Supabase Client
     SUPABASE_API_URL = 'https://nltmvrjxasslpqbdyamg.supabase.co'
@@ -2607,36 +2609,51 @@ class UlangSystemApp(MDApp):
 
     @mainthread
     def update_feed(self, frame_bytes, width, height, total_count, *args):
-        """@mainthread: Refresh camera_feed"""
-        
-        if self.is_transitioning:
+        """@mainthread: Safely reuses textures and prevents OpenGL pipeline collisions"""
+        # Global transition block: Drop frames immediately if screens are switching
+        if self.is_transitioning or self.root is None:
             return
 
-        try:
-            texture = Texture.create(size=(width, height), colorfmt='rgb')
-            texture.blit_buffer(frame_bytes, colorfmt='rgb', bufferfmt='ubyte')
-            texture.flip_vertical()
+        current_screen = self.root.current
 
+        try:
             cam_widget_main = self.root.ids.dashboard_screen.ids.camera_feed
             cam_widget_full = self.root.ids.full_view.ids.fullscreen_camfeed
 
-            if self.root.current == "dashboard":
-                if cam_widget_main:
-                    cam_widget_main.texture = texture
-                    cam_widget_main.canvas.ask_update()
-            elif self.root.current == "full_view":
-                if cam_widget_full:
-                    cam_widget_full.texture = texture
-                    cam_widget_full.canvas.ask_update()
+            if current_screen == "dashboard" and cam_widget_main:
+                # Initialize or recreate texture ONLY if size changed to save GPU allocations
+                if (not self._cached_dashboard_tex or 
+                    self._cached_dashboard_tex.width != width or 
+                    self._cached_dashboard_tex.height != height):
+                    self._cached_dashboard_tex = Texture.create(size=(width, height), colorfmt='rgb')
+                    self._cached_dashboard_tex.flip_vertical()
+                
+                # Push raw bytes to existing hardware buffer safely
+                self._cached_dashboard_tex.blit_buffer(frame_bytes, colorfmt='rgb', bufferfmt='ubyte')
+                cam_widget_main.texture = self._cached_dashboard_tex
+                cam_widget_main.canvas.ask_update()
+
+            elif current_screen == "full_view" and cam_widget_full:
+                if (not self._cached_fullscreen_tex or 
+                    self._cached_fullscreen_tex.width != width or 
+                    self._cached_fullscreen_tex.height != height):
+                    self._cached_fullscreen_tex = Texture.create(size=(width, height), colorfmt='rgb')
+                    self._cached_fullscreen_tex.flip_vertical()
+                
+                self._cached_fullscreen_tex.blit_buffer(frame_bytes, colorfmt='rgb', bufferfmt='ubyte')
+                cam_widget_full.texture = self._cached_fullscreen_tex
+                cam_widget_full.canvas.ask_update()
 
         except Exception as tex_err:
-            print(f"[Texture Debug Error] Bypassed context error: {tex_err}")
+            print(f"[OpenGL Guard] Suppressed render collision during window state shift: {tex_err}")
 
-        predict_count_txt = self.root.ids.dashboard_screen.ids.camfeed_count
-        predict_count_txt.text = str(total_count) if total_count > 0 else "--"
-
-        if self.is_counting:
-            print(f"[INFO|COUNTING] Count: {total_count}")
+        # Update counter text safely
+        try:
+            predict_count_txt = self.root.ids.dashboard_screen.ids.camfeed_count
+            if predict_count_txt:
+                predict_count_txt.text = str(total_count) if total_count > 0 else "--"
+        except Exception:
+            pass
 
     def stop_camera(self):
         """Cleans up memory when navigating away"""
