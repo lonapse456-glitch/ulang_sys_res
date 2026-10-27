@@ -2430,9 +2430,7 @@ class UlangSystemApp(MDApp):
             )
             self.picam2.configure(vd_config)
             self.picam2.start_preview(Preview.NULL)
-            self.picam2.set_controls({"AfMode": controls.AfModeEnum.Continuous,
-                                        "AeFlickerMode": controls.AeFlickerModeEnum.Manual,
-                                        "AeFlickerPeriod": 16666 })
+            self.picam2.set_controls({"AfMode": controls.AfModeEnum.Continuous})
             self.picam2.start()
             
             self.model = YOLO(self.model_path)
@@ -2849,7 +2847,7 @@ class UlangSystemApp(MDApp):
             else:
                 self.root.transition.direction = "right"
             self.root.current = "dashboard"
-            Clock.schedule_once(self._unlock_feed, 0.5)
+            Clock.schedule_once(self._unlock_feed, 0.7)
         self.start_camera_loading()
 
     def go_full_view(self, *args):
@@ -2857,7 +2855,7 @@ class UlangSystemApp(MDApp):
             self.is_transitioning = True
             self.root.transition.direction = "up"
             self.root.current = "full_view"
-            Clock.schedule_once(self._unlock_feed, 0.5)
+            Clock.schedule_once(self._unlock_feed, 0.7)
 
     def _unlock_feed(self, dt):
         """Re-enables the live camera feed after a screen transition."""
