@@ -1024,6 +1024,36 @@ ScreenManager:
                             size_hint_x: 0.4
                             on_release: app.show_cam_res_dialog()
 
+                    MDSeparator:
+                    
+                    MDBoxLayout:
+                        orientation: 'horizontal'
+                        size_hint: 1, None
+                        height: 64
+                        padding: [0, 12, 0, 12]
+
+                        ClickableMDLabel:
+                            text: "Camera AF Mode"
+                            halign: 'left'
+                            pos_hint: {"center_y": .5}
+                            font_name: "assets/sf_txt_reg.ttf"
+                            font_size: 24
+                            size_hint: 1, None
+                            height: 64
+                            size_hint_x: 0.6
+                            on_release: app.show_cam_af_dialog()
+
+                        ClickableMDLabel:
+                            id: txt_cam_res
+                            text: f"{app.def_cam_settings}"
+                            halign: 'right'
+                            font_name: "assets/sf_txt_reg.ttf"
+                            font_size: 24
+                            theme_text_color: "Custom"
+                            text_color: 1, 1, 1, 0.5
+                            size_hint_x: 0.4
+                            on_release: app.show_cam_af_dialog()
+
                 MDCard:
                     orientation: 'horizontal'
                     size_hint: 1, None
@@ -1748,6 +1778,136 @@ ScreenManager:
                 background_down: "res/btn_pill_blue_l_down.png"
                 on_release: root.execute_proceed(root.selected_opt)
 
+<CamAfDialog>
+    width: 500
+    height: 390
+    size_hint: None, None
+    background: ''
+    background_color: 0, 0, 0, 0
+    separator_height: 0
+    title: ""
+    command_on_proceed: app.config_cam_af
+    auto_dismiss: False
+    palette: app.color_palette
+    default_opt: app.def_cam_settings
+
+    MDBoxLayout:
+        orientation: 'vertical'
+        size_hint: 1, None
+        height: 400
+        spacing: 19
+        padding: 12
+
+        canvas.before:
+            Color:
+                rgba: 1, 1, 1, 1 # Ensure the image renders at full brightness
+            BorderImage:
+                source: 'res/bg_dialog.png'
+                pos: self.pos
+                size: self.size
+                border: [35, 35, 35, 35]
+
+        MDBoxLayout:
+            orientation: 'vertical'
+            size_hint: 1, 1
+            spacing: 12
+            padding: [15, 10, 15, 8]
+
+            MDLabel:
+                text: "Set Camera Control"
+                font_name: "assets/sf_txt_bold.ttf"
+                font_size: 24
+                text_color: 1, 1, 1, 1
+                size_hint_x: 1
+                halign: 'left'
+
+            MDLabel:
+                text: "Choose the Camera's Af mode."
+                font_name: "assets/sf_txt_reg.ttf"
+                font_size: 20
+                text_color: 1, 1, 1, 1
+                size_hint_x: 1
+                halign: 'left'
+                height: self.texture_size[1]
+
+            MDCard:
+                id: opt_1
+                orientation: 'vertical'
+                size_hint: 1, None
+                height: 48
+                padding: [12, 0, 12, 0]
+                radius: [24]
+                on_release: root.select("opt_1")
+                
+                MDLabel:
+                    text: "Auto (Continuous)"
+                    font_name: "assets/sf_txt_reg.ttf"
+                    font_size: 20
+                    text_color: 1, 1, 1, 1
+                    size_hint_x: 1
+                    halign: 'center'
+
+            MDCard:
+                id: opt_2
+                orientation: 'vertical'
+                size_hint: 1, None
+                height: 48
+                padding: [12, 0, 12, 0]
+                radius: [24]
+                on_release: root.select("opt_2")
+                
+                MDLabel:
+                    text: "Semi-automatic"
+                    font_name: "assets/sf_txt_reg.ttf"
+                    font_size: 20
+                    text_color: 1, 1, 1, 1
+                    size_hint_x: 1
+                    halign: 'center'
+
+            MDCard:
+                id: opt_3
+                orientation: 'vertical'
+                size_hint: 1, None
+                height: 48
+                padding: [12, 0, 12, 0]
+                radius: [24]
+                on_release: root.select("opt_3")
+                
+                MDLabel:
+                    text: "Fixed"
+                    font_name: "assets/sf_txt_reg.ttf"
+                    font_size: 20
+                    text_color: 1, 1, 1, 1
+                    size_hint_x: 1
+                    halign: 'center'
+
+        MDBoxLayout:
+            orientation: 'horizontal'
+            size_hint: 1, None
+            spacing: 12
+            height: 64
+
+            Button:
+                text: "CANCEL"
+                size_hint: 1, None
+                height: 56
+                font_size: 24
+                font_name: "assets/sf_txt_bold.ttf"
+                background_normal: "res/btn_pill_gray_l.png"
+                background_down: "res/btn_pill_gray_l_down.png"
+                on_release:
+                    root.dismiss()
+
+            Button:
+                text: "SAVE"
+                size_hint: 1, None
+                height: 56
+                font_size: 24
+                font_name: "assets/sf_txt_bold.ttf"
+                background_normal: "res/btn_pill_blue_l.png"
+                background_down: "res/btn_pill_blue_l_down.png"
+                on_release: root.execute_proceed(root.selected_opt)
+
 <SystemDialog>
     width: 500
     height: dialog_container.height
@@ -2201,21 +2361,31 @@ class UlangSystemApp(MDApp):
         "dark_blue":'#0000a2'
         }
 
-    # Settings
-    capture_inf = BooleanProperty(False)
-    timeout_scan = NumericProperty(10)
-    def_cam_res = OptionProperty("4K", options=["4K", "2K", "1080p"])
-    cam_res = {
-        "4K" : [4608, 2592, 9],
-        "2K" : [2304, 1296, 15],
-        "1080p" : [1920, 1080, 18] } # Values are in [W, H, fps] format
-
     water_lvl = NumericProperty(0.0)
-    
     min_temp = 27.0
     max_temp = 31.0
     max_load = 5.2 #In kilograms
     sub_optimal_temp = [23.2, 37]
+
+    # Settings
+    capture_inf = BooleanProperty(True)
+    timeout_scan = NumericProperty(10)
+    def_cam_res = OptionProperty("4K", options=["4K", "2K", "1080p"])
+
+    cam_res = {
+        "4K" : [4608, 2592, 10],
+        "2K" : [2304, 1296, 15],
+        "1080p" : [1920, 1080, 20] } # Values are in [W, H, fps] format
+    
+    def_cam_settings = OptionProperty("Auto", options=["Auto", "Semi-auto", "Fixed"])
+    # Auto: Camera is set to autofocus
+    # Semi-automatic: Camera's focusing depends on the ultrasonic sensor readings. The focus of the camera will be on the surface of the water
+    # Fixed: Camera's focal point will be fixed at the bottom of the container
+    cam_settings = {
+        "Auto" : {"AfMode": controls.AfModeEnum.Continuous},
+        "Semi-auto":{"AfMode": controls.AfModeEnum.Manual, "LensPosition": 1/((36.5-water_lvl)/100)},
+        "Fixed": {"AfMode": controls.AfModeEnum.Manual, "LensPosition": 1/0.365}
+    }
 
     # Placeholders
     sub_batch_history = {}
@@ -2504,7 +2674,7 @@ class UlangSystemApp(MDApp):
             )
             self.picam2.configure(vd_config)
             self.picam2.start_preview(Preview.NULL)
-            self.picam2.set_controls({"AfMode": controls.AfModeEnum.Manual, "LensPosition": 1/((36.5-self.water_lvl)/100)})
+            self.picam2.set_controls(self.cam_settings[self.def_cam_settings])
             self.picam2.start()
             
             self.model = YOLO(self.model_path)
@@ -2965,6 +3135,10 @@ class UlangSystemApp(MDApp):
         self.popup = Factory.CamResDialog()
         self.popup.open()
 
+    def show_cam_af_dialog(self, *args):
+        self.popup = Factory.CamAfDialog()
+        self.popup.open()
+
     # =============================================================================================================================
 
     def activate_count(self, input_name_batch = "", input_name_op = "", *args):
@@ -3105,8 +3279,16 @@ class UlangSystemApp(MDApp):
     def _lock_sub_batch(self, locked_count):
         """Called by the background fuzzy evaluator when an Excellent frame is found."""
         if self.current_active_widget:
-            #Append time elapsed and reset timer
+            # Append time elapsed and reset timer
+            print(f"[LOG] Time elapsed: {self.count_timer}s")
             self.count_timer_array.append(self.count_timer)
+
+            if self.count_timer >= 1:
+                el_t_formt = f"{self.count_timer:.2f} s"
+            else:
+                ms=self.count_timer*1000
+                el_t_formt = f"{ms:.2f} ms"
+
             self.count_timer = 0
 
             self.current_active_widget.count = locked_count
@@ -3116,7 +3298,7 @@ class UlangSystemApp(MDApp):
             self.current_active_widget = None
             
             # Provide visual feedback to the operator
-            self.show_snackbar(message=f"PL Count: {locked_count}", warning_mode=False, actionable=True, command_on_proceed=lambda *args: self.show_result_frame(batch_uuid=self.batch_uuid, sbatch_num=self.total_batches_created))
+            self.show_snackbar(message=f"PL Count: {locked_count} ({el_t_formt})", warning_mode=False, actionable=True, command_on_proceed=lambda *args: self.show_result_frame(batch_uuid=self.batch_uuid, sbatch_num=self.total_batches_created))
 
     #dev: checked, it: 01
     def count_on_click(self):
@@ -3482,6 +3664,9 @@ class UlangSystemApp(MDApp):
     def config_cam_res(self, opt):
         self.def_cam_res = opt
 
+    def config_cam_af(self, opt):
+        self.def_cam_settings = opt
+
     def check_chamber_stat(self, dt):
         self.monitoring_freezed = False
 
@@ -3693,6 +3878,46 @@ class ExportLogsDialog(Popup):
     def execute_proceed(self, email, timerange):
         if self.command_on_proceed and callable(self.command_on_proceed): 
             self.command_on_proceed(email, timerange)
+        self.dismiss()
+
+class CamAfDialog(Popup):
+    default_opt = ObjectProperty(None, allownone=True)
+    selected_opt = OptionProperty(default_opt, options=["Auto", "Semi-auto", "Fixed"])
+    command_on_proceed = ObjectProperty(None, allownone=True)
+    palette = ObjectProperty(None, allownone=True)
+
+    def on_pre_open(self):
+        if self.default_opt == "Auto":
+            opt = "opt_1"
+        elif self.default_opt == "Semi-auto":
+            opt = "opt_2"
+        else:
+            opt = "opt_3"
+
+        self.select(opt)
+
+    def select(self, id):
+        if id == 'opt_1':
+            self.selected_opt = "Auto"
+            self.ids.opt_1.md_bg_color = get_color_from_hex(self.palette["blue"])
+            self.ids.opt_2.md_bg_color = get_color_from_hex(self.palette["dark_gray"])
+            self.ids.opt_3.md_bg_color = get_color_from_hex(self.palette["dark_gray"])
+
+        elif id == 'opt_2':
+            self.selected_opt = "Semi-auto"
+            self.ids.opt_1.md_bg_color = get_color_from_hex(self.palette["dark_gray"])
+            self.ids.opt_2.md_bg_color = get_color_from_hex(self.palette["blue"])
+            self.ids.opt_3.md_bg_color = get_color_from_hex(self.palette["dark_gray"])
+
+        else:
+            self.selected_opt = "Fixed"
+            self.ids.opt_1.md_bg_color = get_color_from_hex(self.palette["dark_gray"])
+            self.ids.opt_2.md_bg_color = get_color_from_hex(self.palette["dark_gray"])
+            self.ids.opt_3.md_bg_color = get_color_from_hex(self.palette["blue"])
+
+    def execute_proceed(self, selected_opt):
+        if self.command_on_proceed and callable(self.command_on_proceed): 
+            self.command_on_proceed(selected_opt)
         self.dismiss()
 
 class CamResDialog(Popup):
