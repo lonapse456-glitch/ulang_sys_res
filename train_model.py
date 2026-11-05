@@ -11,7 +11,7 @@ if __name__ == '__main__':
         epochs=150, 
         imgsz=640, 
         batch=8, 
-        name='ulangn_obb_v6-4_annotator',
+        name='ulangn_obb_v7-0_annotator',
         optimizer='AdamW',
         lr0=0.005,
         lrf=0.0001,
@@ -19,7 +19,7 @@ if __name__ == '__main__':
         warmup_epochs = 5.0,
         device=0,
         workers=2,
-        project = 'annotator_v6-4',
+        project = 'annotator_v7-0',
         pretrained = True,
 
         augment=True,

@@ -2361,7 +2361,7 @@ class UlangSystemApp(MDApp):
         "dark_blue":'#0000a2'
         }
 
-    water_lvl = NumericProperty(0.0)
+    water_lvl = 0.0
     min_temp = 27.0
     max_temp = 31.0
     max_load = 5.2 #In kilograms
