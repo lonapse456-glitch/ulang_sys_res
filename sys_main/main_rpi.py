@@ -2346,7 +2346,7 @@ class UlangSystemApp(MDApp):
     wifi_strength = NumericProperty(0)
 
     # YOLO model path
-    model_path = 'ulangn-obb-annotator-v6-4_ncnn_model'
+    model_path = 'ulangn_obb_v7-0_ncnn_model'
 
     # UI Elements
     dialog = None
