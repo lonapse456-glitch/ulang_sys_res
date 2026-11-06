@@ -1,3 +1,8 @@
+import faulthandler
+faulthandler.enable()
+
+from dateutil import parser
+
 from supabase import create_client, Client
 import threading
 import copy
@@ -30,6 +35,8 @@ from skfuzzy import control as ctrl
 from shapely.geometry import Polygon
 from shapely.ops import unary_union
 
+from kivy.core.image import Image as CoreImage
+
 #Kivy Configurations
 from kivy.config import Config
 Config.set('kivy', 'keyboard_mode', 'systemandmulti')
@@ -58,6 +65,7 @@ from kivy.uix.popup import Popup
 from kivy.animation import Animation
 from kivy.uix.widget import Widget
 from kivy.uix.behaviors import ButtonBehavior
+from kivy.cache import Cache
 
 # HARDWARE GPIO SETUP
 from picamera2 import Picamera2, Preview
@@ -82,7 +90,7 @@ ScreenManager:
         id: logs_screen
         db_client: app.db_client
     FullScreen: 
-        id: full_screen
+        id: full_view
 
 # ---------------------------------------------------DASHBOARD PAGE-------------------------------------------------------
 <DashboardScreen>:
@@ -261,27 +269,30 @@ ScreenManager:
                     MDBoxLayout:
                         id: camfeed_batch_id_view
                         orientation: "vertical"
-                        size_hint: None, None
-                        height: 36
-                        padding: 10
-                        pos_hint: {"x":0.02, "top":0.97}
+                        adaptive_size: True
+                        padding: [8]
+                        pos_hint: {"x": 0.02, "top": 0.97}
+                        opacity: 1 if app.count_active else 0
 
                         canvas.before:
                             Color:
-                                rgba: 1, 1, 1, 1 # Ensure the image renders at full brightness
+                                rgba: 1, 1, 1, 1 
                             BorderImage:
                                 source: 'res/btn_pill_gray_s.png'
                                 pos: self.pos
                                 size: self.size
                                 border: [18, 18, 18, 18]
 
-                        MDLabel:
-                            text: f"BATCH: {app.name_count_batch}"
+                        Label:
+                            id: id_batch_camfeed
+                            text: "BATCH"
                             font_name: "assets/sf_txt_reg.ttf"
                             font_size: 20
-                            halign: "left"
-                            theme_text_color: "Custom"
-                            text_color: 1, 1, 1, 1
+                            color: 1, 1, 1, 1
+                            opacity: 1 if app.count_active else 0
+                            size_hint: None, None
+                            size: self.texture_size  # Strictly binds size to text footprint
+                            on_texture_size: camfeed_batch_id_view.do_layout()
 
                     MDBoxLayout:
                         orientation: "vertical"
@@ -326,6 +337,8 @@ ScreenManager:
                         background_down: "res/btn_pill_gray_s_down.png"
                         pos_hint: {"right":0.98, "y":0.03}
                         size_hint: None, None
+                        # on_release: app.go_full_view()
+                        opacity: 0
         
             # RIGHT PANE: Data & Controls
             MDBoxLayout:
@@ -1011,6 +1024,36 @@ ScreenManager:
                             size_hint_x: 0.4
                             on_release: app.show_cam_res_dialog()
 
+                    MDSeparator:
+                    
+                    MDBoxLayout:
+                        orientation: 'horizontal'
+                        size_hint: 1, None
+                        height: 64
+                        padding: [0, 12, 0, 12]
+
+                        ClickableMDLabel:
+                            text: "Camera AF Mode"
+                            halign: 'left'
+                            pos_hint: {"center_y": .5}
+                            font_name: "assets/sf_txt_reg.ttf"
+                            font_size: 24
+                            size_hint: 1, None
+                            height: 64
+                            size_hint_x: 0.6
+                            on_release: app.show_cam_af_dialog()
+
+                        ClickableMDLabel:
+                            id: txt_cam_res
+                            text: f"{app.def_cam_settings}"
+                            halign: 'right'
+                            font_name: "assets/sf_txt_reg.ttf"
+                            font_size: 24
+                            theme_text_color: "Custom"
+                            text_color: 1, 1, 1, 0.5
+                            size_hint_x: 0.4
+                            on_release: app.show_cam_af_dialog()
+
                 MDCard:
                     orientation: 'horizontal'
                     size_hint: 1, None
@@ -1103,6 +1146,74 @@ ScreenManager:
 <FullScreen>:
     name: "full_view"
 
+    RelativeLayout:
+        size_hint: 1, 1
+
+        Image:
+            id: fullscreen_camfeed
+            size_hint: 1, 1
+            allow_stretch: True
+            keep_ratio: True
+
+        MDBoxLayout:
+            id: fullscreen_batch_id_view
+            orientation: "vertical"
+            size_hint_x: 0.35
+            # Let Kivy automatically wrap the box around the two text labels
+            adaptive_height: True 
+            pos_hint: {"top": 1.0, "center_x": 0.5}
+            padding: [5, 5, 5, 5]
+            spacing: 1
+
+            canvas.before:
+                Color:
+                    rgba: 1, 1, 1, 1 
+                BorderImage:
+                    source: 'res/btn_pill_gray_l.png'
+                    pos: self.pos
+                    size: self.size
+                    border: [28, 28, 28, 28]
+            MDLabel:
+                id: id_batch_full_screen
+                text: app.name_count_batch if app.count_active else "Not Counting"
+                font_name: "assets/sf_txt_bold.ttf"
+                font_size: 22
+                color: 1, 1, 1, 1
+                shorten: True
+                shorten_from: 'right'
+                halign: "center"
+                adaptive_height: True
+
+            MDLabel:
+                text: f"SUB-BATCH {app.total_batches_created}"
+                font_name: "assets/sf_txt_reg.ttf"
+                font_size: 18
+                color: 1, 1, 1, 1
+                halign: "center"
+                # adaptive_height forces the label to snap to the text, 
+                # avoiding overlap with the label below it.
+                adaptive_height: True
+
+        MDBoxLayout:
+            size_hint: 0.5, None
+            padding: [12]
+            pos_hint: {"top":1.0, "x":0.5}
+            orientation: "horizontal"
+            height: self.minimum_height
+            spacing: 19
+            halign: "right"
+
+            Widget:
+                size_hint: 1, 1
+
+            SysIconButton:
+                id: minimize
+                icon: "res/ic_minimize_s.png"
+                text: "Minimize"
+                background_normal: "res/btn_pill_gray_s.png"
+                background_down: "res/btn_pill_gray_s_down.png"
+                on_release: app.go_to_dashboard()
+                size_hint: None, None
 # --------------------------------------------------CUSTOM CLASSES-------------------------------------------------------
 <Snackbar>:
     id: snackbar
@@ -1147,6 +1258,19 @@ ScreenManager:
         halign: 'left'
         valign: 'center'
         adaptive_width: True
+
+    Button:
+        id: view_image_btn
+        font_name: "assets/sf_txt_reg.ttf"
+        font_size: 18
+        text: "See Image"
+        opacity: 1 if root.actionable else 0
+        background_normal: "res/btn_pill_gray_s.png"
+        background_down: "res/btn_pill_gray_s_down.png"
+        size_hint: None, None
+        height: 36
+        on_release: root.execute_proceed()
+        pos_hint: {"center_y":0.5}
 
 <BatchCountDialog@Popup>
     width: 500
@@ -1654,6 +1778,136 @@ ScreenManager:
                 background_down: "res/btn_pill_blue_l_down.png"
                 on_release: root.execute_proceed(root.selected_opt)
 
+<CamAfDialog>
+    width: 500
+    height: 390
+    size_hint: None, None
+    background: ''
+    background_color: 0, 0, 0, 0
+    separator_height: 0
+    title: ""
+    command_on_proceed: app.config_cam_af
+    auto_dismiss: False
+    palette: app.color_palette
+    default_opt: app.def_cam_settings
+
+    MDBoxLayout:
+        orientation: 'vertical'
+        size_hint: 1, None
+        height: 400
+        spacing: 19
+        padding: 12
+
+        canvas.before:
+            Color:
+                rgba: 1, 1, 1, 1 # Ensure the image renders at full brightness
+            BorderImage:
+                source: 'res/bg_dialog.png'
+                pos: self.pos
+                size: self.size
+                border: [35, 35, 35, 35]
+
+        MDBoxLayout:
+            orientation: 'vertical'
+            size_hint: 1, 1
+            spacing: 12
+            padding: [15, 10, 15, 8]
+
+            MDLabel:
+                text: "Set Camera Control"
+                font_name: "assets/sf_txt_bold.ttf"
+                font_size: 24
+                text_color: 1, 1, 1, 1
+                size_hint_x: 1
+                halign: 'left'
+
+            MDLabel:
+                text: "Choose the Camera's Af mode."
+                font_name: "assets/sf_txt_reg.ttf"
+                font_size: 20
+                text_color: 1, 1, 1, 1
+                size_hint_x: 1
+                halign: 'left'
+                height: self.texture_size[1]
+
+            MDCard:
+                id: opt_1
+                orientation: 'vertical'
+                size_hint: 1, None
+                height: 48
+                padding: [12, 0, 12, 0]
+                radius: [24]
+                on_release: root.select("opt_1")
+                
+                MDLabel:
+                    text: "Auto (Continuous)"
+                    font_name: "assets/sf_txt_reg.ttf"
+                    font_size: 20
+                    text_color: 1, 1, 1, 1
+                    size_hint_x: 1
+                    halign: 'center'
+
+            MDCard:
+                id: opt_2
+                orientation: 'vertical'
+                size_hint: 1, None
+                height: 48
+                padding: [12, 0, 12, 0]
+                radius: [24]
+                on_release: root.select("opt_2")
+                
+                MDLabel:
+                    text: "Semi-automatic"
+                    font_name: "assets/sf_txt_reg.ttf"
+                    font_size: 20
+                    text_color: 1, 1, 1, 1
+                    size_hint_x: 1
+                    halign: 'center'
+
+            MDCard:
+                id: opt_3
+                orientation: 'vertical'
+                size_hint: 1, None
+                height: 48
+                padding: [12, 0, 12, 0]
+                radius: [24]
+                on_release: root.select("opt_3")
+                
+                MDLabel:
+                    text: "Fixed"
+                    font_name: "assets/sf_txt_reg.ttf"
+                    font_size: 20
+                    text_color: 1, 1, 1, 1
+                    size_hint_x: 1
+                    halign: 'center'
+
+        MDBoxLayout:
+            orientation: 'horizontal'
+            size_hint: 1, None
+            spacing: 12
+            height: 64
+
+            Button:
+                text: "CANCEL"
+                size_hint: 1, None
+                height: 56
+                font_size: 24
+                font_name: "assets/sf_txt_bold.ttf"
+                background_normal: "res/btn_pill_gray_l.png"
+                background_down: "res/btn_pill_gray_l_down.png"
+                on_release:
+                    root.dismiss()
+
+            Button:
+                text: "SAVE"
+                size_hint: 1, None
+                height: 56
+                font_size: 24
+                font_name: "assets/sf_txt_bold.ttf"
+                background_normal: "res/btn_pill_blue_l.png"
+                background_down: "res/btn_pill_blue_l_down.png"
+                on_release: root.execute_proceed(root.selected_opt)
+
 <SystemDialog>
     width: 500
     height: dialog_container.height
@@ -1804,6 +2058,7 @@ ScreenManager:
         size_hint_x: 1
         size_hint_y: None
         height: 36
+        spacing: 12
 
         MDLabel:
             size_hint_x: 1
@@ -1813,8 +2068,14 @@ ScreenManager:
             font_name: 'assets/sf_mono_reg.otf'
             theme_text_color: "Custom"
             text_color: 0.5, 0.5, 0.5, 1
-            text: root.log_timestamp
+            text: app.format_timestamp(str(root.log_timestamp))
             halign: 'left'
+
+    #    SysIconButton:
+    #        icon: "res/ic_image.png"
+    #        text: "See Results"
+    #        background_normal: "res/btn_pill_gray_s.png"
+    #        background_down: "res/btn_pill_gray_s_down.png"
 
         SysIconButton:
             icon: "res/ic_trash_s.png"
@@ -2021,8 +2282,6 @@ def set_wifi_state(enable: bool):
 class DashboardScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.focus_index = 0
-        self.focusable_ids = []
         Clock.schedule_interval(self.update_clock, 1)
 
     def update_clock(self, *args):
@@ -2035,6 +2294,16 @@ class DashboardScreen(Screen):
         if 'clock_label' in self.ids:
             self.ids.clock_label.text = formatted_time
 
+    def on_pre_leave(self, *args):
+        # Lock the feed the millisecond before the slide begins
+        app = MDApp.get_running_app()
+        app.is_transitioning = True
+
+    def on_enter(self, *args):
+        # Unlock the feed the millisecond the slide finishes
+        app = MDApp.get_running_app()
+        app.is_transitioning = False
+
 class SettingsScreen(Screen):
     pass
 
@@ -2042,9 +2311,19 @@ class LogsScreen(Screen):
     pass
 
 class FullScreen(Screen):
-    pass
+    def on_pre_leave(self, *args):
+        # Lock the feed the millisecond before sliding down
+        app = MDApp.get_running_app()
+        app.is_transitioning = True
+
+    def on_enter(self, *args):
+        # Unlock the feed the millisecond the slide finishes
+        app = MDApp.get_running_app()
+        app.is_transitioning = False
 
 class UlangSystemApp(MDApp):
+    is_transitioning = BooleanProperty(False) # A page is actively transitioning
+
     # SYSTEM STATUS
     count_active = BooleanProperty(False) # For switching UI interface mode
     is_counting = BooleanProperty(False) # Inference active state
@@ -2067,7 +2346,7 @@ class UlangSystemApp(MDApp):
     wifi_strength = NumericProperty(0)
 
     # YOLO model path
-    model_path = 'models/pre-trained/ulangn-obb-annotator-v6-3_ncnn_model'
+    model_path = 'ulangn_obb_v7-0_ncnn_model'
 
     # UI Elements
     dialog = None
@@ -2082,19 +2361,31 @@ class UlangSystemApp(MDApp):
         "dark_blue":'#0000a2'
         }
 
+    water_lvl = 0.0
+    min_temp = 27.0
+    max_temp = 31.0
+    max_load = 5.2 #In kilograms
+    sub_optimal_temp = [23.2, 37]
+
     # Settings
-    capture_inf = BooleanProperty(False)
+    capture_inf = BooleanProperty(True)
     timeout_scan = NumericProperty(10)
     def_cam_res = OptionProperty("4K", options=["4K", "2K", "1080p"])
+
     cam_res = {
         "4K" : [4608, 2592, 10],
         "2K" : [2304, 1296, 15],
         "1080p" : [1920, 1080, 20] } # Values are in [W, H, fps] format
     
-    min_temp = 27.0
-    max_temp = 31.0
-    max_load = 10 #In kilograms
-    sub_optimal_temp = [23.2, 32.9]
+    def_cam_settings = OptionProperty("Auto", options=["Auto", "Semi-auto", "Fixed"])
+    # Auto: Camera is set to autofocus
+    # Semi-automatic: Camera's focusing depends on the ultrasonic sensor readings. The focus of the camera will be on the surface of the water
+    # Fixed: Camera's focal point will be fixed at the bottom of the container
+    cam_settings = {
+        "Auto" : {"AfMode": controls.AfModeEnum.Continuous},
+        "Semi-auto":{"AfMode": controls.AfModeEnum.Manual, "LensPosition": 1/((36.5-water_lvl)/100)},
+        "Fixed": {"AfMode": controls.AfModeEnum.Manual, "LensPosition": 1/0.365}
+    }
 
     # Placeholders
     sub_batch_history = {}
@@ -2113,6 +2404,8 @@ class UlangSystemApp(MDApp):
     count_timer_array = []
     batch_uuid = StringProperty("")
 
+    full_img = ObjectProperty(None, allownone=True)
+
     payload = {
             "local_id": None, #Auto-generated uuid
             "timestamp": None,
@@ -2127,6 +2420,10 @@ class UlangSystemApp(MDApp):
             "ave_approx_density": None,
             "time_elapsed": None
         }
+
+    frame_bytes=ObjectProperty(None,allownone=True)
+    _cached_dashboard_tex = None
+    _cached_fullscreen_tex = None
 
     # Online Database: Supabase Client
     SUPABASE_API_URL = 'https://nltmvrjxasslpqbdyamg.supabase.co'
@@ -2199,22 +2496,33 @@ class UlangSystemApp(MDApp):
         listener = threading.Thread(target=self.listen_to_ard, daemon=True)
         listener.start()
 
-    # Arduino-Raspi Communication Protocol
+    def format_timestamp(self,timestamp_str):
+        try:
+            dt_obj = datetime.fromisoformat(timestamp_str)
+            return dt_obj.strftime("%b %d, %Y %I:%M %p")
+        except Exception as e:
+            print(f"[Error parsing date] {e}")
+            return timestamp_str
+
+    # [SECTION] Arduino-Raspi Communication Protocol
     @mainthread
     def update_sensor_reads(self, data):
         """@mainthread: Updates the screen with the JSON data from the Arduino"""
         wtrlvl = data.get('wtrlvl')
+        try:
+            self.water_lvl = float(wtrlvl) 
+        except:
+            self.water_lvl = 36.5
         wtrtemp = data.get('temp')
         self.root.ids.dashboard_screen.ids.water_temp_label.text = f"{wtrtemp} °C"
         self.root.ids.dashboard_screen.ids.water_lvl_label.text = f"{wtrlvl} cm"
 
         if not wtrtemp=='--':
-            self.water_temp = 30.0 #float(wtrtemp) Temporarily set to optimal
+            self.water_temp = float(wtrtemp)
 
             if self.count_active:
                 self.water_temp_array.append(wtrtemp)
 
- 
         if not wtrlvl=="--":
             #Calculate the water volume here, output in liters (L)
             wtrvol = (34 * 19 * float(wtrlvl))/1000
@@ -2228,6 +2536,30 @@ class UlangSystemApp(MDApp):
         else:
             wtrvol="--"
             self.root.ids.dashboard_screen.ids.water_vol_label.text = f"{wtrvol} L"
+
+        if not (wtrlvl == "--" and wtrtemp == "--") and not self.water_vol=="--":
+            if self.water_temp < self.min_temp or self.water_temp > self.max_temp:
+                self.critical_temp = True
+            else: 
+                self.critical_temp = False
+
+            if wtrvol > self.max_load:
+                self.critical_load = True
+
+            else:
+                self.critical_load = False
+
+        if self.is_counting and (self.water_temp < self.min_temp or self.water_temp > self.max_temp):
+            self.remove_sub_batch(self.current_active_widget, show_dialog=False)
+            self.total_batches_created -= 1
+            Clock.schedule_once(lambda dt: self.show_snackbar(warning_mode = True, message="Warning: Water temperature on critical level!"))
+            self.is_counting=False
+
+        if self.is_counting and (wtrvol > self.max_load):
+            self.remove_sub_batch(self.current_active_widget, show_dialog=False)
+            self.total_batches_created -= 1
+            Clock.schedule_once(lambda dt: self.show_snackbar(warning_mode = True, message="Warning: Water level on critical level!"))
+            self.is_counting=False
 
     def listen_to_ard(self):
         """
@@ -2342,7 +2674,7 @@ class UlangSystemApp(MDApp):
             )
             self.picam2.configure(vd_config)
             self.picam2.start_preview(Preview.NULL)
-            self.picam2.set_controls({"AfMode": controls.AfModeEnum.Continuous})
+            self.picam2.set_controls(self.cam_settings[self.def_cam_settings])
             self.picam2.start()
             
             self.model = YOLO(self.model_path)
@@ -2379,6 +2711,7 @@ class UlangSystemApp(MDApp):
             try:
                 if self.is_counting:
                     inf_result = self.model.predict(hi_res_frame, conf=0.35, verbose=False)
+                    inf_wframe = inf_result[0].plot(labels=False, line_width=2, conf=False)
 
                     if inf_result[0].obb is not None:
                         inf_count = len(inf_result[0].obb)
@@ -2430,7 +2763,7 @@ class UlangSystemApp(MDApp):
                                 # RAW Image
                                 # The camera captures in RGB888, but OpenCV's imwrite requires BGR
                                 # bgr_frame = cv2.cvtColor(hi_res_frame, cv2.COLOR_RGB2BGR)
-                                cv2.imwrite(f"{base_path}.jpg", hi_res_frame)
+                                cv2.imwrite(f"{base_path}.jpg", inf_wframe)
                                 
                                 # YOLO-OBB annotations (.txt)
                                 with open(f"{base_path}.txt", "w") as f:
@@ -2458,17 +2791,19 @@ class UlangSystemApp(MDApp):
                         inf_count = 0
                         self.prev_count = 0
 
-                    inf_wframe = inf_result[0].plot(labels=False, line_width=2, conf=False)
                     disp_frame = cv2.resize(inf_wframe, (434, 244), interpolation=cv2.INTER_LINEAR)
 
                 else:
                     disp_frame = cv2.resize(hi_res_frame, (434, 244), interpolation=cv2.INTER_LINEAR)
 
                 rgb_frame = cv2.cvtColor(disp_frame, cv2.COLOR_BGR2RGB)
-                frame_bytes = rgb_frame.tobytes()
+                self.frame_bytes = rgb_frame.tobytes()
 
-                self.update_feed(frame_bytes, 434, 244, inf_count if self.is_counting else 0)
-
+                if not self.is_transitioning:
+                    h = 400 if self.root.current == "full_view" else 244
+                    w = 800 if self.root.current == "full_view" else 434
+                    self.update_feed(self.frame_bytes, w, h, inf_count if self.is_counting else 0)
+                    
                 eltime = time.time() - sttime
                 self.count_timer += eltime
                 slptime = targ_frame_time - eltime
@@ -2482,21 +2817,39 @@ class UlangSystemApp(MDApp):
 
     @mainthread
     def update_feed(self, frame_bytes, width, height, total_count, *args):
-        """@mainthread: Refresh camera_feed"""
-        texture = Texture.create(size=(width, height), colorfmt='rgb')
-        texture.blit_buffer(frame_bytes, colorfmt='rgb', bufferfmt='ubyte')
+        """@mainthread: Safely reuses textures and prevents OpenGL pipeline collisions"""
+        # Global transition block: Drop frames immediately if screens are switching
+        if self.is_transitioning or self.root is None:
+            return
 
-        texture.flip_vertical()
+        current_screen = self.root.current
 
-        cam_widget = self.root.ids.dashboard_screen.ids.camera_feed
-        cam_widget.texture = texture
-        cam_widget.canvas.ask_update()
+        try:
+            cam_widget_main = self.root.ids.dashboard_screen.ids.camera_feed
 
-        predict_count_txt = self.root.ids.dashboard_screen.ids.camfeed_count
-        predict_count_txt.text = str(total_count) if total_count>0 else "--"
+            if current_screen == "dashboard" and cam_widget_main:
+                # Initialize or recreate texture ONLY if size changed to save GPU allocations
+                if (not self._cached_dashboard_tex or 
+                    self._cached_dashboard_tex.width != width or 
+                    self._cached_dashboard_tex.height != height):
+                    self._cached_dashboard_tex = Texture.create(size=(width, height), colorfmt='rgb')
+                    self._cached_dashboard_tex.flip_vertical()
+                
+                # Push raw bytes to existing hardware buffer safely
+                self._cached_dashboard_tex.blit_buffer(frame_bytes, colorfmt='rgb', bufferfmt='ubyte')
+                cam_widget_main.texture = self._cached_dashboard_tex
+                cam_widget_main.canvas.ask_update()
 
-        if self.is_counting:
-            print(f"[INFO|COUNTING] Count: {total_count}")
+        except Exception as tex_err:
+            print(f"[OpenGL Guard] Suppressed render collision during window state shift: {tex_err}")
+
+        # Update counter text safely
+        try:
+            predict_count_txt = self.root.ids.dashboard_screen.ids.camfeed_count
+            if predict_count_txt:
+                predict_count_txt.text = str(total_count) if total_count > 0 else "--"
+        except Exception:
+            pass
 
     def stop_camera(self):
         """Cleans up memory when navigating away"""
@@ -2739,9 +3092,25 @@ class UlangSystemApp(MDApp):
 
     def go_to_dashboard(self, *args):
         if self.root.current != "dashboard":
-            self.root.transition.direction = "right"
+            self.is_transitioning = True
+            if self.root.current == "full_view":
+                self.root.transition.direction = "down"
+            else:
+                self.root.transition.direction = "right"
             self.root.current = "dashboard"
+            Clock.schedule_once(self._unlock_feed, 0.7)
         self.start_camera_loading()
+
+    def go_full_view(self, *args):
+        if self.root.current != "full_view":
+            self.is_transitioning = True
+            self.root.transition.direction = "up"
+            self.root.current = "full_view"
+            Clock.schedule_once(self._unlock_feed, 0.5)
+
+    def _unlock_feed(self, dt):
+        """Re-enables the live camera feed after a screen transition."""
+        self.is_transitioning = False
 
     #============================================================================================================================
 
@@ -2766,6 +3135,10 @@ class UlangSystemApp(MDApp):
         self.popup = Factory.CamResDialog()
         self.popup.open()
 
+    def show_cam_af_dialog(self, *args):
+        self.popup = Factory.CamAfDialog()
+        self.popup.open()
+
     # =============================================================================================================================
 
     def activate_count(self, input_name_batch = "", input_name_op = "", *args):
@@ -2786,6 +3159,7 @@ class UlangSystemApp(MDApp):
             self.led_panels.is_toggleable = False
             self.right_pane.current = "panel_count_active"
             self.btm_btn.current = "btn_count_active"
+            self.root.ids.dashboard_screen.ids.id_batch_camfeed.text = f"BATCH: {self.name_count_batch}"
             print(f"[INFO] Count started for: {self.name_count_batch}. Operator: {self.name_operator}")
 
         if not (self.name_count_batch and self.name_operator):
@@ -2861,12 +3235,14 @@ class UlangSystemApp(MDApp):
             )
         dialog.open()
 
-    def show_snackbar(self, message = "", warning_mode = False, *args):
+    def show_snackbar(self, message = "", warning_mode = False,actionable=False, command_on_proceed=None, *args):
         if getattr(self, 'snackbar', None) is None:
             self.snackbar = Snackbar()
 
         self.snackbar.warning_mode = warning_mode
         self.snackbar.ids.toast_text.text = message
+        self.snackbar.actionable = actionable
+        self.snackbar.command_on_proceed = command_on_proceed
 
         if self.snackbar.parent:
             self.snackbar.parent.remove_widget(self.snackbar)
@@ -2881,7 +3257,8 @@ class UlangSystemApp(MDApp):
             t=smooth_anim_curve
         )
         anim_in.start(self.snackbar)
-        Clock.schedule_once(self.hide_snackbar, 3)
+        close_time = 10 if actionable else 3
+        Clock.schedule_once(self.hide_snackbar, close_time)
 
     def hide_snackbar(self, dt=None):
         if not self.snackbar:
@@ -2902,8 +3279,16 @@ class UlangSystemApp(MDApp):
     def _lock_sub_batch(self, locked_count):
         """Called by the background fuzzy evaluator when an Excellent frame is found."""
         if self.current_active_widget:
-            #Append time elapsed and reset timer
+            # Append time elapsed and reset timer
+            print(f"[LOG] Time elapsed: {self.count_timer}s")
             self.count_timer_array.append(self.count_timer)
+
+            if self.count_timer >= 1:
+                el_t_formt = f"{self.count_timer:.2f} s"
+            else:
+                ms=self.count_timer*1000
+                el_t_formt = f"{ms:.2f} ms"
+
             self.count_timer = 0
 
             self.current_active_widget.count = locked_count
@@ -2913,7 +3298,7 @@ class UlangSystemApp(MDApp):
             self.current_active_widget = None
             
             # Provide visual feedback to the operator
-            self.show_snackbar(message=f"PL Count: {locked_count}", warning_mode=False)
+            self.show_snackbar(message=f"PL Count: {locked_count} ({el_t_formt})", warning_mode=False, actionable=True, command_on_proceed=lambda *args: self.show_result_frame(batch_uuid=self.batch_uuid, sbatch_num=self.total_batches_created))
 
     #dev: checked, it: 01
     def count_on_click(self):
@@ -2935,7 +3320,7 @@ class UlangSystemApp(MDApp):
             self.sub_batch_history[new_name] = -1 
             self.current_active_widget = new_widget
 
-    def remove_sub_batch(self, widget_to_remove):
+    def remove_sub_batch(self, widget_to_remove, show_dialog=True, *args):
         # Reset the system state if we are deleting the active widget
         def execute_deletion():
             if widget_to_remove.is_active:
@@ -2948,13 +3333,16 @@ class UlangSystemApp(MDApp):
             self.sub_batch_scrollview.remove_widget(widget_to_remove)
             print(f"[INFO] Removed {widget_to_remove.batch_name}. Current Backend Data:", self.sub_batch_history)
 
-        # Show a confirmation dialog
-        dialog = SystemDialog(
-            dialog_title = "Remove Sub-batch",
-            dialog_msg = "Are you sure you want to remove this Sub-batch? This process cannot be undone.", 
-            mode = "destructive", 
-            command_on_proceed = execute_deletion)
-        dialog.open()
+        if show_dialog:
+            # Show a confirmation dialog
+            dialog = SystemDialog(
+                dialog_title = "Remove Sub-batch",
+                dialog_msg = "Are you sure you want to remove this Sub-batch? This process cannot be undone.", 
+                mode = "destructive", 
+                command_on_proceed = execute_deletion)
+            dialog.open()
+        else:
+            execute_deletion()
 
     #[SECTION] Database Functions
     #dev: checked, it: 01
@@ -2962,7 +3350,7 @@ class UlangSystemApp(MDApp):
         """Calculates or assigns the final values for keys in the payload."""
         self.payload.update({
             "local_id": self.batch_uuid,
-            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f+00"), # Format to ISO-8601 / PostgreSQL timestamptz
+            "timestamp": datetime.now().isoformat(), # Format to ISO-8601 / PostgreSQL timestamptz
             "batch_id": self.name_count_batch,
             "op_name": self.name_operator,
             "count_total_pl": self.total_count,
@@ -3098,7 +3486,7 @@ class UlangSystemApp(MDApp):
         # SORT THE MERGED LIST BY TIMESTAMP
         try:
             master_log_list.sort(
-                key=lambda x: datetime.strptime(x["timestamp"], "%Y-%m-%d %H:%M:%S.%f+00"), 
+                key=lambda x: datetime.fromisoformat(x["timestamp"]), 
                 reverse=True
             )
         except Exception as e:
@@ -3157,7 +3545,7 @@ class UlangSystemApp(MDApp):
                 self.show_snackbar(message="Failed to remove from Local Logs", warning_mode=True)
 
         rv = self.root.ids.logs_screen.ids.logs_recycle_view
-        target_item = next((item for item in rv.data if item.get('local_id') == target_uuid), None)
+        target_item = next((item for item in rv.data if item.get('log_uuid') == target_uuid), None)
 
         if not target_item:
             print("[ERROR] Could not find the target log in the RecycleView.")
@@ -3210,13 +3598,13 @@ class UlangSystemApp(MDApp):
                         .select("*").execute()
                 else:
                     time_format = "%Y-%m-%d %H:%M:%S.%f+00"
-                    end_time = time.now()
+                    end_time = datetime.now()
                     start_time = end_time - timedelta(days_window)
                     print(f"[INFO] Fetching Logs from {end_time.strf(time_format)}")
                     response = self.db_client.table("system_logs") \
                         .select("*") \
-                        .gte("timestamp", start_time.strf(time_format)) \
-                        .lte("timestamp", end_time.strf(time_format)) \
+                        .gte("timestamp", start_time.isoformat()) \
+                        .lte("timestamp", end_time.isoformat()) \
                         .execute()
 
                 fetched_data = response.data
@@ -3276,6 +3664,9 @@ class UlangSystemApp(MDApp):
     def config_cam_res(self, opt):
         self.def_cam_res = opt
 
+    def config_cam_af(self, opt):
+        self.def_cam_settings = opt
+
     def check_chamber_stat(self, dt):
         self.monitoring_freezed = False
 
@@ -3289,11 +3680,12 @@ class UlangSystemApp(MDApp):
 
         else:
             self.active_alert = False
-            self.critical_load = False
+            self.critical_temp = False
 
         if self.water_vol > self.max_load:
             self.critical_load = True
             self.active_alert = True
+            self.stop_camera()
             print("[WARNING] Critical Water Level")
 
         else:
@@ -3311,6 +3703,41 @@ class UlangSystemApp(MDApp):
         self.monitoring_freezed = True
         self.finish_queue_check_stat()
         self.start_camera_loading() # Start loading camera again
+
+    def show_result_frame(self, batch_uuid:str = "", sbatch_num:int = 0):
+        img_path = f"res_captured/{batch_uuid}/{batch_uuid}_SB{sbatch_num}.jpg"
+        abs_path = os.path.abspath(img_path)
+        
+        if not os.path.exists(abs_path) or os.path.getsize(abs_path) == 0:
+            print(f"[ERROR] Image missing or empty at: {abs_path}")
+            return
+
+        # 1. Read the image using OpenCV (which we already know works and isn't blank)
+        frame = cv2.imread(abs_path)
+        if frame is None:
+            print(f"[ERROR] Could not read image with cv2: {abs_path}")
+            return
+
+        # 2. Convert BGR to RGB
+        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        height, width, _ = frame_rgb.shape
+
+        # 3. Switch to full view first so the screen/widget exists in the layout tree
+        self.go_full_view()
+
+        # 4. Create a direct Kivy Texture and blit the RGB buffer into it
+        texture = Texture.create(size=(width, height), colorfmt='rgb')
+        texture.flip_vertical()  # Flip vertically to match Kivy's coordinate system
+        texture.blit_buffer(frame_rgb.tobytes(), colorfmt='rgb', bufferfmt='ubyte')
+
+        # 5. Assign the texture directly to the fullscreen Image widget
+        fullscreen_widget = self.root.ids.full_view.ids.fullscreen_camfeed
+        fullscreen_widget.source = ""  # Clear any old source string
+        fullscreen_widget.texture = texture
+        fullscreen_widget.canvas.ask_update()
+        
+        print(f"[INFO] Successfully forced direct texture render for: {abs_path}")
+        
 #=====================================================Graphics====================================================
 
 class PillToggleButton(Button):
@@ -3453,6 +3880,46 @@ class ExportLogsDialog(Popup):
             self.command_on_proceed(email, timerange)
         self.dismiss()
 
+class CamAfDialog(Popup):
+    default_opt = ObjectProperty(None, allownone=True)
+    selected_opt = OptionProperty(default_opt, options=["Auto", "Semi-auto", "Fixed"])
+    command_on_proceed = ObjectProperty(None, allownone=True)
+    palette = ObjectProperty(None, allownone=True)
+
+    def on_pre_open(self):
+        if self.default_opt == "Auto":
+            opt = "opt_1"
+        elif self.default_opt == "Semi-auto":
+            opt = "opt_2"
+        else:
+            opt = "opt_3"
+
+        self.select(opt)
+
+    def select(self, id):
+        if id == 'opt_1':
+            self.selected_opt = "Auto"
+            self.ids.opt_1.md_bg_color = get_color_from_hex(self.palette["blue"])
+            self.ids.opt_2.md_bg_color = get_color_from_hex(self.palette["dark_gray"])
+            self.ids.opt_3.md_bg_color = get_color_from_hex(self.palette["dark_gray"])
+
+        elif id == 'opt_2':
+            self.selected_opt = "Semi-auto"
+            self.ids.opt_1.md_bg_color = get_color_from_hex(self.palette["dark_gray"])
+            self.ids.opt_2.md_bg_color = get_color_from_hex(self.palette["blue"])
+            self.ids.opt_3.md_bg_color = get_color_from_hex(self.palette["dark_gray"])
+
+        else:
+            self.selected_opt = "Fixed"
+            self.ids.opt_1.md_bg_color = get_color_from_hex(self.palette["dark_gray"])
+            self.ids.opt_2.md_bg_color = get_color_from_hex(self.palette["dark_gray"])
+            self.ids.opt_3.md_bg_color = get_color_from_hex(self.palette["blue"])
+
+    def execute_proceed(self, selected_opt):
+        if self.command_on_proceed and callable(self.command_on_proceed): 
+            self.command_on_proceed(selected_opt)
+        self.dismiss()
+
 class CamResDialog(Popup):
     default_opt = ObjectProperty(None, allownone=True)
     selected_opt = OptionProperty(default_opt, options=["4K", "2K", "1080p"])
@@ -3495,6 +3962,12 @@ class CamResDialog(Popup):
 
 class Snackbar(MDBoxLayout):
     warning_mode = BooleanProperty(False)
+    actionable = BooleanProperty(False)
+    command_on_proceed = ObjectProperty(None, allownone=True)
+
+    def execute_proceed(self):
+        if self.command_on_proceed and callable(self.command_on_proceed): 
+            self.command_on_proceed()
 
 class BatchLogItem(MDCard):
     log_uuid = StringProperty("")
