@@ -2659,7 +2659,6 @@ class UlangSystemApp(MDApp):
             self.picam2.start()
             
             self.model = YOLO(self.model_path, task='obb')
-            self.model.names = {0: 'postlarvae'} 
             
             # Initialize Fuzzy Evaluation
             self.fuzzy_sim = self.init_fuzzy()
