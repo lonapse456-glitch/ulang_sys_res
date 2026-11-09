@@ -89,8 +89,6 @@ ScreenManager:
     LogsScreen:
         id: logs_screen
         db_client: app.db_client
-    FullScreen: 
-        id: full_view
 
 # ---------------------------------------------------DASHBOARD PAGE-------------------------------------------------------
 <DashboardScreen>:
@@ -329,16 +327,6 @@ ScreenManager:
                             theme_text_color: "Custom"
                             adaptive_height: True
                             text_color: app.color_palette["dark_blue"]
-                        
-
-                    SysIconButton:
-                        icon: "res/ic_expand_s.png"
-                        background_normal: "res/btn_pill_gray_s.png"
-                        background_down: "res/btn_pill_gray_s_down.png"
-                        pos_hint: {"right":0.98, "y":0.03}
-                        size_hint: None, None
-                        # on_release: app.go_full_view()
-                        opacity: 0
         
             # RIGHT PANE: Data & Controls
             MDBoxLayout:
@@ -1141,79 +1129,6 @@ ScreenManager:
                 orientation: 'vertical'
                 spacing: dp(15)
                 padding: dp(20)
-
-# ---------------------------------------------------FULL SCREEN---------------------------------------------------------
-<FullScreen>:
-    name: "full_view"
-
-    RelativeLayout:
-        size_hint: 1, 1
-
-        Image:
-            id: fullscreen_camfeed
-            size_hint: 1, 1
-            allow_stretch: True
-            keep_ratio: True
-
-        MDBoxLayout:
-            id: fullscreen_batch_id_view
-            orientation: "vertical"
-            size_hint_x: 0.35
-            # Let Kivy automatically wrap the box around the two text labels
-            adaptive_height: True 
-            pos_hint: {"top": 1.0, "center_x": 0.5}
-            padding: [5, 5, 5, 5]
-            spacing: 1
-
-            canvas.before:
-                Color:
-                    rgba: 1, 1, 1, 1 
-                BorderImage:
-                    source: 'res/btn_pill_gray_l.png'
-                    pos: self.pos
-                    size: self.size
-                    border: [28, 28, 28, 28]
-            MDLabel:
-                id: id_batch_full_screen
-                text: app.name_count_batch if app.count_active else "Not Counting"
-                font_name: "assets/sf_txt_bold.ttf"
-                font_size: 22
-                color: 1, 1, 1, 1
-                shorten: True
-                shorten_from: 'right'
-                halign: "center"
-                adaptive_height: True
-
-            MDLabel:
-                text: f"SUB-BATCH {app.total_batches_created}"
-                font_name: "assets/sf_txt_reg.ttf"
-                font_size: 18
-                color: 1, 1, 1, 1
-                halign: "center"
-                # adaptive_height forces the label to snap to the text, 
-                # avoiding overlap with the label below it.
-                adaptive_height: True
-
-        MDBoxLayout:
-            size_hint: 0.5, None
-            padding: [12]
-            pos_hint: {"top":1.0, "x":0.5}
-            orientation: "horizontal"
-            height: self.minimum_height
-            spacing: 19
-            halign: "right"
-
-            Widget:
-                size_hint: 1, 1
-
-            SysIconButton:
-                id: minimize
-                icon: "res/ic_minimize_s.png"
-                text: "Minimize"
-                background_normal: "res/btn_pill_gray_s.png"
-                background_down: "res/btn_pill_gray_s_down.png"
-                on_release: app.go_to_dashboard()
-                size_hint: None, None
 # --------------------------------------------------CUSTOM CLASSES-------------------------------------------------------
 <Snackbar>:
     id: snackbar
@@ -1291,7 +1206,7 @@ ScreenManager:
 
         canvas.before:
             Color:
-                rgba: 1, 1, 1, 1 # Ensure the image renders at full brightness
+                rgba: 1, 1, 1, 1
             BorderImage:
                 source: 'res/bg_dialog.png'
                 pos: self.pos
@@ -1381,6 +1296,83 @@ ScreenManager:
                 background_down: "res/btn_pill_blue_l_down.png"
                 on_release: 
                     app.activate_count(input_name_batch = root.ids.input_name_batch.text, input_name_op = root.ids.input_name_op.text)
+
+<ImageResultView>
+    batch
+    width: 800
+    height: 480
+    size_hint: None, None
+    background: ''
+    separator_height: 0
+    title: ""
+    auto_dismiss: False
+    local_id: app.batch_uuid
+    batch_id: app.name_count_batch
+    sbatch_num: app.total_batches_created
+
+    RelativeLayout:
+        size_hint: 1, 1
+    
+        Image:
+            id: img_full_result
+            size_hint: 1, 1
+            allow_stretch: True
+            keep_ratio: True
+
+        MDBoxLayout:
+            orientation: "vertical"
+            size_hint_x: 0.35
+            adaptive_height: True 
+            pos_hint: {"top": 1.0, "center_x": 0.5}
+            padding: [5, 5, 5, 5]
+            spacing: 1
+
+            canvas.before:
+                Color:
+                    rgba: 1, 1, 1, 1 
+                BorderImage:
+                    source: 'res/btn_pill_gray_l.png'
+                    pos: self.pos
+                    size: self.size
+                    border: [28, 28, 28, 28]
+
+            MDLabel:
+                text: app.name_count_batch if app.count_active else "UNKNOWN"
+                font_name: "assets/sf_txt_bold.ttf"
+                font_size: 22
+                color: 1, 1, 1, 1
+                shorten: True
+                shorten_from: 'right'
+                halign: "center"
+                adaptive_height: True
+
+            MDLabel:
+                text: f"SUB-BATCH {app.total_batches_created}"
+                font_name: "assets/sf_txt_reg.ttf"
+                font_size: 18
+                color: 1, 1, 1, 1
+                halign: "center"
+                adaptive_height: True
+
+        MDBoxLayout:
+            size_hint: 0.5, None
+            padding: [12]
+            pos_hint: {"top":1.0, "x":0.5}
+            orientation: "horizontal"
+            height: self.minimum_height
+            spacing: 19
+            halign: "right"
+
+            Widget:
+                size_hint: 1, 1
+
+            SysIconButton:
+                id: minimize
+                text: "Close"
+                background_normal: "res/btn_pill_gray_s.png"
+                background_down: "res/btn_pill_gray_s_down.png"
+                on_release: root.dismiss()
+                size_hint: None, None
 
 <WifiConnectDialog@Popup>
     width: 500
@@ -2310,17 +2302,6 @@ class SettingsScreen(Screen):
 class LogsScreen(Screen):
     pass
 
-class FullScreen(Screen):
-    def on_pre_leave(self, *args):
-        # Lock the feed the millisecond before sliding down
-        app = MDApp.get_running_app()
-        app.is_transitioning = True
-
-    def on_enter(self, *args):
-        # Unlock the feed the millisecond the slide finishes
-        app = MDApp.get_running_app()
-        app.is_transitioning = False
-
 class UlangSystemApp(MDApp):
     is_transitioning = BooleanProperty(False) # A page is actively transitioning
 
@@ -2329,7 +2310,6 @@ class UlangSystemApp(MDApp):
     is_counting = BooleanProperty(False) # Inference active state
     is_cam_initializing = BooleanProperty(False)
     active_alert = BooleanProperty(False)
-    empty_chamber = True
     critical_temp = BooleanProperty(False)
     critical_load = BooleanProperty(False)
     monitoring_freezed = BooleanProperty(False) # Set to True if chamber condition is non-critical or currently timed out
@@ -2346,7 +2326,7 @@ class UlangSystemApp(MDApp):
     wifi_strength = NumericProperty(0)
 
     # YOLO model path
-    model_path = 'ulangn_obb_v7-0_ncnn_model'
+    model_path = 'ulangn_obb_v7-0'
 
     # UI Elements
     dialog = None
@@ -2551,13 +2531,15 @@ class UlangSystemApp(MDApp):
 
         if self.is_counting and (self.water_temp < self.min_temp or self.water_temp > self.max_temp):
             self.remove_sub_batch(self.current_active_widget, show_dialog=False)
-            self.total_batches_created -= 1
+            if self.total_batches_created != 1:
+                self.total_batches_created -= 1
             Clock.schedule_once(lambda dt: self.show_snackbar(warning_mode = True, message="Warning: Water temperature on critical level!"))
             self.is_counting=False
 
         if self.is_counting and (wtrvol > self.max_load):
             self.remove_sub_batch(self.current_active_widget, show_dialog=False)
-            self.total_batches_created -= 1
+            if self.total_batches_created != 1:
+                self.total_batches_created -= 1
             Clock.schedule_once(lambda dt: self.show_snackbar(warning_mode = True, message="Warning: Water level on critical level!"))
             self.is_counting=False
 
@@ -2800,8 +2782,8 @@ class UlangSystemApp(MDApp):
                 self.frame_bytes = rgb_frame.tobytes()
 
                 if not self.is_transitioning:
-                    h = 400 if self.root.current == "full_view" else 244
-                    w = 800 if self.root.current == "full_view" else 434
+                    h = 244
+                    w = 434
                     self.update_feed(self.frame_bytes, w, h, inf_count if self.is_counting else 0)
                     
                 eltime = time.time() - sttime
@@ -2817,8 +2799,7 @@ class UlangSystemApp(MDApp):
 
     @mainthread
     def update_feed(self, frame_bytes, width, height, total_count, *args):
-        """@mainthread: Safely reuses textures and prevents OpenGL pipeline collisions"""
-        # Global transition block: Drop frames immediately if screens are switching
+        """@mainthread: updates the camera feed on the dashboard"""
         if self.is_transitioning or self.root is None:
             return
 
@@ -2828,14 +2809,12 @@ class UlangSystemApp(MDApp):
             cam_widget_main = self.root.ids.dashboard_screen.ids.camera_feed
 
             if current_screen == "dashboard" and cam_widget_main:
-                # Initialize or recreate texture ONLY if size changed to save GPU allocations
                 if (not self._cached_dashboard_tex or 
                     self._cached_dashboard_tex.width != width or 
                     self._cached_dashboard_tex.height != height):
                     self._cached_dashboard_tex = Texture.create(size=(width, height), colorfmt='rgb')
                     self._cached_dashboard_tex.flip_vertical()
                 
-                # Push raw bytes to existing hardware buffer safely
                 self._cached_dashboard_tex.blit_buffer(frame_bytes, colorfmt='rgb', bufferfmt='ubyte')
                 cam_widget_main.texture = self._cached_dashboard_tex
                 cam_widget_main.canvas.ask_update()
@@ -2843,7 +2822,6 @@ class UlangSystemApp(MDApp):
         except Exception as tex_err:
             print(f"[OpenGL Guard] Suppressed render collision during window state shift: {tex_err}")
 
-        # Update counter text safely
         try:
             predict_count_txt = self.root.ids.dashboard_screen.ids.camfeed_count
             if predict_count_txt:
@@ -3093,24 +3071,9 @@ class UlangSystemApp(MDApp):
     def go_to_dashboard(self, *args):
         if self.root.current != "dashboard":
             self.is_transitioning = True
-            if self.root.current == "full_view":
-                self.root.transition.direction = "down"
-            else:
-                self.root.transition.direction = "right"
+            self.root.transition.direction = "right"
             self.root.current = "dashboard"
-            Clock.schedule_once(self._unlock_feed, 0.7)
         self.start_camera_loading()
-
-    def go_full_view(self, *args):
-        if self.root.current != "full_view":
-            self.is_transitioning = True
-            self.root.transition.direction = "up"
-            self.root.current = "full_view"
-            Clock.schedule_once(self._unlock_feed, 0.5)
-
-    def _unlock_feed(self, dt):
-        """Re-enables the live camera feed after a screen transition."""
-        self.is_transitioning = False
 
     #============================================================================================================================
 
@@ -3137,6 +3100,10 @@ class UlangSystemApp(MDApp):
 
     def show_cam_af_dialog(self, *args):
         self.popup = Factory.CamAfDialog()
+        self.popup.open()
+
+    def show_result_frame(self, *args):
+        self.popup = Factory.ImageResultView()
         self.popup.open()
 
     # =============================================================================================================================
@@ -3298,16 +3265,13 @@ class UlangSystemApp(MDApp):
             self.current_active_widget = None
             
             # Provide visual feedback to the operator
-            self.show_snackbar(message=f"PL Count: {locked_count} ({el_t_formt})", warning_mode=False, actionable=True, command_on_proceed=lambda *args: self.show_result_frame(batch_uuid=self.batch_uuid, sbatch_num=self.total_batches_created))
+            self.show_snackbar(message=f"PL Count: {locked_count} ({el_t_formt})", warning_mode=False, actionable=True, command_on_proceed=self.show_result_frame())
 
     #dev: checked, it: 01
     def count_on_click(self):
         """Triggered when the operator taps +SUB-BATCH. The AI handles the rest."""
         if not self.is_counting:
-            # STATE 1: ADDING A SUB-BATCH
             self.is_counting = True
-            
-            # Reset prev_count so variance evaluates purely on this new sub-batch
             self.prev_count = 0 
             
             self.total_batches_created += 1
@@ -3703,40 +3667,6 @@ class UlangSystemApp(MDApp):
         self.monitoring_freezed = True
         self.finish_queue_check_stat()
         self.start_camera_loading() # Start loading camera again
-
-    def show_result_frame(self, batch_uuid:str = "", sbatch_num:int = 0):
-        img_path = f"res_captured/{batch_uuid}/{batch_uuid}_SB{sbatch_num}.jpg"
-        abs_path = os.path.abspath(img_path)
-        
-        if not os.path.exists(abs_path) or os.path.getsize(abs_path) == 0:
-            print(f"[ERROR] Image missing or empty at: {abs_path}")
-            return
-
-        # 1. Read the image using OpenCV (which we already know works and isn't blank)
-        frame = cv2.imread(abs_path)
-        if frame is None:
-            print(f"[ERROR] Could not read image with cv2: {abs_path}")
-            return
-
-        # 2. Convert BGR to RGB
-        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        height, width, _ = frame_rgb.shape
-
-        # 3. Switch to full view first so the screen/widget exists in the layout tree
-        self.go_full_view()
-
-        # 4. Create a direct Kivy Texture and blit the RGB buffer into it
-        texture = Texture.create(size=(width, height), colorfmt='rgb')
-        texture.flip_vertical()  # Flip vertically to match Kivy's coordinate system
-        texture.blit_buffer(frame_rgb.tobytes(), colorfmt='rgb', bufferfmt='ubyte')
-
-        # 5. Assign the texture directly to the fullscreen Image widget
-        fullscreen_widget = self.root.ids.full_view.ids.fullscreen_camfeed
-        fullscreen_widget.source = ""  # Clear any old source string
-        fullscreen_widget.texture = texture
-        fullscreen_widget.canvas.ask_update()
-        
-        print(f"[INFO] Successfully forced direct texture render for: {abs_path}")
         
 #=====================================================Graphics====================================================
 
@@ -3978,6 +3908,37 @@ class BatchLogItem(MDCard):
     log_num_sbatches = NumericProperty(0)
     log_margin_of_err = NumericProperty(0.0)
     log_time_elapsed = NumericProperty(0.0)
+
+class ImageResultView(Popup):
+    local_id = StringProperty("")
+    batch_id = StringProperty("")
+    sbatch_num = NumericProperty(0)
+
+    def on_open(self):
+        """Update the image view upon popup open"""
+        img_view = self.ids.img_full_result
+        img_path = f"res_captured/{self.local_id}/{self.local_id}_SB{self.sbatch_num}.jpg"
+        abs_path = os.path.abspath(img_path)
+        
+        if not os.path.exists(abs_path) or os.path.getsize(abs_path) == 0:
+            print(f"[ERROR] Image missing or empty at: {abs_path}")
+            self.dismiss()
+
+        frame = cv2.imread(abs_path)
+        if frame is None:
+            print(f"[ERROR] Could not read image with cv2: {abs_path}")
+            self.dismiss()
+
+        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        height, width, _ = frame_rgb.shape
+
+        texture = Texture.create(size=(width, height), colorfmt='rgb')
+        texture.flip_vertical()
+        texture.blit_buffer(frame_rgb.tobytes(), colorfmt='rgb', bufferfmt='ubyte')
+
+        img_view.source = ""
+        img_view.texture = texture
+        img_view.canvas.ask_update()    
 
 # Custom Button for Count/+Sub-batch to avoid double-clicking issue on touchscreen
 class DebounceBtn(Button):
