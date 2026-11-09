@@ -2271,6 +2271,11 @@ def set_wifi_state(enable: bool):
         except Exception as e:
             print(f"[DEBUG] Error toggling Wi-Fi state: {e}")
 
+def execute_reboot():
+    print("[SYSTEM] Hardware button pressed. Rebooting...")
+    # 2. Trigger the Linux reboot command
+    os.system("sudo reboot")
+
 class DashboardScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -2446,11 +2451,6 @@ class UlangSystemApp(MDApp):
         Window.bind(on_key_down=self.on_keyboard_down)
         return Builder.load_string(INTERFACE)
 
-    def execute_reboot():
-        print("[SYSTEM] Hardware button pressed. Rebooting...")
-        # 2. Trigger the Linux reboot command
-        os.system("sudo reboot")
-
     def on_start(self):
         """Called automatically after the app builds."""
         self.right_pane = self.root.ids.dashboard_screen.ids.data_pane_sm
@@ -2475,7 +2475,7 @@ class UlangSystemApp(MDApp):
             self.btn_start.when_pressed = lambda: Clock.schedule_once(self.start_batch_count)
 
             self.btn_reboot = HardwareButton(4, pull_up=True, bounce_time=0.1)
-            self.btn_reboot.when_pressed = lambda: Clock.schedule_once(self.execute_reboot)
+            self.btn_reboot.when_pressed = execute_reboot
 
         # Initialize camera
         self.start_camera_loading()
