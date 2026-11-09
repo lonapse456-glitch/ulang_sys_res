@@ -925,7 +925,7 @@ ScreenManager:
                         spacing: 8
 
                         Slider:
-                            min: 70
+                            min: 25
                             max: 100
                             value: 85
                             step: 1
@@ -1365,9 +1365,10 @@ ScreenManager:
             Widget:
                 size_hint: 1, 1
 
-            Button:
+            SysIconButton:
                 id: minimize
                 text: "Close"
+                icon: "res/ic_erase_itm_s.png"
                 background_normal: "res/btn_pill_gray_s.png"
                 background_down: "res/btn_pill_gray_s_down.png"
                 on_release: root.dismiss()
@@ -2445,6 +2446,11 @@ class UlangSystemApp(MDApp):
         Window.bind(on_key_down=self.on_keyboard_down)
         return Builder.load_string(INTERFACE)
 
+    def execute_reboot():
+        print("[SYSTEM] Hardware button pressed. Rebooting...")
+        # 2. Trigger the Linux reboot command
+        os.system("sudo reboot")
+
     def on_start(self):
         """Called automatically after the app builds."""
         self.right_pane = self.root.ids.dashboard_screen.ids.data_pane_sm
@@ -2467,6 +2473,9 @@ class UlangSystemApp(MDApp):
 
             self.btn_start = HardwareButton(22)
             self.btn_start.when_pressed = lambda: Clock.schedule_once(self.start_batch_count)
+
+            self.btn_reboot = HardwareButton(4, pull_up=True, bounce_time=0.1)
+            self.btn_reboot.when_pressed = lambda: Clock.schedule_once(self.execute_reboot)
 
         # Initialize camera
         self.start_camera_loading()
@@ -3264,7 +3273,7 @@ class UlangSystemApp(MDApp):
             self.current_active_widget = None
             
             # Provide visual feedback to the operator
-            self.show_snackbar(message=f"PL Count: {locked_count} ({el_t_formt})", warning_mode=False, actionable=True, command_on_proceed=self.show_result_frame())
+            self.show_snackbar(message=f"PL Count: {locked_count} ({el_t_formt})", warning_mode=False, actionable=True, command_on_proceed=self.show_result_frame)
 
     #dev: checked, it: 01
     def count_on_click(self):
