@@ -1298,7 +1298,6 @@ ScreenManager:
                     app.activate_count(input_name_batch = root.ids.input_name_batch.text, input_name_op = root.ids.input_name_op.text)
 
 <ImageResultView>
-    batch
     width: 800
     height: 480
     size_hint: None, None
