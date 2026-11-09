@@ -2325,7 +2325,7 @@ class UlangSystemApp(MDApp):
     wifi_strength = NumericProperty(0)
 
     # YOLO model path
-    model_path = 'ulangn_obb_v7-0'
+    model_path = 'ulangn_obb_v7_0_ncnn_model'
 
     # UI Elements
     dialog = None
@@ -2658,7 +2658,7 @@ class UlangSystemApp(MDApp):
             self.picam2.set_controls(self.cam_settings[self.def_cam_settings])
             self.picam2.start()
             
-            self.model = YOLO(self.model_path, task="obb")
+            self.model = YOLO(self.model_path)
             
             # Initialize Fuzzy Evaluation
             self.fuzzy_sim = self.init_fuzzy()
