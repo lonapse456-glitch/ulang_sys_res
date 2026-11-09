@@ -2658,7 +2658,7 @@ class UlangSystemApp(MDApp):
             self.picam2.set_controls(self.cam_settings[self.def_cam_settings])
             self.picam2.start()
             
-            self.model = YOLO(self.model_path)
+            self.model = YOLO(self.model_path, task="obb")
             
             # Initialize Fuzzy Evaluation
             self.fuzzy_sim = self.init_fuzzy()
