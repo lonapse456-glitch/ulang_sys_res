@@ -1365,7 +1365,7 @@ ScreenManager:
             Widget:
                 size_hint: 1, 1
 
-            SysIconButton:
+            Button:
                 id: minimize
                 text: "Close"
                 background_normal: "res/btn_pill_gray_s.png"
