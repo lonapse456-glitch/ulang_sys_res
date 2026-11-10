@@ -2668,8 +2668,7 @@ class UlangSystemApp(MDApp):
             self.picam2.start()
             
             self.model = YOLO(self.model_path, task='obb')
-            
-            # Initialize Fuzzy Evaluation
+
             self.fuzzy_sim = self.init_fuzzy()
             self.prev_count = 0 
             
@@ -2856,52 +2855,32 @@ class UlangSystemApp(MDApp):
         reliability = ctrl.Consequent(np.arange(0, 1.01, 0.01), 'reliability')
 
         # Fuzzy MFs
-        confidence['poor'] = fuzz.trapmf(confidence.universe, [0, 0, 0.77, 0.80])
-        confidence['acceptable'] = fuzz.trimf(confidence.universe, [0.78, 0.81, 0.84])
-        confidence['high'] = fuzz.trapmf(confidence.universe, [0.82, 0.84, 1.0, 1.0])
+        confidence['poor'] = fuzz.trapmf(confidence.universe, [0.0, 0.0, 0.70, 0.80])
+        confidence['acceptable'] = fuzz.trimf(confidence.universe, [0.70, 0.80, 0.90])
+        confidence['high'] = fuzz.trapmf(confidence.universe, [0.80, 0.90, 1.0, 1.0])
     
-        # MFs for Clumping
-        clumping['sparse'] = fuzz.trapmf(clumping.universe, [0, 0, 0.1, 0.2])
-        clumping['moderate'] = fuzz.trimf(clumping.universe, [0.015, 0.06, 0.12])
-        clumping['dense'] = fuzz.trapmf(clumping.universe, [0.1, 0.15, 1.0, 1.0])
+        # Empirical Clumping MFs (Overlap Frequency: N_O / N)
+        clumping['sparse'] = fuzz.trapmf(clumping.universe, [0.0, 0.0, 0.02, 0.06])
+        clumping['moderate'] = fuzz.trimf(clumping.universe, [0.02, 0.06, 0.20])
+        clumping['dense'] = fuzz.trapmf(clumping.universe, [0.06, 0.20, 1.0, 1.0])
     
-        # MFs for Temporal Variance
-        variance['stable'] = fuzz.trapmf(variance.universe, [0, 0, 0.05, 0.07])
+        # Temporal Variance MFs (Percentage Shift)
+        variance['stable'] = fuzz.trapmf(variance.universe, [0.0, 0.0, 0.05, 0.07])
         variance['jittery'] = fuzz.trimf(variance.universe, [0.05, 0.07, 0.10])
         variance['erratic'] = fuzz.trapmf(variance.universe, [0.08, 0.10, 1.0, 1.0])
-
-        # Output MFs
-        reliability['unacceptable'] = fuzz.trapmf(reliability.universe, [0, 0, 0.4, 0.6])
-        reliability['acceptable'] = fuzz.trimf(reliability.universe, [0.55, 0.7, 0.85])
-        reliability['excellent'] = fuzz.trapmf(reliability.universe, [0.75, 0.85, 1.0, 1.0])
-
-        # Conditions for 'excellent' reliability
-        rule1 = ctrl.Rule(
-                        (confidence['high'] | confidence['acceptable']) & variance['stable'] & (clumping['sparse'] | clumping['moderate']), 
-                        reliability['excellent']
-                    )
-        
-        #Conditions for 'acceptable' reliability
-        rule2 = ctrl.Rule(
-                    (confidence['high'] | confidence['acceptable']) & variance['jittery'] & (clumping['sparse'] | clumping['moderate']), 
-                    reliability['acceptable']
-                )
-        rule3 = ctrl.Rule(
-                    (confidence['high'] | confidence['acceptable']) & variance['stable'] & clumping['dense'], 
-                    reliability['acceptable']
-                )
-        
-        #Conditions for 'unacceptable' reliability
-        rule4 = ctrl.Rule(
-                    (confidence['acceptable'] | confidence['poor']) & (variance["jittery"] | variance['erratic']) & (clumping['moderate'] | clumping['dense']),
-                    reliability['unacceptable']
-                )
     
-        rule5 = ctrl.Rule(
-                    confidence['poor'] | variance['erratic'], 
-                    reliability['unacceptable']
-                )
-
+        # Prescriptive Reliability Output MFs
+        reliability['unacceptable'] = fuzz.trapmf(reliability.universe, [0.0, 0.0, 0.40, 0.60])
+        reliability['acceptable'] = fuzz.trimf(reliability.universe, [0.45, 0.70, 0.88])
+        reliability['excellent'] = fuzz.trapmf(reliability.universe, [0.80, 0.90, 1.0, 1.0])
+        
+        # Rules (Included rule6 in the control system)
+        rule1 = ctrl.Rule((confidence['high'] | confidence['acceptable']) & variance['stable'] & (clumping['sparse'] | clumping['moderate']), reliability['excellent'])
+        rule2 = ctrl.Rule((confidence['high'] | confidence['acceptable']) & variance['stable'] & (clumping['dense']), reliability['acceptable'])
+        rule3 = ctrl.Rule((confidence['high'] | confidence['acceptable']) & variance['jittery'] & (clumping['dense'] | clumping['moderate'] | clumping['sparse']), reliability['acceptable'])
+        rule4 = ctrl.Rule((confidence['high'] | confidence['acceptable'] | confidence['poor']) & (variance['erratic']), reliability['unacceptable'])
+        rule5 = ctrl.Rule(confidence['poor'], reliability['unacceptable'])
+        
         judge_ctrl = ctrl.ControlSystem([rule1, rule2, rule3, rule4, rule5])
         return ctrl.ControlSystemSimulation(judge_ctrl)
 
